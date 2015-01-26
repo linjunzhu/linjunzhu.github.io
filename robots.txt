@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: 
 
-Sitemap: http://linjunzhu.github.io/sitemap.xml 
+Sitemap: https://github.com/linjunzhu/linjunzhu.github.io.git/sitemap.xml 

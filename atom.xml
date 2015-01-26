@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[LinJunzhu]]></title>
-  <link href="http://linjunzhu.github.io/atom.xml" rel="self"/>
-  <link href="http://linjunzhu.github.io/"/>
-  <updated>2015-01-26T14:17:55+08:00</updated>
-  <id>http://linjunzhu.github.io/</id>
+  <title><![CDATA[林俊柱的博客]]></title>
+  <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/atom.xml" rel="self"/>
+  <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/"/>
+  <updated>2015-01-26T14:40:22+08:00</updated>
+  <id>https://github.com/linjunzhu/linjunzhu.github.io.git/</id>
   <author>
     <name><![CDATA[林俊柱]]></name>
     
