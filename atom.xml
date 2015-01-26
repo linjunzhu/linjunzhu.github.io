@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[LinJunzhu]]></title>
+  <link href="http://linjunzhu.github.io/atom.xml" rel="self"/>
+  <link href="http://linjunzhu.github.io/"/>
+  <updated>2015-01-26T14:17:55+08:00</updated>
+  <id>http://linjunzhu.github.io/</id>
+  <author>
+    <name><![CDATA[林俊柱]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+</feed>
