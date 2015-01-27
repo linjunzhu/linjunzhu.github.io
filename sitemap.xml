@@ -1,14 +1,104 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/12/26/zai-ruby-zhong-yong-ssh-lai-gen-fu-wu-qi-jin-xing-tong-xin/</loc>
+    <lastmod>2014-12-26T15:01:21+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/12/26/shi-yong-rsync/</loc>
+    <lastmod>2014-12-26T15:00:40+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/12/26/mina-jian-jie-shi-yong/</loc>
+    <lastmod>2014-12-26T15:00:12+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/12/26/shi-yong-capistrano-lai-bu-shu-ying-yong/</loc>
+    <lastmod>2014-12-26T14:58:57+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/12/26/linux-shi-yong-lvm-lai-jin-xing-ying-pan-kuo-rong/</loc>
+    <lastmod>2014-12-26T14:56:45+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/12/26/hou-tai-ren-wu-vs-xiao-xi-dui-lie-%5Byi-%5D/</loc>
+    <lastmod>2014-12-26T14:56:25+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/12/26/dalli-%5Byi-%5D/</loc>
+    <lastmod>2014-12-26T14:55:59+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/24/git/</loc>
+    <lastmod>2014-10-24T20:12:33+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/07/rails-zhong-de-assets-pipeline-ji-zhi/</loc>
+    <lastmod>2014-10-07T21:59:06+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/07/ubuntuxia-xiu-gai-mysql5-dot-5zhong-wen-bian-ma/</loc>
+    <lastmod>2014-10-07T13:58:12+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/05/railszhong-de-huan-cun-ji-zhi/</loc>
+    <lastmod>2014-10-05T11:43:10+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/04/nginxde-fan-xiang-dai-li/</loc>
+    <lastmod>2014-10-04T18:28:48+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/09/21/doorkeepershi-yong-jian-jie/</loc>
+    <lastmod>2014-09-21T21:39:25+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/09/14/rails-zhong-rake-de-zhi-shi/</loc>
+    <lastmod>2014-09-14T00:39:14+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/07/02/ru-he-shi-yong-websocket-rails/</loc>
+    <lastmod>2014-07-02T22:43:33+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/06/12/ru-he-shi-yong-gitbook/</loc>
+    <lastmod>2014-06-12T17:29:25+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/06/12/li-yong-octopresszai-githubshang-da-jian-bo-ke/</loc>
+    <lastmod>2014-06-12T14:13:44+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/06/10/hello-world/</loc>
+    <lastmod>2014-06-10T13:30:06+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/archives/</loc>
-    <lastmod>2015-01-26T14:40:22+08:00</lastmod>
+    <lastmod>2015-01-27T16:03:17+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/</loc>
-    <lastmod>2015-01-26T14:40:22+08:00</lastmod>
+    <lastmod>2015-01-27T16:03:17+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>

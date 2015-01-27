@@ -1,0 +1,246 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>如何使用websocket-rails - LinJunzhu&#8217;s Blog</title>
+	<meta name="author" content="林俊柱">
+
+	
+	<meta name="description" content="如何使用WebSocket-rails 1、WebSocket简介 WebSocket是Html5才出的一种协议，可以实现双向通信。而http请求仅能实现单向通信。comet也可以模拟双向通信，不过效率较低，需要耗费大量的服务器资源。 2、应用范围 可以作推送，聊天室等等 3、开始动工 &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="LinJunzhu's Blog" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script async="true" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+</head>
+
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">LinJunzhu&#8217;s Blog</a></h1>
+<nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</nav>
+<nav id="mobile-nav">
+	<div class="alignleft menu">
+		<a class="button">Menu</a>
+		<div class="container"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</div>
+	</div>
+	<div class="alignright search">
+		<a class="button"></a>
+		<div class="container">
+			<form action="https://www.google.com/search" method="get">
+				<input type="text" name="q" results="0">
+				<input type="hidden" name="q" value="site:github.com/linjunzhu/linjunzhu.github.io.git">
+			</form>
+		</div>
+	</div>
+</nav>
+<nav id="sub-nav" class="alignright">
+	<div class="social">
+		
+		
+		
+		
+    
+		
+		
+		
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+    
+	</div>
+	<form class="search" action="https://www.google.com/search" method="get">
+		<input class="alignright" type="text" name="q" results="0">
+		<input type="hidden" name="q" value="site:github.com/linjunzhu/linjunzhu.github.io.git">
+	</form>
+</nav>
+
+</header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h2 class="title">如何使用websocket-rails</h2>
+	<div class="entry-content"><h1>如何使用WebSocket-rails</h1>
+
+<h4>1、WebSocket简介</h4>
+
+<p>WebSocket是Html5才出的一种协议，可以实现双向通信。而http请求仅能实现单向通信。comet也可以模拟双向通信，不过效率较低，需要耗费大量的服务器资源。</p>
+
+<h4>2、应用范围</h4>
+
+<p>可以作推送，聊天室等等</p>
+
+<h4>3、开始动工</h4>
+
+<ol>
+<li>将<code>websocket-rails</code> gem 加入 <code>gemfile</code>, and then excute <code>bundle</code></li>
+<li>Run the installation generator: <code>rails g websocket_rails:install</code></li>
+</ol>
+
+
+<h4>4、操作Controller</h4>
+
+<p>1.创建Controller</p>
+
+<pre><code>class ChatController &lt; WebsocketRails::BaseController
+    def initialize_session
+        可以在这里做一些初始操作
+
+            end
+</code></pre>
+
+<p><code>``
+2.设置路由
+在</code>events.rb`文件中加入：</p>
+
+<pre><code>WebsocketRails::EventMap.describe do
+    namespace :tasks do
+        subscribe :create, to: TaskController, with_method: :create
+    end
+end
+</code></pre>
+
+<p>也就是声明可以访问的websocket路由</p>
+
+<p>3.客户端发送请求</p>
+
+<p>在JS文件中，编写代码：</p>
+
+<pre><code>var task = {
+    name: 'i am roller'
+    age: 15
+}
+
+var dispatcher = new WebSocketRails('localhost:3000/websocket')
+
+#对tasks命名空间下的create方法(前面所定义的路由)发送请求，并且请求参数为task
+dispatcher.trigger('tasks.create', task)
+</code></pre>
+
+<p>4.服务端处理请求</p>
+
+<p>在controller中 handle 这个事件</p>
+
+<pre><code>class TaskController &lt; WebsocketRails::BaseControler
+    def create
+        # task为事先创建好的model
+        task = Task.new message
+        if task.save
+            send_message: create_success, task, namespace: :tasks
+        else
+            send_message: create_fail, task, namespace: :tasks
+        end
+    end
+end
+</code></pre>
+
+<p>5.服务端发送请求
+上面的代码，<code>send_message</code> 表示对客户端触发 &lsquo;create_success&#8217;事件，参数为task, 命名空间为tasks</p>
+
+<p>6.客户端处理请求</p>
+
+<pre><code>dispatcher.bind('tasks.create_success', function(task){
+    console.log('successfully created' + task.name)
+})
+</code></pre>
+
+<p>7.服务端发送请求，客户端处理请求的第二种写法</p>
+
+<p>在客户端：</p>
+
+<pre><code>var success = function(task){
+    console.log('something');
+}
+
+var failure = function(task){
+    console.log('something');
+}
+
+# 直接将方法绑定，然后由服务端去触发
+dispatcher.trigger('tasks.create', task, success, failure);
+</code></pre>
+
+<p>在服务端：</p>
+
+<pre><code>def create
+    task = Task.create message
+    if task.save
+      trigger_success task
+    else
+      trigger_failure task
+    end
+end         ils&gt;
+</code></pre>
+</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-07-02T22:43:33+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+		
+		
+		<a class="addthis_button_tweet"></a>
+		
+		
+		
+	</div>
+	
+</div>
+
+
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2015
+
+    林俊柱
+
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+
+
+
+</body>
+</html>
