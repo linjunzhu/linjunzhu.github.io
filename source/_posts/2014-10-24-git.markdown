@@ -1,0 +1,286 @@
+---
+layout: post
+title: "Git"
+date: 2014-10-24 20:12:33 +0800
+comments: true
+categories: 
+---
+##Git 和 SVN 的区别
+Git 和  SVN 最大的区别概念在于：Git 是分布式，而 SVN 是集中式管理。
+
+###一、SVN
+
+所谓集中式版本控制工具，总有一个中心服务器，提供一个项目仓库，大家的代码的提交都是统一提交到这个中心服务器上的
+
+SVN 的模式：
+
+1. 写代码。
+2. 从服务器拉回服务器的当前版本库，并解决服务器版本库与本地代码的冲突。
+3. 将本地代码提交到服务器。
+
+每个人的 commit 都是直接提交到服务器。容易造成与其他人的冲突
+
+###二、Git
+
+分布式版本控制工具类似Git，可以有多个代码仓库，比如可以在本地。同时它可以方便的进行代码仓库合并
+
+Git 的模式：
+
+1. 写代码。
+2. 提交到本地版本库。
+3. 从服务器拉回服务器的当前版本库，并解决服务器版本库与本地代码的冲突。
+4. 将远程库与本地代码合并结果提交到本地版本库。
+5. 将本地版本库推到服务器。
+
+###三、总结
+虽然  Git 和 SVN 看起来很像，都有一个服务器库，但其实 Git 是没有中心服务器这个概念的，尽管每个人平时都是先将代码统一提交到中央服务器再统一 pull 其他人的代码，但实际情况是我们可以先 pull 张三的库，再 push 给李四等等操作，只要知道对方的IP地址仓库地址即可( 不过很少这么做)
+
+在 Github 上，你可以任意 fork 别人的仓库，按照自己的需求进行改造，或者提出 pull request 请原作者 merge 你所修改的代码。这里面没有‘中心’这个概念。
+
+每一次的 commit，SVN 都需要网络，而 Git 则不用，因为有本地仓库的概念，这样的好处是，即使你短时间断网都无所谓，还是可以不断的 commit，来追踪版本。
+
+分布式版本控制系统通常也有一台充当“中央服务器”的电脑，但这个服务器的作用仅仅是用来方便“交换”大家的修改，没有它大家也一样干活，只是交换修改不方便而已。
+
+## Git 基础知识
+
+###Git 的对象模型
+<https://ruby-china.org/topics/20723>
+这帖子讲得很好。
+总共分为：
+
+1. commit 
+2. tree
+3. blog
+
+commit ： 提交信息
+
+tree ：指向其他的 tree / blog
+
+blog：文件的内容
+
+###Git 的结构
+
+![](http://data-storage.qiniudn.com/git_struct.png)
+分为工作区，暂存区，以及本地仓库
+
+##git push
+
+git push : 默认只会推送当前分支到远程分支，但是前提是当前分支要跟远程分支有 tracking 关系
+
+查看 tracking 关系：
+```ruby
+$ cat ./.git/config
+
+==>
+[remote "origin"]
+	url = git@github.com:linjunzhu/first_app.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+```
+
+默认 master 跟 origin /master 就已经有 tracking 关系了
+
+### 如何trakcing?
+```ruby
+git push -u origin dev  ( 这句同时指定了 origin 为默认主机 )
+/
+git branch -u dev origin /dev
+```
+
+## git pull
+如果当前分支与远程分支有追踪关系，`git pull` 可以省略远程分支名。
+
+`git pull origin`
+
+如果当前分支只有一个主机名，连主机名都可以省略
+
+`git pull`
+
+如果当前分支跟远程分支是没有 tracking 关系的，那么执行`git pull`后，会 download  代码到本地的 origin/分支上，但是不会合并，相当于 `git fetch` 命令一样。
+
+`若只有一个 remote主机，假设叫 origin，那么 git pull 等价于 git pull origin；`
+
+##结论
+一般如果没把握，最好写全。
+```ruby
+git push origin dev
+git pull origin dev
+```
+
+
+##git pull 和 git fetch 的使用区别
+
+1.  `git pull origin master`: 意思是从远程端下载最新版本到当前分支，并且自动合并
+
+2.  `git fetch origin master`: 意思是从远程端下载最新版本到当前分支，但是并不合并。因此如果是git fetch 的话，就需要做两步操作。
+
+
+```
+	git fetch origin master
+	
+	git log -p master origin/master   (查看修改内容)
+	
+	git  merge orgin/master	(合并分支)
+```
+
+####git merge 和 git rebase 的区别
+
+两者都是合并分支的功能，但是区别在于:
+
+假如合并前是这样的：
+
+```
+D---E master
+     /
+A---B---C---F origin/master
+```
+
+使用merge后
+
+```
+      D--------E  
+     /          \
+A---B---C---F----G   master, origin/master
+```
+
+使用rebase后，就不会有G这个结点
+
+```
+A---B---C---F---D'---E'   master, origin/master
+```
+
+注意到，其中 D’, E’ 的 commit SHA 序號跟本來 D, E 是不同的，因為算是砍掉重新 commit 了。
+但是，需要注意的是：合并会有冲突的可能，只有解决冲突后才可以继续提交。那么，使用rebase的坏处就是，因为算是砍掉D E 重新commit ,那么这里就可能会造成两次冲突，需要修改两次。而merge只需要修改一次
+因此，如果是小规模改动，冲突不会太大的话，建议使用rebase,否则使用merge。
+
+使用reabse的好处是可以让分支不会那么乱。
+
+那么，解决冲突后，使用merge的话，一般都是
+
+```
+	$ git add .
+	$ git commit -am 'xx'
+	$ git push origin master
+```
+
+使用rebase则不用。
+
+```
+	$ git rebase --continue
+```
+	
+
+```
+	$ git pull --rebase
+	
+	$ git rebase master （指当前分支合并到master， merge则相反，注意） 
+```
+
+#### 关于 -am 的解释
+
+
+git commit -am “message” 代表：git add 和 git commit同时执行，但是这样并不会commit新增加的文件，需要git add .  然后执行 git commit -m “xxx”，才会commit新增的文件。
+
+而删除文件有两种操作，一种是我们直接删除rm,这样commit后并不会提交删除文件命令，因此远程仓库文件还存在，因此要commit -am ‘xx”,这样就会执行删除文件命令。
+一种是git rm， 然后commit -m “xx” 即可。
+
+虽然git commit -am “xx” 等于 add 和 commit两种命令一起，但是 git commit -am ,并不会提交新增加的文件。
+
+git commit -a的命令就是：只会更新修改，删除。
+
+因此，平常只要  git add .  （提交新增、更改后的文件），然后git commit -am “xx” （保存新增，更改后的文件，以及删除的文件），然后push即可。
+不过，git add. -A 也会记录删除的文件
+ push新分支时（此时远程仓库还未有新分支）
+要先git push -u origin newBranchName
+然后git add .    git commit -am ‘xx’    git push 
+因为如果不先push创建一个新分支，这时候的commit信息会留在旧的分支上，虽然资料也会上传到newBranchName分支上。以后得再深入了解了解git才行！
+
+
+## Git 的撤销操作
+
+###1、取消本地修改，恢复到上一次的commit
+
+如果你的本地文件修改得一团乱，但是还没有提交，可以通过下面的命令恢复到上次提交时的状态( 其实就是恢复到上次的 commit，因此这次的本地修改自然没了）（`注意是修改，不包括添加文件`）
+
+```
+git reset --hard
+```
+
+这条命令将会取消掉本地的所有修改，恢复到上一次我们的commit信息
+
+###2、取消 git add 的文件
+有时我们会不小心git add . 所有文件，想反悔，取消某些add的文件。那么可以(还原暂存区)
+
+```
+git reset HEAD xxxx
+```
+
+###3、取消对文件的修改
+如果觉得刚才对XX文件的修改没有必要，想要恢复，那么:
+
+```
+git checkout -- xxx
+```
+
+###4、取消已经提交的修改
+如果已经做了一个提交(commit),并且马上后悔了。那么可以创建一个新的提交，在新提交里撤销老的提交所做的修改
+
+创建一个新的，撤销(revert)了前期修改的提交(commit)是很容易的。
+
+```
+git revert HEAD
+```
+这样就创建了一个撤销了上次提交(HEAD)的新提交
+
+```
+gir revert HEAD^
+```
+撤销上上次
+
+###5、总结
+####回滚到某一次 commit
+`git reset --hard aa89cd6bcc`
+
+这样会回滚到某个commit状态，只要知道commit id 就可以
+
+####回滚后反悔怎么办？
+
+`git reflog` 记录了我们的每一次命令（ commit、merge 等信息）
+
+根据这命令来查出我们的历史 commit id，然后 `git reset `即可
+
+1. HEAD指向的版本就是当前版本，因此，Git允许我们在版本的历史之间穿梭，使用命令git reset --hard commit_id。
+
+2. 穿梭前，用git log可以查看提交历史，以便确定要回退到哪个版本。
+3. 要重返未来，用git reflog查看命令历史，以便确定要回到未来的哪个版本。
+4.  场景1：当你改乱了工作区某个文件的内容，想直接丢弃工作区的修改时，用命令git checkout -- file。
+
+5. 场景2：当你不但改乱了工作区某个文件的内容，还添加到了暂存区时，想丢弃修改，分两步，第一步用命令git reset HEAD file，就回到了场景1，第二步按场景1操作。
+
+###6. 取消已经 push 的行为
+
+```ruby
+# 备份到另一分支，以防万一
+git branch old_master
+
+# 推送备份分支
+git push origin old_master:old_master
+
+# 本地仓库回退到某一版本
+git reset -hard xxxx
+
+# 删除远程分支
+git push origin :master
+
+# 推送本地还原后的分支
+git push origin master
+```
+
+##参考
+[廖雪峰 Git 教程](http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/001374027586935cf69c53637d8458c9aec27dd546a6cd6000)
+
+[Git 官方](http://git-scm.com)
+
+[Git 官方教程](http://git-scm.com/book/zh)
