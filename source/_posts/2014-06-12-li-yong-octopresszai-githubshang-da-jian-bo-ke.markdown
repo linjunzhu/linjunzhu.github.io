@@ -14,6 +14,8 @@ categories:
 4. 部署Octopress
 5. 开始写博客
 6. 更换主题
+7. 绑定域名
+8. 回顾
 
 
 ####1、安装Ruby
@@ -121,3 +123,25 @@ _config.yml是博客很重要的一个文件，根据需求开启第三方组件
 	$ rake install\['slash'\]
 	$ rake generate
 ```
+
+
+####7、绑定域名
+比如我有一个 `linjunzhu.me`这个域名，那要如何做才能当我访问`linjunzhu.github.io`会自动跳转到`linjunzhu.me`进行访问呢？
+
+1. 在 Github 中的博客仓库中，添加一个 `CNAME` 文件，里面写明我们所跳转的域名 `linjunzhu.me`
+2. 使用 DNS 解析服务，将我们的域名指向该地址。
+
+不过，由于 `rake generate` 和 `rake deploy`每次都会重新生成整个`master`分支，建议第一步不要直接在 Github 上操作。
+
+而是在 Source 分支下的 source 目录添加`CNAME`文件。
+
+这样当运行`rake generate`时会将`source`目录整个复制到`public`目录，运行`rake deploy`则会将`public`目录整个复制到`_deploy`目录。
+
+####8、回顾
+当成功后，我们访问`linjunzhu.github.io`时，会自动跳往`linjunzhu.me`，这时 Chrome 会自动缓存起来，以后访问`linjunzhu.github.io`都会自动跳往后者（无论有无 CANME）。
+
+因此，当时我`CNAME`文件丢失后，访问`linjunzhu.github.io`总会自动跳往后者并且显示`404`，搞了许久以为是博客搞乱了，其实是 Chrome 的原因。
+
+有人会问，为什么我还需要在分支上创建`CNAME`文件，而不能直接用 DNS 解析服务，将域名指向`linjunzhu.github.io`不就完事了吗？
+
+因为 Github 做了处理，只有域名是`linjunzhu.github.io`才会跳往至博客页面，而访问`linjunzhu.me`，域名不符，是不会的，因此才需要第一步创建`CNAME`

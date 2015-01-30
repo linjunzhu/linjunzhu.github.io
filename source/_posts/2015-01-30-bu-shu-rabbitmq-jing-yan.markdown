@@ -53,7 +53,7 @@ rabbitmq-plugins enable rabbitmq_management
 
 ## 可能出现的错误
 1. 总是提示 
-```shell
+```ruby
   ls: cannot access /etc/rabbitmq/rabbitmq.conf.d: No such file or directory
 ```
 
