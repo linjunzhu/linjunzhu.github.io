@@ -7,15 +7,7 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="1、前言 之前一直对缓存处于模模糊糊的概念，昨天下定决心好好恶补一下，因此写下這篇文章做下总结，只有简单的知识点，木有高深内容: ) 2、前端缓存 我们平常所使用的浏览器，是有带缓存区的。 图不太好画啊，泪流满面。 图中的“文字太长，下面解释”： 1
-2
-3
-4
-5
-6
-7
-8
-浏览器会附带` &hellip;">
+	<meta name="description" content="前言 我以前一直认为，Rails 的预编译就是把所有 css 和 js 分别整合成一个文件，并且进行压缩等操作。 其实并不是，Rails 预编译的意思，就只是预先编译那些 scss, coffee 等文件为 css, js 的意思。 而给文件名加上 hash 值得，整合成一个文件， &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -82,6 +74,383 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/07/rails-zhong-de-assets-pipeline-ji-zhi/">
+		
+			Rails 中的 Assets Pipeline 机制</a>
+	</h2>
+	<div class="entry-content">
+		<h2>前言</h2>
+
+<p>我以前一直认为，Rails 的预编译就是把所有 css 和 js 分别整合成一个文件，并且进行压缩等操作。</p>
+
+<p>其实并不是，Rails 预编译的意思，就只是预先编译那些 scss, coffee 等文件为 css, js 的意思。</p>
+
+<p>而给文件名加上 hash 值得，整合成一个文件，压缩等等所有操作，都是Rails 中一个叫做 <code>Assets Pipeline</code> 功能实现的</p>
+
+<h2>Asset Pipeline</h2>
+
+<p><code>Asset Pipeline</code> 提供了一个框架，用于连接、压缩 JavaScript 和 CSS 文件。还允许使用其他语言和预处理器编写 JavaScript 和 CSS，例如 CoffeeScript、Sass 和 ERB。</p>
+
+<p><code>Asset Pipeline</code>在Rails4中已经从框架中提取出来成为：<code>sprockets-rails</code> gem</p>
+
+<p><code>Asset Pipeline</code>有三个主要功能：</p>
+
+<ol>
+<li>连接所有静态资源，分别成为一个js css文件</li>
+<li>压缩静态资源</li>
+<li>允许使用高级语言编写静态资源，如 sass coffee</li>
+</ol>
+
+
+<p>Rails 4 会自动把 sass-rails、coffee-rails 和 uglifier 三个 gem 加入 Gemfile。Sprockets 使用这三个 gem 压缩静态资源：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s1">&#39;sass-rails&#39;</span>
+</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;uglifier&#39;</span>
+</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;coffee-rails&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>默认情况下，在生产环境中，Rails 会把预先编译好的文件保存到 public/assets 文件夹中，网页服务器会把这些文件视为静态资源。在生产环境中，不会直接伺服 app/assets 文件夹中的文件。</p>
+
+<p>默认编译的文件包括 application.js、application.css 以及 gem 中 app/assets 文件夹中的所有非 JS/CSS 文件（会自动加载所有图片）</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">[</span> <span class="no">Proc</span><span class="o">.</span><span class="n">new</span> <span class="p">{</span> <span class="o">|</span><span class="n">path</span><span class="p">,</span> <span class="n">fn</span><span class="o">|</span> <span class="n">fn</span> <span class="o">=~</span> <span class="sr">/app\/assets/</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="sx">%w(.js .css)</span><span class="o">.</span><span class="n">include?</span><span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">extname</span><span class="p">(</span><span class="n">path</span><span class="p">))</span> <span class="p">},</span>
+</span><span class='line'><span class="sr">/application.(css|js)$/</span> <span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个正则表达式表示最终要编译的文件</p>
+
+<p>最终会编译成： application-adfea1231s.js ,   application-sfef234df.css， xxx-sdfsdfe.png  等</p>
+
+<p>因此如果我们想要自己添加单独编译出来的文件的话：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">precompile</span> <span class="o">+=</span> <span class="o">[</span><span class="s1">&#39;admin.js&#39;</span><span class="p">,</span> <span class="s1">&#39;admin.css&#39;</span><span class="p">,</span> <span class="s1">&#39;swfObject.js&#39;</span><span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意，即便想添加 Sass 或 CoffeeScript 文件，也要把希望编译的文件名设为 .js 或 .css。（ 因为 sass 最终也是要解析成 .css 的）</p>
+
+<h2>对 Bootstrap 遇到的坑</h2>
+
+<p>之前引入了 Bootstrap 后，预编译一直出现</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Sass</span><span class="o">::</span><span class="ss">SyntaxError</span><span class="p">:</span> <span class="no">Undefined</span> <span class="ss">variable</span><span class="p">:</span> <span class="s2">&quot;$alert-padding&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>之后折腾了许久，才发现我在 assets.rb 里设置了</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">precompile</span> <span class="o">+=</span> <span class="o">[*.</span><span class="n">js</span><span class="o">]</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">precompile</span> <span class="o">+=</span> <span class="o">[*.</span><span class="n">css</span><span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>因为我把所有 js css 都单独编译了，而 bootstrap 有两份 css 文件，其中一份定义了 bootstrap 的变量，如: <code>$alert-padding</code>，而这个变量在第二个 css 文件中被引用，因此，当第二个文件单独编译时，就会发现找不到这个变量了。</p>
+
+<p>解决方法：</p>
+
+<ol>
+<li><p>按需加入自己要的文件</p></li>
+<li><p>编译所有静态资源，但是去除bootstrap相关的( 这里还没去除 )</p></li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># config/application.rb</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">precompile</span> <span class="o">&lt;&lt;</span> <span class="no">Proc</span><span class="o">.</span><span class="n">new</span> <span class="k">do</span> <span class="o">|</span><span class="n">path</span><span class="o">|</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">path</span> <span class="o">=~</span> <span class="sr">/\.(css|js)\z/</span>
+</span><span class='line'>    <span class="n">full_path</span> <span class="o">=</span> <span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">to_path</span>
+</span><span class='line'>    <span class="n">app_assets_path</span> <span class="o">=</span> <span class="no">Rails</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;app&#39;</span><span class="p">,</span> <span class="s1">&#39;assets&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_path</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">full_path</span><span class="o">.</span><span class="n">starts_with?</span> <span class="n">app_assets_path</span>
+</span><span class='line'>      <span class="nb">puts</span> <span class="s2">&quot;including asset: &quot;</span> <span class="o">+</span> <span class="n">full_path</span>
+</span><span class='line'>      <span class="kp">true</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>      <span class="nb">puts</span> <span class="s2">&quot;excluding asset: &quot;</span> <span class="o">+</span> <span class="n">full_path</span>
+</span><span class='line'>      <span class="kp">false</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">else</span>
+</span><span class='line'>    <span class="kp">false</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>静态资源优化</h2>
+
+<h3>1. 设置过期时间</h3>
+
+<p>编译好的静态资源存放在服务器的文件系统中，直接由网页服务器伺服。默认情况下，没有为这些文件设置一个很长的过期时间。为了能充分发挥指纹的作用，需要修改服务器的设置，添加相关的报头。</p>
+
+<p>针对 Nginx</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">location</span> <span class="o">~</span> <span class="o">^/</span><span class="n">assets</span><span class="o">/</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">expires</span> <span class="mi">1</span><span class="n">y</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">add_header</span> <span class="no">Cache</span><span class="o">-</span><span class="no">Control</span> <span class="kp">public</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">add_header</span> <span class="no">ETag</span> <span class="s2">&quot;&quot;</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>2. 使用 gzip 压缩</h3>
+
+<p>Sprockets 预编译文件时还会创建静态资源的 gzip 版本（.gz）。网页服务器一般使用中等压缩比例，不过因为预编译只发生一次，所以 Sprockets 会使用最大的压缩比例，尽量减少传输的数据大小。网页服务器可以设置成直接从硬盘伺服压缩版文件，无需直接压缩文件本身。</p>
+
+<p>在 Nginx 中启动 gzip_static 模块后就能自动实现这一功能：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">location</span> <span class="o">~</span> <span class="o">^/</span><span class="p">(</span><span class="n">assets</span><span class="p">)</span><span class="o">/</span>  <span class="p">{</span>
+</span><span class='line'>  <span class="n">root</span> <span class="sr">/path/</span><span class="n">to</span><span class="o">/</span><span class="kp">public</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">gzip_static</span> <span class="n">on</span><span class="p">;</span> <span class="c1"># to serve pre-gzipped version</span>
+</span><span class='line'>  <span class="n">expires</span> <span class="n">max</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">add_header</span> <span class="no">Cache</span><span class="o">-</span><span class="no">Control</span> <span class="kp">public</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果编译 Nginx 时加入了 gzip_static 模块，就能使用这个指令。Nginx 针对 Ubuntu/Debian 的安装包，以及 nginx-light 都会编译这个模块。否则就要手动编译：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">.</span><span class="n">/configure</span> <span class="o">--</span><span class="n">with</span><span class="o">-</span><span class="n">http_gzip_static_module</span> <span class="p">(</span> <span class="err">还没试过）</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>本地预编译</h2>
+
+<p>为什么要在本地预编译静态文件呢？原因如下：</p>
+
+<ol>
+<li>可能无权限访问生产环境服务器的文件系统；</li>
+<li>可能要部署到多个服务器，避免重复编译；</li>
+<li>可能会经常部署，但静态资源很少改动；</li>
+</ol>
+
+
+<p>不过有两点要注意：</p>
+
+<ol>
+<li>一定不能运行 Capistrano 部署任务来预编译静态资源；</li>
+<li>必须修改下面这个设置；</li>
+</ol>
+
+
+<p>在 config/environments/development.rb 中加入下面这行代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;/dev-assets&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>修改 prefix 后，在开发环境中 Sprockets 会使用其他的 URL 伺服静态资源，把请求都交给 Sprockets 处理。但在生产环境中 prefix 仍是 /assets。如果没作上述修改，在生产环境中还是会从 /assets 伺服静态资源，但是除非再次编译，否则看不到文件的变化。</p>
+
+<p>但为什么部署的时候不会再次编译呢？明明文件内容都发生变化了，奇怪？</p>
+
+<p>之前预编译后，public下有/assets文件夹（production环境），但是请求的静态资源却全部都是 development 下的请求方式，（不带hash值的文件名)，奇怪- - 以后有空好好研究下。</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-07T21:59:06+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/07/ubuntuxia-xiu-gai-mysql5-dot-5zhong-wen-bian-ma/">
+		
+			Ubuntu下修改Mysql5.5中文编码</a>
+	</h2>
+	<div class="entry-content">
+		<h2>前言</h2>
+
+<p>由于之前在 Ubuntu 下安装 Mysql时，忘记选择编码，于是全部都是 Latin 编码，折腾了一阵子搞定了</p>
+
+<h2>Begin</h2>
+
+<p>在网上搜了一阵教程，明白 Mysql 安装后的一系列目录：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="sr">/etc/ini</span><span class="n">t</span><span class="o">.</span><span class="n">d</span><span class="o">/</span><span class="n">mysql</span>  <span class="p">(</span> <span class="err">启动脚本）</span>
+</span><span class='line'><span class="sr">/etc/m</span><span class="n">ysql</span><span class="o">/</span><span class="n">my</span><span class="o">.</span><span class="n">cnf</span> <span class="p">(</span> <span class="no">MySQL</span> <span class="err">的配置文件</span> <span class="p">)</span>
+</span><span class='line'><span class="sr">/var/</span><span class="n">lib</span><span class="o">/</span><span class="n">mysql</span>   <span class="p">(</span> <span class="err">数据库文件存放路径）</span>
+</span><span class='line'><span class="sr">/usr/</span><span class="n">lib</span><span class="o">/</span><span class="n">mysql</span>  <span class="err">（</span><span class="no">Mysql</span> <span class="err">安装路径</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">命令：</span><span class="n">service</span> <span class="n">mysql</span> <span class="n">start</span> <span class="o">/</span> <span class="n">stop</span> <span class="o">/</span> <span class="n">restart</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Mysql 版本： 5.5以上</p>
+
+<h2>Doing</h2>
+
+<p>按照网上教程，打开 <code>my.cnf</code>，在[client] [mysqld] 下加上
+<code>default-character-set=utf8</code></p>
+
+<p>结果启动mysql报错，于是我查看了<code>/var/log/mysql/error.log</code>的日志，这里用<code>cat</code>命令load不出东西，要直接vim进去才行，奇怪。</p>
+
+<p>报错原因：<code>unknown variable 'default-set-server=utf8'</code></p>
+
+<p>最终解决：
+Mysql 版本5.5 以上，需要这么做：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">在</span><span class="o">[</span><span class="n">client</span><span class="o">]</span><span class="err">下添加：</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">default</span><span class="o">-</span><span class="n">character</span><span class="o">-</span><span class="n">set</span><span class="o">=</span><span class="n">utf8</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">在</span><span class="o">[</span><span class="n">mysqld</span><span class="o">]</span> <span class="err">下添加：</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">character</span><span class="o">-</span><span class="n">set</span><span class="o">-</span><span class="n">server</span><span class="o">=</span><span class="n">utf8</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">在</span><span class="o">[</span><span class="n">mysql</span><span class="o">]</span> <span class="err">下添加</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">default</span><span class="o">-</span><span class="n">character</span><span class="o">-</span><span class="n">set</span><span class="o">=</span><span class="n">utf8</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后重启mysql</p>
+
+<p><code>sudo service mysql restart</code></p>
+
+<p>进入mysql终端</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">show</span> <span class="n">variables</span> <span class="n">like</span> <span class="s1">&#39;%character%&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="c1">#会有如下显示：</span>
+</span><span class='line'><span class="o">+--------------------------+----------------------------+</span>
+</span><span class='line'><span class="o">|</span> <span class="no">Variable_name</span>            <span class="o">|</span> <span class="no">Value</span>                      <span class="o">|</span>
+</span><span class='line'><span class="o">+--------------------------+----------------------------+</span>
+</span><span class='line'><span class="o">|</span> <span class="n">character_set_client</span>     <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
+</span><span class='line'><span class="o">|</span> <span class="n">character_set_connection</span> <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
+</span><span class='line'><span class="o">|</span> <span class="n">character_set_database</span>   <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
+</span><span class='line'><span class="o">|</span> <span class="n">character_set_filesystem</span> <span class="o">|</span> <span class="n">binary</span>                     <span class="o">|</span>
+</span><span class='line'><span class="o">|</span> <span class="n">character_set_results</span>    <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
+</span><span class='line'><span class="o">|</span> <span class="n">character_set_server</span>     <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
+</span><span class='line'><span class="o">|</span> <span class="n">character_set_system</span>     <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
+</span><span class='line'><span class="o">|</span> <span class="n">character_sets_dir</span>       <span class="o">|/</span><span class="n">usr</span><span class="o">/</span><span class="n">share</span><span class="o">/</span><span class="n">mysql</span><span class="o">/</span><span class="n">charsets</span><span class="o">/</span> <span class="o">|</span>
+</span><span class='line'><span class="o">+--------------------------+----------------------------+</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-07T13:58:12+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">

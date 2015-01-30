@@ -7,7 +7,9 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="在Ruby中用SSH跟服务器进行交流 前言 Net::SSH和Net::SCP是两个Ruby操作SSH的gem包。 Net::SSH相当于cmd，专门用于执行命令； Net::SCP专门用于传输文件。 它们俩结合，可以做任何SSH client能做的事情。 所需 Gem gem &lsquo; &hellip;">
+	<meta name="description" content="引言 这段时间团队需要跟 Google Glass 进行交互，因此要做一个推送机制。而 MQTT 协议的推送是当今最火热的一个。 Mosquitto 则是实现了 MQTT 协议的服务。 安装 在 Ubuntu 下： 1
+2
+sudo apt-add-repository ppa: &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -74,6 +76,643 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2015/01/30/shi-yong-mosquitto/">
+		
+			使用 Mosquitto</a>
+	</h2>
+	<div class="entry-content">
+		<h2>引言</h2>
+
+<p>这段时间团队需要跟 Google Glass 进行交互，因此要做一个推送机制。而 MQTT 协议的推送是当今最火热的一个。</p>
+
+<p>Mosquitto 则是实现了 MQTT 协议的服务。</p>
+
+<h2>安装</h2>
+
+<p>在 Ubuntu 下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">add</span><span class="o">-</span><span class="n">repository</span> <span class="ss">ppa</span><span class="p">:</span><span class="n">mosquitto</span><span class="o">-</span><span class="n">dev</span><span class="o">/</span><span class="n">mosquitto</span><span class="o">-</span><span class="n">ppa</span>
+</span><span class='line'><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">update</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果显示<code>apt-add-repository</code>没有识别，则可以：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">python</span><span class="o">-</span><span class="n">software</span><span class="o">-</span><span class="n">properties</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>配置</h2>
+
+<p>安装完成后，所有配置都会在 <code>/etc/mosquitto</code>目录下。其中最重要的则是<code>mosquitto.conf</code> 文件，以下则是配置文件内容。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+<span class='line-number'>124</span>
+<span class='line-number'>125</span>
+<span class='line-number'>126</span>
+<span class='line-number'>127</span>
+<span class='line-number'>128</span>
+<span class='line-number'>129</span>
+<span class='line-number'>130</span>
+<span class='line-number'>131</span>
+<span class='line-number'>132</span>
+<span class='line-number'>133</span>
+<span class='line-number'>134</span>
+<span class='line-number'>135</span>
+<span class='line-number'>136</span>
+<span class='line-number'>137</span>
+<span class='line-number'>138</span>
+<span class='line-number'>139</span>
+<span class='line-number'>140</span>
+<span class='line-number'>141</span>
+<span class='line-number'>142</span>
+<span class='line-number'>143</span>
+<span class='line-number'>144</span>
+<span class='line-number'>145</span>
+<span class='line-number'>146</span>
+<span class='line-number'>147</span>
+<span class='line-number'>148</span>
+<span class='line-number'>149</span>
+<span class='line-number'>150</span>
+<span class='line-number'>151</span>
+<span class='line-number'>152</span>
+<span class='line-number'>153</span>
+<span class='line-number'>154</span>
+<span class='line-number'>155</span>
+<span class='line-number'>156</span>
+<span class='line-number'>157</span>
+<span class='line-number'>158</span>
+<span class='line-number'>159</span>
+<span class='line-number'>160</span>
+<span class='line-number'>161</span>
+<span class='line-number'>162</span>
+<span class='line-number'>163</span>
+<span class='line-number'>164</span>
+<span class='line-number'>165</span>
+<span class='line-number'>166</span>
+<span class='line-number'>167</span>
+<span class='line-number'>168</span>
+<span class='line-number'>169</span>
+<span class='line-number'>170</span>
+<span class='line-number'>171</span>
+<span class='line-number'>172</span>
+<span class='line-number'>173</span>
+<span class='line-number'>174</span>
+<span class='line-number'>175</span>
+<span class='line-number'>176</span>
+<span class='line-number'>177</span>
+<span class='line-number'>178</span>
+<span class='line-number'>179</span>
+<span class='line-number'>180</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'><span class="c1"># General configuration</span>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 客户端心跳的间隔时间</span>
+</span><span class='line'><span class="c1">#retry_interval 20</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 系统状态的刷新时间</span>
+</span><span class='line'><span class="c1">#sys_interval 10</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 系统资源的回收时间，0表示尽快处理</span>
+</span><span class='line'><span class="c1">#store_clean_interval 10</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 服务进程的PID</span>
+</span><span class='line'><span class="c1">#pid_file /var/run/mosquitto.pid</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 服务进程的系统用户</span>
+</span><span class='line'><span class="c1">#user mosquitto</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 客户端心跳消息的最大并发数</span>
+</span><span class='line'><span class="c1">#max_inflight_messages 10</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 客户端心跳消息缓存队列</span>
+</span><span class='line'><span class="c1">#max_queued_messages 100</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 用于设置客户端长连接的过期时间，默认永不过期</span>
+</span><span class='line'><span class="c1">#persistent_client_expiration</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'><span class="c1"># Default listener</span>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 服务绑定的IP地址</span>
+</span><span class='line'><span class="c1">#bind_address</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 服务绑定的端口号</span>
+</span><span class='line'><span class="c1">#port 1883</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 允许的最大连接数，-1表示没有限制</span>
+</span><span class='line'><span class="c1">#max_connections -1</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># cafile：CA证书文件</span>
+</span><span class='line'><span class="c1"># capath：CA证书目录</span>
+</span><span class='line'><span class="c1"># certfile：PEM证书文件</span>
+</span><span class='line'><span class="c1"># keyfile：PEM密钥文件</span>
+</span><span class='line'><span class="c1">#cafile</span>
+</span><span class='line'><span class="c1">#capath</span>
+</span><span class='line'><span class="c1">#certfile</span>
+</span><span class='line'><span class="c1">#keyfile</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 必须提供证书以保证数据安全性</span>
+</span><span class='line'><span class="c1">#require_certificate false</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 若require_certificate值为true，use_identity_as_username也必须为true</span>
+</span><span class='line'><span class="c1">#use_identity_as_username false</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 启用PSK（Pre-shared-key）支持</span>
+</span><span class='line'><span class="c1">#psk_hint</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># SSL/TSL加密算法，可以使用“openssl ciphers”命令获取</span>
+</span><span class='line'><span class="c1"># as the output of that command.</span>
+</span><span class='line'><span class="c1">#ciphers</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'><span class="c1"># Persistence</span>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 消息自动保存的间隔时间</span>
+</span><span class='line'><span class="c1">#autosave_interval 1800</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 消息自动保存功能的开关</span>
+</span><span class='line'><span class="c1">#autosave_on_changes false</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 持久化功能的开关</span>
+</span><span class='line'><span class="n">persistence</span> <span class="kp">true</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 持久化DB文件</span>
+</span><span class='line'><span class="c1">#persistence_file mosquitto.db</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 持久化DB文件目录</span>
+</span><span class='line'><span class="c1">#persistence_location /var/lib/mosquitto/</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'><span class="c1"># Logging</span>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 4种日志模式：stdout、stderr、syslog、topic</span>
+</span><span class='line'><span class="c1"># none 则表示不记日志，此配置可以提升些许性能</span>
+</span><span class='line'><span class="n">log_dest</span> <span class="n">none</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">#还有一种写入文件的模式</span>
+</span><span class='line'><span class="n">log_dest</span> <span class="n">file</span> <span class="s1">&#39;/var/lib/mosquitto/mosquitto.log&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 选择日志的级别（可设置多项）</span>
+</span><span class='line'><span class="c1">#log_type error</span>
+</span><span class='line'><span class="c1">#log_type warning</span>
+</span><span class='line'><span class="c1">#log_type notice</span>
+</span><span class='line'><span class="c1">#log_type information</span>
+</span><span class='line'><span class="c1">#log_type all</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 是否记录客户端连接信息</span>
+</span><span class='line'><span class="c1">#connection_messages true</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 是否记录日志时间</span>
+</span><span class='line'><span class="c1">#log_timestamp true</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'><span class="c1"># Security</span>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 客户端ID的前缀限制，可用于保证安全性</span>
+</span><span class='line'><span class="c1">#clientid_prefixes</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 允许匿名用户</span>
+</span><span class='line'><span class="c1">#allow_anonymous true</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 用户/密码文件，默认格式：username:password</span>
+</span><span class='line'><span class="c1">#password_file</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># PSK格式密码文件，默认格式：identity:key</span>
+</span><span class='line'><span class="c1">#psk_file</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># pattern write sensor/%u/data</span>
+</span><span class='line'><span class="c1"># ACL权限配置，常用语法如下：</span>
+</span><span class='line'><span class="c1"># 用户限制：user &lt;username&gt;</span>
+</span><span class='line'><span class="c1"># 话题限制：topic [read|write] &lt;topic&gt;</span>
+</span><span class='line'><span class="c1"># 正则限制：pattern write sensor/%u/data</span>
+</span><span class='line'><span class="c1">#acl_file</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'><span class="c1"># Bridges</span>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 允许服务之间使用“桥接”模式（可用于分布式部署）</span>
+</span><span class='line'><span class="c1">#connection &lt;name&gt;</span>
+</span><span class='line'><span class="c1">#address &lt;host&gt;[:&lt;port&gt;]</span>
+</span><span class='line'><span class="c1">#topic &lt;topic&gt; [[[out | in | both] qos-level] local-prefix remote-prefix]</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 设置桥接的客户端ID</span>
+</span><span class='line'><span class="c1">#clientid</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 桥接断开时，是否清除远程服务器中的消息</span>
+</span><span class='line'><span class="c1">#cleansession false</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 是否发布桥接的状态信息</span>
+</span><span class='line'><span class="c1">#notifications true</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 设置桥接模式下，消息将会发布到的话题地址</span>
+</span><span class='line'><span class="c1"># $SYS/broker/connection/&lt;clientid&gt;/state</span>
+</span><span class='line'><span class="c1">#notification_topic</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 设置桥接的keepalive数值</span>
+</span><span class='line'><span class="c1">#keepalive_interval 60</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 桥接模式，目前有三种：automatic、lazy、once</span>
+</span><span class='line'><span class="c1">#start_type automatic</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 桥接模式automatic的超时时间</span>
+</span><span class='line'><span class="c1">#restart_timeout 30</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 桥接模式lazy的超时时间</span>
+</span><span class='line'><span class="c1">#idle_timeout 60</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 桥接客户端的用户名</span>
+</span><span class='line'><span class="c1">#username</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 桥接客户端的密码</span>
+</span><span class='line'><span class="c1">#password</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># bridge_cafile：桥接客户端的CA证书文件</span>
+</span><span class='line'><span class="c1"># bridge_capath：桥接客户端的CA证书目录</span>
+</span><span class='line'><span class="c1"># bridge_certfile：桥接客户端的PEM证书文件</span>
+</span><span class='line'><span class="c1"># bridge_keyfile：桥接客户端的PEM密钥文件</span>
+</span><span class='line'><span class="c1">#bridge_cafile</span>
+</span><span class='line'><span class="c1">#bridge_capath</span>
+</span><span class='line'><span class="c1">#bridge_certfile</span>
+</span><span class='line'><span class="c1">#bridge_keyfile</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 自己的配置可以放到以下目录中</span>
+</span><span class='line'><span class="n">include_dir</span> <span class="sr">/etc/mos</span><span class="n">quitto</span><span class="o">/</span><span class="n">conf</span><span class="o">.</span><span class="n">d</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>权限</h2>
+
+<p>为了避免任何人都可以往服务器去 pull&amp;push，我们需要设置权限。</p>
+
+<p>使用自带工具进行设置账号：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1">#add a count and then will ask you to enter a passwd</span>
+</span><span class='line'><span class="n">mosquitto_passwd</span> <span class="o">-</span><span class="n">c</span> <span class="sr">/etc/mos</span><span class="n">quitto</span><span class="o">/</span><span class="n">passwd</span> <span class="n">glassx</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># delete</span>
+</span><span class='line'><span class="n">mosquitto_passwd</span> <span class="o">-</span><span class="n">D</span> <span class="sr">/etc/mos</span><span class="n">quitto</span><span class="o">/</span><span class="n">passwd</span> <span class="n">glassx</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>启动</h2>
+
+<p>启动服务很简单，直接运行：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">mosquitto</span> <span class="o">-</span><span class="n">c</span> <span class="sr">/etc/mos</span><span class="n">quitto</span><span class="o">/</span><span class="n">mosquitto</span><span class="o">.</span><span class="n">conf</span> <span class="o">-</span><span class="n">d</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">#-c 表示加载指定配置文件</span>
+</span><span class='line'><span class="c1">#-d 表示以后台服务运行</span>
+</span><span class='line'><span class="c1">#-p 表示监听某个端口（默认为1883)</span>
+</span><span class='line'><span class="c1">#-v 表示亢长的日志记录模式，相当于设置 log_type all</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>mosquitto 是个异步 IO 框架，经过测试可以处理 20000 个以上的客户端连接。</p>
+
+<h2>推送</h2>
+
+<p>上面所创建的只是服务器， MQTT 有三个角色， 发布角色，服务器角色，消费角色。 此时我们便使用 Ruby 来实现发布角色。</p>
+
+<p>我们会使用到一个叫做 <code>mqtt</code> 的 gem</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;rubygems&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;mqtt&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Publish example</span>
+</span><span class='line'><span class="no">MQTT</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;mqtt://glassx:glassxpw@127.0.0.1&#39;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span>
+</span><span class='line'>  <span class="nb">p</span> <span class="n">c</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s1">&#39;topic&#39;</span><span class="p">,</span> <span class="s1">&#39;message&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># # Subscribe example</span>
+</span><span class='line'><span class="c1"># MQTT::Client.connect(&#39;test.mosquitto.org&#39;) do |c|</span>
+</span><span class='line'><span class="c1">#   # If you pass a block to the get method, then it will loop</span>
+</span><span class='line'><span class="c1">#   c.get(&#39;test&#39;) do |topic,message|</span>
+</span><span class='line'><span class="c1">#     puts &quot;#{topic}: #{message}&quot;</span>
+</span><span class='line'><span class="c1">#   end</span>
+</span><span class='line'><span class="c1"># end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>接收</h2>
+
+<p>接收则是各个客户端的实现了，这里就不写了。</p>
+
+<h2>引用</h2>
+
+<p>官网：<a href="http://mosquitto.org/">http://mosquitto.org/</a></p>
+
+<p>简要教程：<a href="http://blog.csdn.net/shagoo/article/details/7910598">http://blog.csdn.net/shagoo/article/details/7910598</a></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-01-30T16:04:40+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2015/01/30/bu-shu-rabbitmq-jing-yan/">
+		
+			部署 RabbitMQ 经验</a>
+	</h2>
+	<div class="entry-content">
+		<h2>引用</h2>
+
+<p>在项目中，将一些无需即时返回且耗时的操作提取出来，放入消息队列，进行异步处理，而这种异步处理的方式大大的节省了服务器的请求响应时间，从而提高了系统的吞吐量。</p>
+
+<p>RabbitMQ 是一个在 AMQP 基础上完整的，可复用的企业消息系统。他遵循Mozilla Public License开源协议。</p>
+
+<h2>安装</h2>
+
+<p>Ubuntu 下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">deb</span> <span class="ss">http</span><span class="p">:</span><span class="sr">//</span><span class="n">www</span><span class="o">.</span><span class="n">rabbitmq</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">debian</span><span class="o">/</span> <span class="n">testing</span> <span class="n">main</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">wget</span> <span class="ss">http</span><span class="p">:</span><span class="sr">//</span><span class="n">www</span><span class="o">.</span><span class="n">rabbitmq</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">rabbitmq</span><span class="o">-</span><span class="n">signing</span><span class="o">-</span><span class="n">key</span><span class="o">-</span><span class="kp">public</span><span class="o">.</span><span class="n">asc</span>
+</span><span class='line'><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">key</span> <span class="n">add</span> <span class="n">rabbitmq</span><span class="o">-</span><span class="n">signing</span><span class="o">-</span><span class="n">key</span><span class="o">-</span><span class="kp">public</span><span class="o">.</span><span class="n">asc</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">rabbitmq</span><span class="o">-</span><span class="n">server</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1">#/etc/default/rabbitmq-server</span>
+</span><span class='line'><span class="n">ulimit</span> <span class="o">-</span><span class="n">n</span> <span class="mi">1024</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 开启服务</span>
+</span><span class='line'><span class="n">invoke</span><span class="o">-</span><span class="n">rc</span><span class="o">.</span><span class="n">d</span> <span class="n">rabbitmq</span><span class="o">-</span><span class="n">server</span> <span class="n">stop</span><span class="o">/</span><span class="n">start</span><span class="o">/</span><span class="n">etc</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 开启 WEB 管理</span>
+</span><span class='line'><span class="n">rabbitmq</span><span class="o">-</span><span class="n">plugins</span> <span class="n">enable</span> <span class="n">rabbitmq_management</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>注意事项</h2>
+
+<ol>
+<li>要自己添加 /etc/rabbitmq/rabbitmq.config 才行</li>
+<li>默认只有本机才能用 guest/guest 账号登陆。否则需要在rabbitmq.config 添加<code>[{rabbit, [{loopback_users, []}]}].</code></li>
+<li>rabbitq.config 的格式是：</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 就算删除了里面的参数配置，也不能删除这个格式。</span>
+</span><span class='line'><span class="o">[</span>
+</span><span class='line'><span class="o">].</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>可能出现的错误</h2>
+
+<ol>
+<li>总是提示</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="ss">ls</span><span class="p">:</span> <span class="n">cannot</span> <span class="n">access</span> <span class="sr">/etc/</span><span class="n">rabbitmq</span><span class="o">/</span><span class="n">rabbitmq</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">d</span><span class="p">:</span> <span class="no">No</span> <span class="n">such</span> <span class="n">file</span> <span class="ow">or</span> <span class="n">directory</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>原因： 妈蛋是缺了目录啊！手动创建就可以了，之前一直以为是缺了文件，原来是目录，注意了 <code>conf.d</code> <code>.d</code> 这个结尾的一般都是目录</p>
+
+<h2>懒</h2>
+
+<p>具体就不写了，不过有篇文章写得很好，看看就明白了。</p>
+
+<p><a href="https://ruby-china.org/topics/22332">https://ruby-china.org/topics/22332</a></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-01-30T16:04:25+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -1621,6 +2260,18 @@
 
 <p>MQ 是 sidekiq 的超集。</p>
 
+<p>Sidekiq 背后的原理是将任务都放入队列，然后用多个线程去运行任务。</p>
+
+<h2>Sidekiq 使用场景</h2>
+
+<p>比如发邮件，完成一些耗时的任务等。</p>
+
+<h2>MQ 使用场景</h2>
+
+<p>将一堆任务压入消息队列，然后让其他系统取出任务进行实现。</p>
+
+<p>虽然我也可以将「发邮件」压入消息队列，然后在系统内取出进行发邮件，不过总归大材小用</p>
+
 		
 		
 	</div>
@@ -2293,383 +2944,6 @@
 
 
 <time datetime="2014-10-24T20:12:33+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/07/rails-zhong-de-assets-pipeline-ji-zhi/">
-		
-			Rails 中的 Assets Pipeline 机制</a>
-	</h2>
-	<div class="entry-content">
-		<h2>前言</h2>
-
-<p>我以前一直认为，Rails 的预编译就是把所有 css 和 js 分别整合成一个文件，并且进行压缩等操作。</p>
-
-<p>其实并不是，Rails 预编译的意思，就只是预先编译那些 scss, coffee 等文件为 css, js 的意思。</p>
-
-<p>而给文件名加上 hash 值得，整合成一个文件，压缩等等所有操作，都是Rails 中一个叫做 <code>Assets Pipeline</code> 功能实现的</p>
-
-<h2>Asset Pipeline</h2>
-
-<p><code>Asset Pipeline</code> 提供了一个框架，用于连接、压缩 JavaScript 和 CSS 文件。还允许使用其他语言和预处理器编写 JavaScript 和 CSS，例如 CoffeeScript、Sass 和 ERB。</p>
-
-<p><code>Asset Pipeline</code>在Rails4中已经从框架中提取出来成为：<code>sprockets-rails</code> gem</p>
-
-<p><code>Asset Pipeline</code>有三个主要功能：</p>
-
-<ol>
-<li>连接所有静态资源，分别成为一个js css文件</li>
-<li>压缩静态资源</li>
-<li>允许使用高级语言编写静态资源，如 sass coffee</li>
-</ol>
-
-
-<p>Rails 4 会自动把 sass-rails、coffee-rails 和 uglifier 三个 gem 加入 Gemfile。Sprockets 使用这三个 gem 压缩静态资源：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s1">&#39;sass-rails&#39;</span>
-</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;uglifier&#39;</span>
-</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;coffee-rails&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>默认情况下，在生产环境中，Rails 会把预先编译好的文件保存到 public/assets 文件夹中，网页服务器会把这些文件视为静态资源。在生产环境中，不会直接伺服 app/assets 文件夹中的文件。</p>
-
-<p>默认编译的文件包括 application.js、application.css 以及 gem 中 app/assets 文件夹中的所有非 JS/CSS 文件（会自动加载所有图片）</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">[</span> <span class="no">Proc</span><span class="o">.</span><span class="n">new</span> <span class="p">{</span> <span class="o">|</span><span class="n">path</span><span class="p">,</span> <span class="n">fn</span><span class="o">|</span> <span class="n">fn</span> <span class="o">=~</span> <span class="sr">/app\/assets/</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="sx">%w(.js .css)</span><span class="o">.</span><span class="n">include?</span><span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">extname</span><span class="p">(</span><span class="n">path</span><span class="p">))</span> <span class="p">},</span>
-</span><span class='line'><span class="sr">/application.(css|js)$/</span> <span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这个正则表达式表示最终要编译的文件</p>
-
-<p>最终会编译成： application-adfea1231s.js ,   application-sfef234df.css， xxx-sdfsdfe.png  等</p>
-
-<p>因此如果我们想要自己添加单独编译出来的文件的话：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">precompile</span> <span class="o">+=</span> <span class="o">[</span><span class="s1">&#39;admin.js&#39;</span><span class="p">,</span> <span class="s1">&#39;admin.css&#39;</span><span class="p">,</span> <span class="s1">&#39;swfObject.js&#39;</span><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意，即便想添加 Sass 或 CoffeeScript 文件，也要把希望编译的文件名设为 .js 或 .css。（ 因为 sass 最终也是要解析成 .css 的）</p>
-
-<h2>对 Bootstrap 遇到的坑</h2>
-
-<p>之前引入了 Bootstrap 后，预编译一直出现</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Sass</span><span class="o">::</span><span class="ss">SyntaxError</span><span class="p">:</span> <span class="no">Undefined</span> <span class="ss">variable</span><span class="p">:</span> <span class="s2">&quot;$alert-padding&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>之后折腾了许久，才发现我在 assets.rb 里设置了</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">precompile</span> <span class="o">+=</span> <span class="o">[*.</span><span class="n">js</span><span class="o">]</span>
-</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">precompile</span> <span class="o">+=</span> <span class="o">[*.</span><span class="n">css</span><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>因为我把所有 js css 都单独编译了，而 bootstrap 有两份 css 文件，其中一份定义了 bootstrap 的变量，如: <code>$alert-padding</code>，而这个变量在第二个 css 文件中被引用，因此，当第二个文件单独编译时，就会发现找不到这个变量了。</p>
-
-<p>解决方法：</p>
-
-<ol>
-<li><p>按需加入自己要的文件</p></li>
-<li><p>编译所有静态资源，但是去除bootstrap相关的( 这里还没去除 )</p></li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># config/application.rb</span>
-</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">precompile</span> <span class="o">&lt;&lt;</span> <span class="no">Proc</span><span class="o">.</span><span class="n">new</span> <span class="k">do</span> <span class="o">|</span><span class="n">path</span><span class="o">|</span>
-</span><span class='line'>  <span class="k">if</span> <span class="n">path</span> <span class="o">=~</span> <span class="sr">/\.(css|js)\z/</span>
-</span><span class='line'>    <span class="n">full_path</span> <span class="o">=</span> <span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">to_path</span>
-</span><span class='line'>    <span class="n">app_assets_path</span> <span class="o">=</span> <span class="no">Rails</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;app&#39;</span><span class="p">,</span> <span class="s1">&#39;assets&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_path</span>
-</span><span class='line'>    <span class="k">if</span> <span class="n">full_path</span><span class="o">.</span><span class="n">starts_with?</span> <span class="n">app_assets_path</span>
-</span><span class='line'>      <span class="nb">puts</span> <span class="s2">&quot;including asset: &quot;</span> <span class="o">+</span> <span class="n">full_path</span>
-</span><span class='line'>      <span class="kp">true</span>
-</span><span class='line'>    <span class="k">else</span>
-</span><span class='line'>      <span class="nb">puts</span> <span class="s2">&quot;excluding asset: &quot;</span> <span class="o">+</span> <span class="n">full_path</span>
-</span><span class='line'>      <span class="kp">false</span>
-</span><span class='line'>    <span class="k">end</span>
-</span><span class='line'>  <span class="k">else</span>
-</span><span class='line'>    <span class="kp">false</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>静态资源优化</h2>
-
-<h3>1. 设置过期时间</h3>
-
-<p>编译好的静态资源存放在服务器的文件系统中，直接由网页服务器伺服。默认情况下，没有为这些文件设置一个很长的过期时间。为了能充分发挥指纹的作用，需要修改服务器的设置，添加相关的报头。</p>
-
-<p>针对 Nginx</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">location</span> <span class="o">~</span> <span class="o">^/</span><span class="n">assets</span><span class="o">/</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">expires</span> <span class="mi">1</span><span class="n">y</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">add_header</span> <span class="no">Cache</span><span class="o">-</span><span class="no">Control</span> <span class="kp">public</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">add_header</span> <span class="no">ETag</span> <span class="s2">&quot;&quot;</span><span class="p">;</span>
-</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>2. 使用 gzip 压缩</h3>
-
-<p>Sprockets 预编译文件时还会创建静态资源的 gzip 版本（.gz）。网页服务器一般使用中等压缩比例，不过因为预编译只发生一次，所以 Sprockets 会使用最大的压缩比例，尽量减少传输的数据大小。网页服务器可以设置成直接从硬盘伺服压缩版文件，无需直接压缩文件本身。</p>
-
-<p>在 Nginx 中启动 gzip_static 模块后就能自动实现这一功能：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">location</span> <span class="o">~</span> <span class="o">^/</span><span class="p">(</span><span class="n">assets</span><span class="p">)</span><span class="o">/</span>  <span class="p">{</span>
-</span><span class='line'>  <span class="n">root</span> <span class="sr">/path/</span><span class="n">to</span><span class="o">/</span><span class="kp">public</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">gzip_static</span> <span class="n">on</span><span class="p">;</span> <span class="c1"># to serve pre-gzipped version</span>
-</span><span class='line'>  <span class="n">expires</span> <span class="n">max</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">add_header</span> <span class="no">Cache</span><span class="o">-</span><span class="no">Control</span> <span class="kp">public</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果编译 Nginx 时加入了 gzip_static 模块，就能使用这个指令。Nginx 针对 Ubuntu/Debian 的安装包，以及 nginx-light 都会编译这个模块。否则就要手动编译：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">.</span><span class="n">/configure</span> <span class="o">--</span><span class="n">with</span><span class="o">-</span><span class="n">http_gzip_static_module</span> <span class="p">(</span> <span class="err">还没试过）</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>本地预编译</h2>
-
-<p>为什么要在本地预编译静态文件呢？原因如下：</p>
-
-<ol>
-<li>可能无权限访问生产环境服务器的文件系统；</li>
-<li>可能要部署到多个服务器，避免重复编译；</li>
-<li>可能会经常部署，但静态资源很少改动；</li>
-</ol>
-
-
-<p>不过有两点要注意：</p>
-
-<ol>
-<li>一定不能运行 Capistrano 部署任务来预编译静态资源；</li>
-<li>必须修改下面这个设置；</li>
-</ol>
-
-
-<p>在 config/environments/development.rb 中加入下面这行代码：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;/dev-assets&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>修改 prefix 后，在开发环境中 Sprockets 会使用其他的 URL 伺服静态资源，把请求都交给 Sprockets 处理。但在生产环境中 prefix 仍是 /assets。如果没作上述修改，在生产环境中还是会从 /assets 伺服静态资源，但是除非再次编译，否则看不到文件的变化。</p>
-
-<p>但为什么部署的时候不会再次编译呢？明明文件内容都发生变化了，奇怪？</p>
-
-<p>之前预编译后，public下有/assets文件夹（production环境），但是请求的静态资源却全部都是 development 下的请求方式，（不带hash值的文件名)，奇怪- - 以后有空好好研究下。</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-07T21:59:06+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/07/ubuntuxia-xiu-gai-mysql5-dot-5zhong-wen-bian-ma/">
-		
-			Ubuntu下修改Mysql5.5中文编码</a>
-	</h2>
-	<div class="entry-content">
-		<h2>前言</h2>
-
-<p>由于之前在 Ubuntu 下安装 Mysql时，忘记选择编码，于是全部都是 Latin 编码，折腾了一阵子搞定了</p>
-
-<h2>Begin</h2>
-
-<p>在网上搜了一阵教程，明白 Mysql 安装后的一系列目录：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="sr">/etc/ini</span><span class="n">t</span><span class="o">.</span><span class="n">d</span><span class="o">/</span><span class="n">mysql</span>  <span class="p">(</span> <span class="err">启动脚本）</span>
-</span><span class='line'><span class="sr">/etc/m</span><span class="n">ysql</span><span class="o">/</span><span class="n">my</span><span class="o">.</span><span class="n">cnf</span> <span class="p">(</span> <span class="no">MySQL</span> <span class="err">的配置文件</span> <span class="p">)</span>
-</span><span class='line'><span class="sr">/var/</span><span class="n">lib</span><span class="o">/</span><span class="n">mysql</span>   <span class="p">(</span> <span class="err">数据库文件存放路径）</span>
-</span><span class='line'><span class="sr">/usr/</span><span class="n">lib</span><span class="o">/</span><span class="n">mysql</span>  <span class="err">（</span><span class="no">Mysql</span> <span class="err">安装路径</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">命令：</span><span class="n">service</span> <span class="n">mysql</span> <span class="n">start</span> <span class="o">/</span> <span class="n">stop</span> <span class="o">/</span> <span class="n">restart</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Mysql 版本： 5.5以上</p>
-
-<h2>Doing</h2>
-
-<p>按照网上教程，打开 <code>my.cnf</code>，在[client] [mysqld] 下加上
-<code>default-character-set=utf8</code></p>
-
-<p>结果启动mysql报错，于是我查看了<code>/var/log/mysql/error.log</code>的日志，这里用<code>cat</code>命令load不出东西，要直接vim进去才行，奇怪。</p>
-
-<p>报错原因：<code>unknown variable 'default-set-server=utf8'</code></p>
-
-<p>最终解决：
-Mysql 版本5.5 以上，需要这么做：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">在</span><span class="o">[</span><span class="n">client</span><span class="o">]</span><span class="err">下添加：</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">default</span><span class="o">-</span><span class="n">character</span><span class="o">-</span><span class="n">set</span><span class="o">=</span><span class="n">utf8</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">在</span><span class="o">[</span><span class="n">mysqld</span><span class="o">]</span> <span class="err">下添加：</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">character</span><span class="o">-</span><span class="n">set</span><span class="o">-</span><span class="n">server</span><span class="o">=</span><span class="n">utf8</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">在</span><span class="o">[</span><span class="n">mysql</span><span class="o">]</span> <span class="err">下添加</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">default</span><span class="o">-</span><span class="n">character</span><span class="o">-</span><span class="n">set</span><span class="o">=</span><span class="n">utf8</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>然后重启mysql</p>
-
-<p><code>sudo service mysql restart</code></p>
-
-<p>进入mysql终端</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">show</span> <span class="n">variables</span> <span class="n">like</span> <span class="s1">&#39;%character%&#39;</span><span class="p">;</span>
-</span><span class='line'><span class="c1">#会有如下显示：</span>
-</span><span class='line'><span class="o">+--------------------------+----------------------------+</span>
-</span><span class='line'><span class="o">|</span> <span class="no">Variable_name</span>            <span class="o">|</span> <span class="no">Value</span>                      <span class="o">|</span>
-</span><span class='line'><span class="o">+--------------------------+----------------------------+</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_set_client</span>     <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_set_connection</span> <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_set_database</span>   <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_set_filesystem</span> <span class="o">|</span> <span class="n">binary</span>                     <span class="o">|</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_set_results</span>    <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_set_server</span>     <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_set_system</span>     <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_sets_dir</span>       <span class="o">|/</span><span class="n">usr</span><span class="o">/</span><span class="n">share</span><span class="o">/</span><span class="n">mysql</span><span class="o">/</span><span class="n">charsets</span><span class="o">/</span> <span class="o">|</span>
-</span><span class='line'><span class="o">+--------------------------+----------------------------+</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-07T13:58:12+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>
