@@ -12,8 +12,10 @@
 配置Octopress
 部署Octopress
 开始写博客
-更换主题 1、安装Ruby Octopress需要Ruby环境，那么就来装下Ruby环境。 首先安装RVM，RVM是用来负责安装和管理Ruby的环境 1
-curl -L https://get. &hellip;">
+更换主题
+绑定域名
+回顾 1、安装Ruby Octopress需要Ruby环境，那么就来装下Ruby环境。 首先安装RVM，RVM是用来负责安装和管理Ruby的环境 1
+curl -L https &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -90,6 +92,8 @@ curl -L https://get. &hellip;">
 <li>部署Octopress</li>
 <li>开始写博客</li>
 <li>更换主题</li>
+<li>绑定域名</li>
+<li>回顾</li>
 </ol>
 
 
@@ -225,6 +229,32 @@ git 安装之后，利用git命令将octopress从github上clone到本机。</p>
 </span><span class='line'>$ rake install\['slash'\]
 </span><span class='line'>$ rake generate</span></code></pre></td></tr></table></div></figure>
 
+
+<h4>7、绑定域名</h4>
+
+<p>比如我有一个 <code>linjunzhu.me</code>这个域名，那要如何做才能当我访问<code>linjunzhu.github.io</code>会自动跳转到<code>linjunzhu.me</code>进行访问呢？</p>
+
+<ol>
+<li>在 Github 中的博客仓库中，添加一个 <code>CNAME</code> 文件，里面写明我们所跳转的域名 <code>linjunzhu.me</code></li>
+<li>使用 DNS 解析服务，将我们的域名指向该地址。</li>
+</ol>
+
+
+<p>不过，由于 <code>rake generate</code> 和 <code>rake deploy</code>每次都会重新生成整个<code>master</code>分支，建议第一步不要直接在 Github 上操作。</p>
+
+<p>而是在 Source 分支下的 source 目录添加<code>CNAME</code>文件。</p>
+
+<p>这样当运行<code>rake generate</code>时会将<code>source</code>目录整个复制到<code>public</code>目录，运行<code>rake deploy</code>则会将<code>public</code>目录整个复制到<code>_deploy</code>目录。</p>
+
+<h4>8、回顾</h4>
+
+<p>当成功后，我们访问<code>linjunzhu.github.io</code>时，会自动跳往<code>linjunzhu.me</code>，这时 Chrome 会自动缓存起来，以后访问<code>linjunzhu.github.io</code>都会自动跳往后者（无论有无 CANME）。</p>
+
+<p>因此，当时我<code>CNAME</code>文件丢失后，访问<code>linjunzhu.github.io</code>总会自动跳往后者并且显示<code>404</code>，搞了许久以为是博客搞乱了，其实是 Chrome 的原因。</p>
+
+<p>有人会问，为什么我还需要在分支上创建<code>CNAME</code>文件，而不能直接用 DNS 解析服务，将域名指向<code>linjunzhu.github.io</code>不就完事了吗？</p>
+
+<p>因为 Github 做了处理，只有域名是<code>linjunzhu.github.io</code>才会跳往至博客页面，而访问<code>linjunzhu.me</code>，域名不符，是不会的，因此才需要第一步创建<code>CNAME</code></p>
 </div>
 
 
