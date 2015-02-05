@@ -392,7 +392,7 @@
 </ol>
 
 
-<h3>6. 取消已经 push 的行为</h3>
+<h3>6. 取消已经 push 的行为（重建分支）</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -422,6 +422,21 @@
 </span><span class='line'>
 </span><span class='line'><span class="c1"># 推送本地还原后的分支</span>
 </span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>6. 取消已经 push 的行为（强制 PUSH）</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 本地仓库回退到某一版本</span>
+</span><span class='line'><span class="n">git</span> <span class="n">reset</span> <span class="o">-</span><span class="n">hard</span> <span class="n">xxxx</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 强制 PUSH，此时远程分支已经恢复成指定的 commit 了</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span> <span class="o">--</span><span class="n">force</span>
 </span></code></pre></td></tr></table></div></figure>
 
 

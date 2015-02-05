@@ -4,7 +4,7 @@
   <title><![CDATA[LinJunzhu's Blog]]></title>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/atom.xml" rel="self"/>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/"/>
-  <updated>2015-01-30T16:43:23+08:00</updated>
+  <updated>2015-02-05T16:33:10+08:00</updated>
   <id>https://github.com/linjunzhu/linjunzhu.github.io.git/</id>
   <author>
     <name><![CDATA[林俊柱]]></name>
@@ -1582,9 +1582,7 @@
 <h2>开始部署</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cap</span> <span class="n">production</span> <span class="n">deploy</span> <span class="o">--</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span>     <span class="c1"># 确保所有命令都有执行到</span>
-</span><span class='line'><span class="err">$</span> <span class="n">cap</span> <span class="n">production</span> <span class="n">deploy</span>  <span class="c1"># 开始部署</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cap</span> <span class="n">production</span> <span class="n">deploy</span>  <span class="c1"># 开始部署</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -2002,11 +2000,139 @@
 
 <p>比如发邮件，完成一些耗时的任务等。</p>
 
+<p>代码大概是：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># app/workers/hard_worker.rb</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">HardWorker</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Worker</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="c1"># 这里系统会不断将任务压入队列，然后启动线程去执行任务</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="nb">name</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="s1">&#39;Doing hard work&#39;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
 <h2>MQ 使用场景</h2>
 
 <p>将一堆任务压入消息队列，然后让其他系统取出任务进行实现。</p>
 
 <p>虽然我也可以将「发邮件」压入消息队列，然后在系统内取出进行发邮件，不过总归大材小用</p>
+
+<p>代码大概是：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 发布者</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Publisher</span>
+</span><span class='line'>  <span class="c1"># In order to publish message we need a exchange name.</span>
+</span><span class='line'>  <span class="c1"># Note that RabbitMQ does not care about the payload -</span>
+</span><span class='line'>  <span class="c1"># we will be using JSON-encoded strings</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">publish</span><span class="p">(</span><span class="n">exchange</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="p">{})</span>
+</span><span class='line'>    <span class="c1"># grab the fanout exchange</span>
+</span><span class='line'>    <span class="n">x</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">fanout</span><span class="p">(</span><span class="s2">&quot;blog.</span><span class="si">#{</span><span class="n">exchange</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="c1"># and simply publish message</span>
+</span><span class='line'>    <span class="n">x</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">to_json</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">channel</span>
+</span><span class='line'>    <span class="vi">@channel</span> <span class="o">||=</span> <span class="n">connection</span><span class="o">.</span><span class="n">create_channel</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># We are using default settings here</span>
+</span><span class='line'>  <span class="c1"># The `Bunny.new(...)` is a place to</span>
+</span><span class='line'>  <span class="c1"># put any specific RabbitMQ settings</span>
+</span><span class='line'>  <span class="c1"># like host or port</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">connection</span>
+</span><span class='line'>    <span class="vi">@connection</span> <span class="o">||=</span> <span class="no">Bunny</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">tap</span> <span class="k">do</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span>
+</span><span class='line'>      <span class="n">c</span><span class="o">.</span><span class="n">start</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 消费者</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># dashboard/app/workers/posts_worker.rb</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">PostsWorker</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="no">Sneakers</span><span class="o">::</span><span class="no">Worker</span>
+</span><span class='line'>  <span class="c1"># This worker will connect to &quot;dashboard.posts&quot; queue</span>
+</span><span class='line'>  <span class="c1"># env is set to nil since by default the actuall queue name would be</span>
+</span><span class='line'>  <span class="c1"># &quot;dashboard.posts_development&quot;</span>
+</span><span class='line'>  <span class="n">from_queue</span> <span class="s2">&quot;dashboard.posts&quot;</span><span class="p">,</span> <span class="ss">env</span><span class="p">:</span> <span class="kp">nil</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># work method receives message payload in raw format</span>
+</span><span class='line'>  <span class="c1"># in our case it is JSON encoded string</span>
+</span><span class='line'>  <span class="c1"># which we can pass to RecentPosts service without</span>
+</span><span class='line'>  <span class="c1"># changes</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">work</span><span class="p">(</span><span class="n">raw_post</span><span class="p">)</span>
+</span><span class='line'>    <span class="no">RecentPosts</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">raw_post</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">ack!</span> <span class="c1"># we need to let queue know that message was received</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">然后还有</span> <span class="no">Exchange</span> <span class="n">queue</span> <span class="err">绑定啊之类的</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>相信看完代码会对两者的区别更清晰点。</p>
 ]]></content>
   </entry>
   
@@ -2564,7 +2690,7 @@
 </ol>
 
 
-<h3>6. 取消已经 push 的行为</h3>
+<h3>6. 取消已经 push 的行为（重建分支）</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -2594,6 +2720,21 @@
 </span><span class='line'>
 </span><span class='line'><span class="c1"># 推送本地还原后的分支</span>
 </span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>6. 取消已经 push 的行为（强制 PUSH）</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 本地仓库回退到某一版本</span>
+</span><span class='line'><span class="n">git</span> <span class="n">reset</span> <span class="o">-</span><span class="n">hard</span> <span class="n">xxxx</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 强制 PUSH，此时远程分支已经恢复成指定的 commit 了</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span> <span class="o">--</span><span class="n">force</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
