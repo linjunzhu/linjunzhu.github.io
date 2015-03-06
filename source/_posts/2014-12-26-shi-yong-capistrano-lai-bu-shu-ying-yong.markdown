@@ -133,7 +133,6 @@ set :rails_env, :production
 
 ## 开始部署
 ```ruby
-$ cap production deploy --dry-run     # 确保所有命令都有执行到
 $ cap production deploy  # 开始部署
 ```
 

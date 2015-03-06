@@ -29,7 +29,78 @@ Sidekiq 背后的原理是将任务都放入队列，然后用多个线程去运
 
 比如发邮件，完成一些耗时的任务等。
 
+代码大概是：
+
+```ruby
+# app/workers/hard_worker.rb
+class HardWorker
+  include Sidekiq::Worker
+	
+  # 这里系统会不断将任务压入队列，然后启动线程去执行任务
+  def perform(name, count)
+    puts 'Doing hard work'
+  end
+end
+```
+
 ## MQ 使用场景
 将一堆任务压入消息队列，然后让其他系统取出任务进行实现。
 
 虽然我也可以将「发邮件」压入消息队列，然后在系统内取出进行发邮件，不过总归大材小用
+
+代码大概是：
+
+```ruby
+
+# 发布者
+
+class Publisher
+  # In order to publish message we need a exchange name.
+  # Note that RabbitMQ does not care about the payload -
+  # we will be using JSON-encoded strings
+  def self.publish(exchange, message = {})
+    # grab the fanout exchange
+    x = channel.fanout("blog.#{exchange}")
+    # and simply publish message
+    x.publish(message.to_json)
+  end
+
+  def self.channel
+    @channel ||= connection.create_channel
+  end
+
+  # We are using default settings here
+  # The `Bunny.new(...)` is a place to
+  # put any specific RabbitMQ settings
+  # like host or port
+  def self.connection
+    @connection ||= Bunny.new.tap do |c|
+      c.start
+    end
+  end
+end
+
+# 消费者
+
+# dashboard/app/workers/posts_worker.rb
+class PostsWorker
+  include Sneakers::Worker
+  # This worker will connect to "dashboard.posts" queue
+  # env is set to nil since by default the actuall queue name would be
+  # "dashboard.posts_development"
+  from_queue "dashboard.posts", env: nil
+
+  # work method receives message payload in raw format
+  # in our case it is JSON encoded string
+  # which we can pass to RecentPosts service without
+  # changes
+  def work(raw_post)
+    RecentPosts.push(raw_post)
+    ack! # we need to let queue know that message was received
+  end
+end
+
+然后还有 Exchange queue 绑定啊之类的
+```
+
+相信看完代码会对两者的区别更清晰点。
