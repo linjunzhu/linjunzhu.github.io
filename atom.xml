@@ -4,7 +4,7 @@
   <title><![CDATA[LinJunzhu's Blog]]></title>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/atom.xml" rel="self"/>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/"/>
-  <updated>2015-02-05T16:33:10+08:00</updated>
+  <updated>2015-03-06T15:54:05+08:00</updated>
   <id>https://github.com/linjunzhu/linjunzhu.github.io.git/</id>
   <author>
     <name><![CDATA[林俊柱]]></name>
@@ -12,6 +12,111 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA['使用Ruby生成二维码']]></title>
+    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2015/03/06/shi-yong-rubysheng-cheng-er-wei-ma/"/>
+    <updated>2015-03-06T15:53:15+08:00</updated>
+    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2015/03/06/shi-yong-rubysheng-cheng-er-wei-ma</id>
+    <content type="html"><![CDATA[<h2>前言</h2>
+
+<p>偶尔项目中会用到二维码，这时生成二维码有几种方式：</p>
+
+<ol>
+<li>自己动手，丰衣足食，自己来生成</li>
+<li>通过调用网络API来拉取二维码</li>
+</ol>
+
+
+<p>但是，由于担心网络的不稳定 或者 项目只能对内部开放，此时就需要第一种方式来实现了。</p>
+
+<h2>所需 Gem</h2>
+
+<ol>
+<li>gem &lsquo;qrencoder&rsquo;</li>
+<li>gem &lsquo;rqrencoder-magick&rsquo;</li>
+<li>gem &lsquo;rqrcode_png&rsquo;</li>
+</ol>
+
+
+<h2>Begin</h2>
+
+<h3>1. 先安装本机库 <code>qrencode</code></h3>
+
+<p>Mac 用户：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brew install qrencode</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Linux 用户：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>apt-get install qrencode</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>2. 安装 <code>qrencoder</code> 这个 gem</h3>
+
+<p>项目主页： <a href="https://github.com/harrisj/qrencoder">https://github.com/harrisj/qrencoder</a></p>
+
+<p>安装之前需要先安装依赖库，否则会安装不上：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>apt-get install libqrencode-dev python-qrencode qrencode
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>安装时需要指定路径：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gem install qrencoder –with-opt-include<span class="o">=</span>/usr/local/include –with-opt-lib<span class="o">=</span>/usr/local/lib
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>gem qrencoder</code></p>
+
+<h3>3. 安装 <code>rqrencoder-magick</code> 和 <code>rqrencoder</code></h3>
+
+<p>前者是利用了<code>RMagick</code>来生成二维码，因此需要事先安装 <code>RMagick</code>，安装方法就不说了。</p>
+
+<p>在 <code>gemfile</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gem <span class="s1">&#39;rqrencoder-magick&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在<code>shell</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gem install rqrencoder –with-opt-include<span class="o">=</span>/usr/local/include –with-opt-lib<span class="o">=</span>/usr/local/lib
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>4. 安装<code>rqrcode_png</code></h3>
+
+<p><code>gem rqrcode_png</code></p>
+
+<p>这个 Gem 可以为生成的二维码指定<code>宽度</code>和<code>高度</code></p>
+
+<h3>5. <code>DEMO</code></h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># 生成二维码</span>
+</span><span class='line'><span class="nv">qr</span> <span class="o">=</span> RQRCode::QRCode.new<span class="o">(</span> self.code, :size <span class="o">=</span>&gt; 1, :level <span class="o">=</span>&gt; :l <span class="o">)</span>
+</span><span class='line'><span class="nv">png</span> <span class="o">=</span> qr.to_img
+</span><span class='line'>png.resize<span class="o">(</span>300, 300<span class="o">)</span>.save<span class="o">(</span>path<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>6. 不足</h3>
+
+<p>这种方式生成的二维码图片会比现今网上提供的api所生成的二维码要「难扫」「复杂」，所以如果对二维码的扫描难度有要求的话，就&hellip;.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[使用 Mosquitto]]></title>
@@ -4295,24 +4400,6 @@ git 安装之后，利用git命令将octopress从github上clone到本机。</p>
 <p>有人会问，为什么我还需要在分支上创建<code>CNAME</code>文件，而不能直接用 DNS 解析服务，将域名指向<code>linjunzhu.github.io</code>不就完事了吗？</p>
 
 <p>因为 Github 做了处理，只有域名是<code>linjunzhu.github.io</code>才会跳往至博客页面，而访问<code>linjunzhu.me</code>，域名不符，是不会的，因此才需要第一步创建<code>CNAME</code></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Hello World]]></title>
-    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/06/10/hello-world/"/>
-    <updated>2014-06-10T13:30:06+08:00</updated>
-    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/06/10/hello-world</id>
-    <content type="html"><![CDATA[<h1>This is my myblog</h1>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">hello</span>
-</span><span class='line'>  <span class="nb">puts</span> <span class="s1">&#39;fucks&#39;</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
 ]]></content>
   </entry>
   
