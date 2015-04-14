@@ -473,6 +473,12 @@
 <p>
 这样子当修改@project时，也会修改子级的 cache_key</p>
 
+<h2>6、注意</h2>
+
+<p>当请求过来时，还是会经过controller,进行lazy select,再经过erb,再进行真正的 cache_key 计算，当然，此时 controller 中查询的那些还没有真正的查询，因为是 lazy select</p>
+
+<p>分割好粒度，否则会得不偿失</p>
+
 <p>还有第二个坑，写得脑仁疼，不写啦，看下面参考文</p>
 
 <h2>参考</h2>

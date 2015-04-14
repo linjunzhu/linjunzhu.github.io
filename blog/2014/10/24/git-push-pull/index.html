@@ -1,0 +1,327 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Git &#8211; Push 和 Pull 篇 - LinJunzhu&#8217;s Blog</title>
+	<meta name="author" content="林俊柱">
+
+	
+	<meta name="description" content="git push 将本地仓库的更新推送到远程仓库 remote git push [remote-name] [branch-name] git push origin master 1
+2
+3
+4
+5
+# 如果当前分支跟远程分支有 tracking 关系，那么将会自动推送当前分支到对应的远程分支 &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="LinJunzhu's Blog" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script async="true" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+</head>
+
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">LinJunzhu&#8217;s Blog</a></h1>
+<nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</nav>
+<nav id="mobile-nav">
+	<div class="alignleft menu">
+		<a class="button">Menu</a>
+		<div class="container"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</div>
+	</div>
+	<div class="alignright search">
+		<a class="button"></a>
+		<div class="container">
+			<form action="https://www.google.com/search" method="get">
+				<input type="text" name="q" results="0">
+				<input type="hidden" name="q" value="site:github.com/linjunzhu/linjunzhu.github.io.git">
+			</form>
+		</div>
+	</div>
+</nav>
+<nav id="sub-nav" class="alignright">
+	<div class="social">
+		
+		
+		
+		
+    
+		
+		
+		
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+    
+	</div>
+	<form class="search" action="https://www.google.com/search" method="get">
+		<input class="alignright" type="text" name="q" results="0">
+		<input type="hidden" name="q" value="site:github.com/linjunzhu/linjunzhu.github.io.git">
+	</form>
+</nav>
+
+</header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h2 class="title">Git &#8211; Push 和 Pull 篇</h2>
+	<div class="entry-content"><h2>git push</h2>
+
+<h4>将本地仓库的更新推送到远程仓库 remote</h4>
+
+<p><code>git push [remote-name] [branch-name]</code></p>
+
+<p><code>git push origin master</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 如果当前分支跟远程分支有 tracking 关系，那么将会自动推送当前分支到对应的远程分支</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 如果主机名只有一个 origin，那么连 origin 都可以省略</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>查看 tracking 关系：</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cat</span> <span class="o">.</span><span class="n">/</span><span class="o">.</span><span class="n">git</span><span class="o">/</span><span class="n">config</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 此时没有 tracking 关系</span>
+</span><span class='line'><span class="o">==&gt;</span>
+</span><span class='line'><span class="o">[</span><span class="n">core</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">repositoryformatversion</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>  <span class="n">filemode</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">bare</span> <span class="o">=</span> <span class="kp">false</span>
+</span><span class='line'>  <span class="n">logallrefupdates</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">ignorecase</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">precomposeunicode</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'><span class="o">[</span><span class="n">remote</span> <span class="s2">&quot;origin&quot;</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">url</span> <span class="o">=</span> <span class="n">git</span><span class="vi">@github</span><span class="o">.</span><span class="n">com</span><span class="ss">:linjunzhu</span><span class="o">/</span><span class="n">test_branch</span><span class="o">.</span><span class="n">git</span>
+</span><span class='line'>  <span class="n">fetch</span> <span class="o">=</span> <span class="o">+</span><span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/*</span><span class="ss">:refs</span><span class="o">/</span><span class="n">remotes</span><span class="o">/</span><span class="n">origin</span><span class="o">/*</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>添加 tracking 关系</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="o">-</span><span class="n">u</span> <span class="n">origin</span> <span class="n">dev</span>  <span class="p">(</span><span class="err">这句同时指定了</span> <span class="n">origin</span> <span class="err">为默认主机</span><span class="p">)</span>
+</span><span class='line'><span class="err">或者</span>
+</span><span class='line'><span class="n">git</span> <span class="n">branch</span> <span class="o">-</span><span class="n">u</span> <span class="n">dev</span> <span class="n">origin</span><span class="o">/</span><span class="n">dev</span>
+</span><span class='line'><span class="err">或者</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="o">--</span><span class="n">set</span><span class="o">-</span><span class="n">upstream</span> <span class="n">origin</span> <span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>查看 tracking 关系</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cat</span> <span class="o">.</span><span class="n">/</span><span class="o">.</span><span class="n">git</span><span class="o">/</span><span class="n">config</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 此时有 tracking 关系</span>
+</span><span class='line'><span class="o">==&gt;</span>
+</span><span class='line'><span class="o">[</span><span class="n">core</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">repositoryformatversion</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>  <span class="n">filemode</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">bare</span> <span class="o">=</span> <span class="kp">false</span>
+</span><span class='line'>  <span class="n">logallrefupdates</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">ignorecase</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">precomposeunicode</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'><span class="o">[</span><span class="n">remote</span> <span class="s2">&quot;origin&quot;</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">url</span> <span class="o">=</span> <span class="n">git</span><span class="vi">@github</span><span class="o">.</span><span class="n">com</span><span class="ss">:linjunzhu</span><span class="o">/</span><span class="n">test_branch</span><span class="o">.</span><span class="n">git</span>
+</span><span class='line'>  <span class="n">fetch</span> <span class="o">=</span> <span class="o">+</span><span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/*</span><span class="ss">:refs</span><span class="o">/</span><span class="n">remotes</span><span class="o">/</span><span class="n">origin</span><span class="o">/*</span>
+</span><span class='line'><span class="o">[</span><span class="n">branch</span> <span class="s2">&quot;master&quot;</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">remote</span> <span class="o">=</span> <span class="n">origin</span>
+</span><span class='line'>  <span class="n">merge</span> <span class="o">=</span> <span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/</span><span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>git pull</h2>
+
+<h3>拉取更新</h3>
+
+<p>将远程仓库的更新拉取到本地的「远程仓库」并且进行「merge」操作</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">pull</span> <span class="n">origin</span> <span class="n">master</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 相当于两步操作</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">fetch</span> <span class="n">origin</span> <span class="n">master</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">merge</span> <span class="n">origin</span><span class="o">/</span><span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Tips</h3>
+
+<p>如果当前分支跟远程分支是没有 tracking 关系的，那么执行<code>git pull</code>后，会 download 远程仓库的所有分支代码到本地的 origin/分支上，但是不会合并，相当于 <code>git fetch</code> 命令一样。</p>
+
+<h2>git pull 和 git fetch 的使用区别</h2>
+
+<ol>
+<li><p><code>git pull origin master</code>: 意思是从远程端下载最新版本到当前分支，并且自动合并</p></li>
+<li><p><code>git fetch origin master</code>: 意思是从远程端下载最新版本到当前分支，但是并不合并。因此如果是git fetch 的话，就需要做两步操作。</p></li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">fetch</span> <span class="n">origin</span> <span class="n">master</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">git</span> <span class="n">log</span> <span class="o">-</span><span class="nb">p</span> <span class="n">master</span> <span class="n">origin</span><span class="o">/</span><span class="n">master</span>   <span class="p">(</span><span class="err">查看修改内容</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">git</span>  <span class="n">merge</span> <span class="n">orgin</span><span class="o">/</span><span class="n">master</span>    <span class="p">(</span><span class="err">合并分支</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">或者进行</span> <span class="n">rebase</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">下章讲解</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Tips</h2>
+
+<h4>一、<code>不带任何参数的 git push</code>有两种模式</h4>
+
+<ol>
+<li><code>matching</code>模式，会推送所有<code>对应远程分支</code>的<code>本地分支</code>。</li>
+<li><code>simple</code>模式，只推送当前分支 (如果有 tracking 关系的话)</li>
+</ol>
+
+
+<p>默认没有设置，需要打下命令</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">config</span> <span class="o">--</span><span class="n">global</span> <span class="n">push</span><span class="o">.</span><span class="n">default</span> <span class="n">simple</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>二、关于<code>push</code>and<code>pull</code></h4>
+
+<p>一般如果没把握，最好写全。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">dev</span>
+</span><span class='line'><span class="n">git</span> <span class="n">pull</span> <span class="n">origin</span> <span class="n">dev</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-24T21:12:33+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+		
+		
+		<a class="addthis_button_tweet"></a>
+		
+		
+		
+	</div>
+	
+</div>
+
+
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2015
+
+    林俊柱
+
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+
+
+
+</body>
+</html>

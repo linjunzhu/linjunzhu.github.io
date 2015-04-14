@@ -7,8 +7,8 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="Git 和 SVN 的区别 Git 和 SVN 最大的区别概念在于：Git 是分布式，而 SVN 是集中式管理。 一、SVN 所谓集中式版本控制工具，总有一个中心服务器，提供一个项目仓库，大家的代码的提交都是统一提交到这个中心服务器上的 SVN 的模式： 写代码。
-从服务器拉回服务器的当前版本库 &hellip;">
+	<meta name="description" content="1、取消本地修改，恢复到上一次的commit 如果你的本地文件修改得一团乱，但是还没有提交，可以通过下面的命令恢复到上次提交时的状态( 其实就是恢复到上次的 commit，因此这次的本地修改自然没了）（注意是修改，不包括添加文件） 1
+git reset --hard &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -80,262 +80,17 @@
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2014/10/24/git/">
+		<a href="/blog/2014/10/24/git%20copy/">
 		
-			Git</a>
+			Git &#8211; 恢复撤销篇</a>
 	</h2>
 	<div class="entry-content">
-		<h2>Git 和 SVN 的区别</h2>
-
-<p>Git 和  SVN 最大的区别概念在于：Git 是分布式，而 SVN 是集中式管理。</p>
-
-<h3>一、SVN</h3>
-
-<p>所谓集中式版本控制工具，总有一个中心服务器，提供一个项目仓库，大家的代码的提交都是统一提交到这个中心服务器上的</p>
-
-<p>SVN 的模式：</p>
-
-<ol>
-<li>写代码。</li>
-<li>从服务器拉回服务器的当前版本库，并解决服务器版本库与本地代码的冲突。</li>
-<li>将本地代码提交到服务器。</li>
-</ol>
-
-
-<p>每个人的 commit 都是直接提交到服务器。容易造成与其他人的冲突</p>
-
-<h3>二、Git</h3>
-
-<p>分布式版本控制工具类似Git，可以有多个代码仓库，比如可以在本地。同时它可以方便的进行代码仓库合并</p>
-
-<p>Git 的模式：</p>
-
-<ol>
-<li>写代码。</li>
-<li>提交到本地版本库。</li>
-<li>从服务器拉回服务器的当前版本库，并解决服务器版本库与本地代码的冲突。</li>
-<li>将远程库与本地代码合并结果提交到本地版本库。</li>
-<li>将本地版本库推到服务器。</li>
-</ol>
-
-
-<h3>三、总结</h3>
-
-<p>虽然  Git 和 SVN 看起来很像，都有一个服务器库，但其实 Git 是没有中心服务器这个概念的，尽管每个人平时都是先将代码统一提交到中央服务器再统一 pull 其他人的代码，但实际情况是我们可以先 pull 张三的库，再 push 给李四等等操作，只要知道对方的IP地址仓库地址即可( 不过很少这么做)</p>
-
-<p>在 Github 上，你可以任意 fork 别人的仓库，按照自己的需求进行改造，或者提出 pull request 请原作者 merge 你所修改的代码。这里面没有‘中心’这个概念。</p>
-
-<p>每一次的 commit，SVN 都需要网络，而 Git 则不用，因为有本地仓库的概念，这样的好处是，即使你短时间断网都无所谓，还是可以不断的 commit，来追踪版本。</p>
-
-<p>分布式版本控制系统通常也有一台充当“中央服务器”的电脑，但这个服务器的作用仅仅是用来方便“交换”大家的修改，没有它大家也一样干活，只是交换修改不方便而已。</p>
-
-<h2>Git 基础知识</h2>
-
-<h3>Git 的对象模型</h3>
-
-<p><a href="https://ruby-china.org/topics/20723">https://ruby-china.org/topics/20723</a>
-这帖子讲得很好。
-总共分为：</p>
-
-<ol>
-<li>commit</li>
-<li>tree</li>
-<li>blog</li>
-</ol>
-
-
-<p>commit ： 提交信息</p>
-
-<p>tree ：指向其他的 tree / blog</p>
-
-<p>blog：文件的内容</p>
-
-<h3>Git 的结构</h3>
-
-<p><img src="http://data-storage.qiniudn.com/git_struct.png" alt="" />
-分为工作区，暂存区，以及本地仓库</p>
-
-<h2>git push</h2>
-
-<p>git push : 默认只会推送当前分支到远程分支，但是前提是当前分支要跟远程分支有 tracking 关系</p>
-
-<p>查看 tracking 关系：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cat</span> <span class="o">.</span><span class="n">/</span><span class="o">.</span><span class="n">git</span><span class="o">/</span><span class="n">config</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">==&gt;</span>
-</span><span class='line'><span class="o">[</span><span class="n">remote</span> <span class="s2">&quot;origin&quot;</span><span class="o">]</span>
-</span><span class='line'>  <span class="n">url</span> <span class="o">=</span> <span class="n">git</span><span class="vi">@github</span><span class="o">.</span><span class="n">com</span><span class="ss">:linjunzhu</span><span class="o">/</span><span class="n">first_app</span><span class="o">.</span><span class="n">git</span>
-</span><span class='line'>  <span class="n">fetch</span> <span class="o">=</span> <span class="o">+</span><span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/*</span><span class="ss">:refs</span><span class="o">/</span><span class="n">remotes</span><span class="o">/</span><span class="n">origin</span><span class="o">/*</span>
-</span><span class='line'><span class="o">[</span><span class="n">branch</span> <span class="s2">&quot;master&quot;</span><span class="o">]</span>
-</span><span class='line'>  <span class="n">remote</span> <span class="o">=</span> <span class="n">origin</span>
-</span><span class='line'>  <span class="n">merge</span> <span class="o">=</span> <span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/</span><span class="n">master</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>默认 master 跟 origin /master 就已经有 tracking 关系了</p>
-
-<h3>如何trakcing?</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="o">-</span><span class="n">u</span> <span class="n">origin</span> <span class="n">dev</span>  <span class="p">(</span> <span class="err">这句同时指定了</span> <span class="n">origin</span> <span class="err">为默认主机</span> <span class="p">)</span>
-</span><span class='line'><span class="sr">/</span>
-</span><span class='line'><span class="sr">git branch -u dev origin /</span><span class="n">dev</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>git pull</h2>
-
-<p>如果当前分支与远程分支有追踪关系，<code>git pull</code> 可以省略远程分支名。</p>
-
-<p><code>git pull origin</code></p>
-
-<p>如果当前分支只有一个主机名，连主机名都可以省略</p>
-
-<p><code>git pull</code></p>
-
-<p>如果当前分支跟远程分支是没有 tracking 关系的，那么执行<code>git pull</code>后，会 download  代码到本地的 origin/分支上，但是不会合并，相当于 <code>git fetch</code> 命令一样。</p>
-
-<p><code>若只有一个 remote主机，假设叫 origin，那么 git pull 等价于 git pull origin；</code></p>
-
-<h2>结论</h2>
-
-<p>一般如果没把握，最好写全。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">dev</span>
-</span><span class='line'><span class="n">git</span> <span class="n">pull</span> <span class="n">origin</span> <span class="n">dev</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>git pull 和 git fetch 的使用区别</h2>
-
-<ol>
-<li><p><code>git pull origin master</code>: 意思是从远程端下载最新版本到当前分支，并且自动合并</p></li>
-<li><p><code>git fetch origin master</code>: 意思是从远程端下载最新版本到当前分支，但是并不合并。因此如果是git fetch 的话，就需要做两步操作。</p></li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">fetch</span> <span class="n">origin</span> <span class="n">master</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">git</span> <span class="n">log</span> <span class="o">-</span><span class="nb">p</span> <span class="n">master</span> <span class="n">origin</span><span class="o">/</span><span class="n">master</span>   <span class="p">(</span><span class="err">查看修改内容</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">git</span>  <span class="n">merge</span> <span class="n">orgin</span><span class="o">/</span><span class="n">master</span>    <span class="p">(</span><span class="err">合并分支</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>git merge 和 git rebase 的区别</h4>
-
-<p>两者都是合并分支的功能，但是区别在于:</p>
-
-<p>假如合并前是这样的：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">D</span><span class="o">---</span><span class="n">E</span> <span class="n">master</span>
-</span><span class='line'>     <span class="o">/</span>
-</span><span class='line'><span class="n">A</span><span class="o">---</span><span class="n">B</span><span class="o">---</span><span class="n">C</span><span class="o">---</span><span class="n">F</span> <span class="n">origin</span><span class="o">/</span><span class="n">master</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>使用merge后</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="n">D</span><span class="o">--------</span><span class="n">E</span>
-</span><span class='line'> <span class="o">/</span>          <span class="p">\</span>
-</span><span class='line'><span class="n">A</span><span class="o">---</span><span class="n">B</span><span class="o">---</span><span class="n">C</span><span class="o">---</span><span class="n">F</span><span class="o">----</span><span class="n">G</span>   <span class="n">master</span><span class="p">,</span> <span class="n">origin</span><span class="o">/</span><span class="n">master</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>使用rebase后，就不会有G这个结点</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">A</span><span class="o">---</span><span class="n">B</span><span class="o">---</span><span class="n">C</span><span class="o">---</span><span class="n">F</span><span class="o">---</span><span class="n">D</span><span class="s1">&#39;---E&#39;</span>   <span class="n">master</span><span class="p">,</span> <span class="n">origin</span><span class="o">/</span><span class="n">master</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意到，其中 D’, E’ 的 commit SHA 序號跟本來 D, E 是不同的，因為算是砍掉重新 commit 了。
-但是，需要注意的是：合并会有冲突的可能，只有解决冲突后才可以继续提交。那么，使用rebase的坏处就是，因为算是砍掉D E 重新commit ,那么这里就可能会造成两次冲突，需要修改两次。而merge只需要修改一次
-因此，如果是小规模改动，冲突不会太大的话，建议使用rebase,否则使用merge。</p>
-
-<p>使用reabse的好处是可以让分支不会那么乱。</p>
-
-<p>那么，解决冲突后，使用merge的话，一般都是</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">add</span> <span class="o">.</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">am</span> <span class="s1">&#39;xx&#39;</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>使用rebase则不用。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">rebase</span> <span class="o">--</span><span class="n">continue</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">pull</span> <span class="o">--</span><span class="n">rebase</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">rebase</span> <span class="n">master</span> <span class="err">（指当前分支合并到</span><span class="n">master</span><span class="err">，</span> <span class="n">merge</span><span class="err">则相反，注意）</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>关于 -am 的解释</h4>
-
-<p>git commit -am “message” 代表：git add 和 git commit同时执行，但是这样并不会commit新增加的文件，需要git add .  然后执行 git commit -m “xxx”，才会commit新增的文件。</p>
-
-<p>而删除文件有两种操作，一种是我们直接删除rm,这样commit后并不会提交删除文件命令，因此远程仓库文件还存在，因此要commit -am ‘xx”,这样就会执行删除文件命令。
-一种是git rm， 然后commit -m “xx” 即可。</p>
-
-<p>虽然git commit -am “xx” 等于 add 和 commit两种命令一起，但是 git commit -am ,并不会提交新增加的文件。</p>
-
-<p>git commit -a的命令就是：只会更新修改，删除。</p>
-
-<p>因此，平常只要  git add .  （提交新增、更改后的文件），然后git commit -am “xx” （保存新增，更改后的文件，以及删除的文件），然后push即可。
-不过，git add. -A 也会记录删除的文件
- push新分支时（此时远程仓库还未有新分支）
-要先git push -u origin newBranchName
-然后git add .    git commit -am ‘xx’    git push
-因为如果不先push创建一个新分支，这时候的commit信息会留在旧的分支上，虽然资料也会上传到newBranchName分支上。以后得再深入了解了解git才行！</p>
-
-<h2>Git 的撤销操作</h2>
-
-<h3>1、取消本地修改，恢复到上一次的commit</h3>
+		<h3>1、取消本地修改，恢复到上一次的commit</h3>
 
 <p>如果你的本地文件修改得一团乱，但是还没有提交，可以通过下面的命令恢复到上次提交时的状态( 其实就是恢复到上次的 commit，因此这次的本地修改自然没了）（<code>注意是修改，不包括添加文件</code>）</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">reset</span> <span class="o">--</span><span class="n">hard</span>
-</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git reset --hard</span></code></pre></td></tr></table></div></figure>
 
 
 <p>这条命令将会取消掉本地的所有修改，恢复到上一次我们的commit信息</p>
@@ -344,18 +99,16 @@
 
 <p>有时我们会不小心git add . 所有文件，想反悔，取消某些add的文件。那么可以(还原暂存区)</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">reset</span> <span class="no">HEAD</span> <span class="n">xxxx</span>
-</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git reset HEAD xxxx</span></code></pre></td></tr></table></div></figure>
 
 
 <h3>3、取消对文件的修改</h3>
 
 <p>如果觉得刚才对XX文件的修改没有必要，想要恢复，那么:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">checkout</span> <span class="o">--</span> <span class="n">xxx</span>
-</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git checkout -- xxx</span></code></pre></td></tr></table></div></figure>
 
 
 <h3>4、取消已经提交的修改</h3>
@@ -364,21 +117,19 @@
 
 <p>创建一个新的，撤销(revert)了前期修改的提交(commit)是很容易的。</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">revert</span> <span class="no">HEAD</span>
-</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git revert HEAD</span></code></pre></td></tr></table></div></figure>
 
 
 <p>这样就创建了一个撤销了上次提交(HEAD)的新提交</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gir</span> <span class="n">revert</span> <span class="no">HEAD</span><span class="o">^</span>
-</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gir revert HEAD^</span></code></pre></td></tr></table></div></figure>
 
 
 <p>撤销上上次</p>
 
-<h3>5、总结</h3>
+<h3>5、Tips</h3>
 
 <h4>回滚到某一次 commit</h4>
 
@@ -456,6 +207,609 @@
 <p><a href="http://git-scm.com">Git 官方</a></p>
 
 <p><a href="http://git-scm.com/book/zh">Git 官方教程</a></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-24T23:13:33+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/24/git-rebase/">
+		
+			Git &#8211; Rebase 篇</a>
+	</h2>
+	<div class="entry-content">
+		<h2>git merge 和 git rebase</h2>
+
+<p>两者都是合并分支的功能，但是区别在于:</p>
+
+<p>假如合并前是这样的：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>D---E master
+</span><span class='line'>     /
+</span><span class='line'>A---B---C---F origin/master</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用merge后</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  D--------E  
+</span><span class='line'> /          \
+</span><span class='line'>A---B---C---F----G   master, origin/master</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用rebase后，就不会有G这个结点</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>A---B---C---F---D'---E'   master, origin/master</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Tips</h4>
+
+<p>1、D’, E’ 的 commit SHA 序號跟本來 D, E 是不同的，因為算是砍掉重新 commit 了。</p>
+
+<p>2、因为使用<code>rebase</code>算是砍掉 D E 重新commit ,那么这里就可能会造成两次冲突，需要修改两次。而merge只需要修改一次</p>
+
+<p>3、因此如果是小规模改动，冲突不会太大的话，建议使用rebase,否则使用merge。</p>
+
+<p>使用reabse的好处是可以让分支不会那么乱，呈线性。</p>
+
+<h4>进行合并</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">两条分支：</span> <span class="n">dev</span> <span class="err">和</span> <span class="n">master</span><span class="err">，此时</span> <span class="n">dev</span> <span class="err">需要合并回</span> <span class="n">master</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># rebase 方式</span>
+</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">dev</span><span class="p">)</span> <span class="n">git</span> <span class="n">rebase</span> <span class="n">master</span>
+</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">dev</span><span class="p">)</span> <span class="n">git</span> <span class="n">checkout</span> <span class="n">master</span>
+</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">master</span><span class="p">)</span> <span class="n">git</span> <span class="n">merge</span> <span class="n">dev</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># merge 方式</span>
+</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">master</span><span class="p">)</span> <span class="n">git</span> <span class="n">merge</span> <span class="n">dev</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># rebase 方式，此时dev和master的指针都是同时指向最新的commit点</span>
+</span><span class='line'><span class="c1"># 但是返回 dev 时，如果要继续使用 dev, 需要先 pull 一下</span>
+</span><span class='line'><span class="c1"># 此时 dev 分支的 nerwork 图是：</span>
+</span><span class='line'><span class="c1"># * b6fa04b (HEAD, master, dev) dev01 ( 10 seconds ago )</span>
+</span><span class='line'><span class="c1"># 这点我还很疑惑。</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>解决冲突</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 解决冲突后</span>
+</span><span class='line'><span class="o">-------------------</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># merge 方式</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">add</span> <span class="o">.</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">am</span> <span class="s1">&#39;xx&#39;</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># rebase 方式</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">add</span> <span class="o">.</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">rebase</span> <span class="o">--</span><span class="n">continue</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>pull 时使用 rebase 方式</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">pull</span> <span class="o">--</span><span class="n">rebase</span> <span class="p">(</span> <span class="err">适合同个分支</span> <span class="err">）</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>&ndash;no-ff</h4>
+
+<p><code>git merge --no-ff</code>这参数的作用跟<code>rebase</code>恰恰相反，是故意弄出一条分支线，表明某些 commit 是为了实现某个功能的。</p>
+
+<p>适用于分支间的合并</p>
+
+<h3>Tips</h3>
+
+<p>一般分支间的 rebase 合并使用场景是：</p>
+
+<p>1、我自己需要实现某个功能，于是开个分支 new_menu，不提交到远程分支。开发完毕用 rebase 弄回 dev 分支</p>
+
+<p>2、一旦分支提交到远程分支，最好不要使用 rebase 进行分支间的合并了，会造成混乱。</p>
+
+<p>3、一般来说，使用 rebase 后的 new_menu 分支就当做废弃了，如果还需要重新使用的话，继续从 dev 分支 new 出一条分支来。</p>
+
+<h2>整理 commit</h2>
+
+<p>在一个 branch 上开发一段时间后，commit 看起来会很杂乱，或者很多无谓的 commit 点，那么我们可以使用 rabase 来将多个 commit 合并成一个。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">log</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">=&gt;</span>
+</span><span class='line'><span class="n">a</span>
+</span><span class='line'><span class="n">b1</span>
+</span><span class='line'><span class="n">b2</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">=&gt;</span><span class="err">要变成</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">a</span>
+</span><span class='line'><span class="n">b</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 拿到 a 的 SHA-1 后</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">rebase</span> <span class="o">-</span><span class="n">i</span> <span class="mi">49687</span><span class="n">a0a646954afdf3f4dae1f914ea793341ea2</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">pick</span> <span class="mo">033</span><span class="n">beb4</span> <span class="n">b1</span>
+</span><span class='line'><span class="n">pick</span> <span class="n">d426a8a</span> <span class="n">b2</span>
+</span><span class='line'><span class="c1"># Rebase 49687a0..d426a8a onto 49687a0</span>
+</span><span class='line'><span class="c1"># pick = use commit </span>
+</span><span class='line'><span class="c1"># squash = use commit, but meld into previous commit</span>
+</span><span class='line'><span class="c1"># pick 会执行该 commit, squash 则将该 commit 合并到前一个 commit</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>于是我们修改成：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">pick</span> <span class="mo">033</span><span class="n">beb4</span> <span class="n">b1</span>
+</span><span class='line'><span class="n">squash</span> <span class="n">d426a8a</span> <span class="n">b2</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 保存退出后会要求输入新的 commit 信息，后可通过 git log 查看。</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Tips</h3>
+
+<p>1、这功能的使用场景是 commit 还没有 push 到远程分支，一旦 push 到远程分支就不要用了。( 虽然可以用 &ndash;force 强制 push，视情况而定 )</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-24T22:12:33+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/24/git-push-pull/">
+		
+			Git &#8211; Push 和 Pull 篇</a>
+	</h2>
+	<div class="entry-content">
+		<h2>git push</h2>
+
+<h4>将本地仓库的更新推送到远程仓库 remote</h4>
+
+<p><code>git push [remote-name] [branch-name]</code></p>
+
+<p><code>git push origin master</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 如果当前分支跟远程分支有 tracking 关系，那么将会自动推送当前分支到对应的远程分支</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 如果主机名只有一个 origin，那么连 origin 都可以省略</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>查看 tracking 关系：</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cat</span> <span class="o">.</span><span class="n">/</span><span class="o">.</span><span class="n">git</span><span class="o">/</span><span class="n">config</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 此时没有 tracking 关系</span>
+</span><span class='line'><span class="o">==&gt;</span>
+</span><span class='line'><span class="o">[</span><span class="n">core</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">repositoryformatversion</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>  <span class="n">filemode</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">bare</span> <span class="o">=</span> <span class="kp">false</span>
+</span><span class='line'>  <span class="n">logallrefupdates</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">ignorecase</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">precomposeunicode</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'><span class="o">[</span><span class="n">remote</span> <span class="s2">&quot;origin&quot;</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">url</span> <span class="o">=</span> <span class="n">git</span><span class="vi">@github</span><span class="o">.</span><span class="n">com</span><span class="ss">:linjunzhu</span><span class="o">/</span><span class="n">test_branch</span><span class="o">.</span><span class="n">git</span>
+</span><span class='line'>  <span class="n">fetch</span> <span class="o">=</span> <span class="o">+</span><span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/*</span><span class="ss">:refs</span><span class="o">/</span><span class="n">remotes</span><span class="o">/</span><span class="n">origin</span><span class="o">/*</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>添加 tracking 关系</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="o">-</span><span class="n">u</span> <span class="n">origin</span> <span class="n">dev</span>  <span class="p">(</span><span class="err">这句同时指定了</span> <span class="n">origin</span> <span class="err">为默认主机</span><span class="p">)</span>
+</span><span class='line'><span class="err">或者</span>
+</span><span class='line'><span class="n">git</span> <span class="n">branch</span> <span class="o">-</span><span class="n">u</span> <span class="n">dev</span> <span class="n">origin</span><span class="o">/</span><span class="n">dev</span>
+</span><span class='line'><span class="err">或者</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="o">--</span><span class="n">set</span><span class="o">-</span><span class="n">upstream</span> <span class="n">origin</span> <span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>查看 tracking 关系</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cat</span> <span class="o">.</span><span class="n">/</span><span class="o">.</span><span class="n">git</span><span class="o">/</span><span class="n">config</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 此时有 tracking 关系</span>
+</span><span class='line'><span class="o">==&gt;</span>
+</span><span class='line'><span class="o">[</span><span class="n">core</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">repositoryformatversion</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>  <span class="n">filemode</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">bare</span> <span class="o">=</span> <span class="kp">false</span>
+</span><span class='line'>  <span class="n">logallrefupdates</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">ignorecase</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">precomposeunicode</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'><span class="o">[</span><span class="n">remote</span> <span class="s2">&quot;origin&quot;</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">url</span> <span class="o">=</span> <span class="n">git</span><span class="vi">@github</span><span class="o">.</span><span class="n">com</span><span class="ss">:linjunzhu</span><span class="o">/</span><span class="n">test_branch</span><span class="o">.</span><span class="n">git</span>
+</span><span class='line'>  <span class="n">fetch</span> <span class="o">=</span> <span class="o">+</span><span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/*</span><span class="ss">:refs</span><span class="o">/</span><span class="n">remotes</span><span class="o">/</span><span class="n">origin</span><span class="o">/*</span>
+</span><span class='line'><span class="o">[</span><span class="n">branch</span> <span class="s2">&quot;master&quot;</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">remote</span> <span class="o">=</span> <span class="n">origin</span>
+</span><span class='line'>  <span class="n">merge</span> <span class="o">=</span> <span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/</span><span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>git pull</h2>
+
+<h3>拉取更新</h3>
+
+<p>将远程仓库的更新拉取到本地的「远程仓库」并且进行「merge」操作</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">pull</span> <span class="n">origin</span> <span class="n">master</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 相当于两步操作</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">fetch</span> <span class="n">origin</span> <span class="n">master</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">merge</span> <span class="n">origin</span><span class="o">/</span><span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Tips</h3>
+
+<p>如果当前分支跟远程分支是没有 tracking 关系的，那么执行<code>git pull</code>后，会 download 远程仓库的所有分支代码到本地的 origin/分支上，但是不会合并，相当于 <code>git fetch</code> 命令一样。</p>
+
+<h2>git pull 和 git fetch 的使用区别</h2>
+
+<ol>
+<li><p><code>git pull origin master</code>: 意思是从远程端下载最新版本到当前分支，并且自动合并</p></li>
+<li><p><code>git fetch origin master</code>: 意思是从远程端下载最新版本到当前分支，但是并不合并。因此如果是git fetch 的话，就需要做两步操作。</p></li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">fetch</span> <span class="n">origin</span> <span class="n">master</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">git</span> <span class="n">log</span> <span class="o">-</span><span class="nb">p</span> <span class="n">master</span> <span class="n">origin</span><span class="o">/</span><span class="n">master</span>   <span class="p">(</span><span class="err">查看修改内容</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">git</span>  <span class="n">merge</span> <span class="n">orgin</span><span class="o">/</span><span class="n">master</span>    <span class="p">(</span><span class="err">合并分支</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">或者进行</span> <span class="n">rebase</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">下章讲解</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Tips</h2>
+
+<h4>一、<code>不带任何参数的 git push</code>有两种模式</h4>
+
+<ol>
+<li><code>matching</code>模式，会推送所有<code>对应远程分支</code>的<code>本地分支</code>。</li>
+<li><code>simple</code>模式，只推送当前分支 (如果有 tracking 关系的话)</li>
+</ol>
+
+
+<p>默认没有设置，需要打下命令</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">config</span> <span class="o">--</span><span class="n">global</span> <span class="n">push</span><span class="o">.</span><span class="n">default</span> <span class="n">simple</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>二、关于<code>push</code>and<code>pull</code></h4>
+
+<p>一般如果没把握，最好写全。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">dev</span>
+</span><span class='line'><span class="n">git</span> <span class="n">pull</span> <span class="n">origin</span> <span class="n">dev</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-24T21:12:33+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/24/git-base/">
+		
+			Git &#8211; 基础篇</a>
+	</h2>
+	<div class="entry-content">
+		<h2>Git 和 SVN 的区别</h2>
+
+<p>Git 和  SVN 最大的区别概念在于：Git 是分布式，而 SVN 是集中式管理。</p>
+
+<h3>一、SVN</h3>
+
+<p>所谓集中式版本控制工具，总有一个中心服务器，提供一个项目仓库，大家的代码的提交都是统一提交到这个中心服务器上的</p>
+
+<p>SVN 的模式：</p>
+
+<ol>
+<li>写代码。</li>
+<li>从服务器拉回服务器的当前版本库，并解决服务器版本库与本地代码的冲突。</li>
+<li>将本地代码提交到服务器。</li>
+</ol>
+
+
+<p>每个人的 commit 都是直接提交到服务器。容易造成与其他人的冲突</p>
+
+<h3>二、Git</h3>
+
+<p>分布式版本控制工具类似Git，可以有多个代码仓库，比如可以在本地。同时它可以方便的进行代码仓库合并</p>
+
+<p>Git 的模式：</p>
+
+<ol>
+<li>写代码。</li>
+<li>提交到本地版本库。</li>
+<li>从服务器拉回服务器的当前版本库，并解决服务器版本库与本地代码的冲突。</li>
+<li>将远程库与本地代码合并结果提交到本地版本库。</li>
+<li>将本地版本库推到服务器。</li>
+</ol>
+
+
+<h3>三、总结</h3>
+
+<p>虽然  Git 和 SVN 看起来很像，都有一个服务器库，但其实 Git 是没有中心服务器这个概念的，尽管每个人平时都是先将代码统一提交到中央服务器再统一 pull 其他人的代码，但实际情况是我们可以先 pull 张三的库，再 push 给李四等等操作，只要知道对方的IP地址仓库地址即可( 不过很少这么做)</p>
+
+<p>在 Github 上，你可以任意 fork 别人的仓库，按照自己的需求进行改造，或者提出 pull request 请原作者 merge 你所修改的代码。这里面没有‘中心’这个概念。</p>
+
+<p>每一次的 commit，SVN 都需要网络，而 Git 则不用，因为有本地仓库的概念，这样的好处是，即使你短时间断网都无所谓，还是可以不断的 commit，来追踪版本。</p>
+
+<p>分布式版本控制系统通常也有一台充当“中央服务器”的电脑，但这个服务器的作用仅仅是用来方便“交换”大家的修改，没有它大家也一样干活，只是交换修改不方便而已。</p>
+
+<h2>Git 基础知识</h2>
+
+<h3>Git 的对象模型</h3>
+
+<p><a href="https://ruby-china.org/topics/20723">https://ruby-china.org/topics/20723</a>
+这帖子讲得很好。
+总共分为：</p>
+
+<ol>
+<li>commit</li>
+<li>tree</li>
+<li>blog</li>
+</ol>
+
+
+<p>commit ： 提交信息</p>
+
+<p>tree ：指向其他的 tree / blog</p>
+
+<p>blog：文件的内容</p>
+
+<h3>Git 的结构</h3>
+
+<p><img src="http://data-storage.qiniudn.com/git_struct.png" alt="" />
+分为工作区，暂存区，以及本地仓库</p>
+
+<h3>基本操作</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 将文件加入暂存区</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">add</span> <span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 将文件提交到本地仓库（HEAD)</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">am</span> <span class="s1">&#39;First commit&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">$</span> <span class="err">将改动推送到远程仓库</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>关于 -am 的解释</h3>
+
+<p><code>git commit -am 'message'</code>: git add（只针对已知的文件) 和 git commit同时执行，并且会自动移除掉不在工作区的文件</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 看下 commit 命令带 -a 参数的文档</span>
+</span><span class='line'><span class="n">by</span> <span class="n">using</span> <span class="n">the</span> <span class="o">-</span><span class="n">a</span> <span class="n">switch</span> <span class="n">with</span> <span class="n">the</span> <span class="n">commit</span> <span class="n">command</span> <span class="n">to</span> <span class="n">automatically</span> <span class="s2">&quot;add&quot;</span> <span class="n">changes</span> <span class="n">from</span> <span class="n">all</span> <span class="n">known</span> <span class="n">files</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="n">all</span> <span class="n">files</span> <span class="n">that</span> <span class="n">are</span>
+</span><span class='line'> <span class="n">already</span> <span class="n">listed</span> <span class="k">in</span> <span class="n">the</span> <span class="n">index</span><span class="p">)</span> <span class="ow">and</span> <span class="n">to</span> <span class="n">automatically</span> <span class="s2">&quot;rm&quot;</span> <span class="n">files</span> <span class="k">in</span> <span class="n">the</span> <span class="n">index</span> <span class="n">that</span>
+</span><span class='line'>  <span class="n">have</span> <span class="n">been</span> <span class="n">removed</span> <span class="n">from</span> <span class="n">the</span> <span class="n">working</span> <span class="n">tree</span><span class="p">,</span> <span class="ow">and</span> <span class="k">then</span> <span class="n">perform</span> <span class="n">the</span> <span class="n">actual</span> <span class="n">commit</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>删除文件有两种操作</p>
+
+<p>1、手动 rm，但此时文件还存在于 Git 控制下，需要<code>git commit -am'msg'</code>
+2、<code>git rm file_name</code>， 然后<code>git commit -m “xx”</code> 即可。</p>
+
+<p>因此，平常只要  git add .  （提交新增、更改后的文件），然后git commit -am “xx” （保存新增，更改后的文件，以及删除的文件），然后push即可。</p>
 
 		
 		
@@ -1259,6 +1613,12 @@ Mysql 版本5.5 以上，需要这么做：</p>
 <p>
 这样子当修改@project时，也会修改子级的 cache_key</p>
 
+<h2>6、注意</h2>
+
+<p>当请求过来时，还是会经过controller,进行lazy select,再经过erb,再进行真正的 cache_key 计算，当然，此时 controller 中查询的那些还没有真正的查询，因为是 lazy select</p>
+
+<p>分割好粒度，否则会得不偿失</p>
+
 <p>还有第二个坑，写得脑仁疼，不写啦，看下面参考文</p>
 
 <h2>参考</h2>
@@ -1847,437 +2207,6 @@ Mysql 版本5.5 以上，需要这么做：</p>
 
 
 <time datetime="2014-09-14T00:39:14+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/07/02/ru-he-shi-yong-websocket-rails/">
-		
-			如何使用websocket-rails</a>
-	</h2>
-	<div class="entry-content">
-		<h1>如何使用WebSocket-rails</h1>
-
-<h4>1、WebSocket简介</h4>
-
-<p>WebSocket是Html5才出的一种协议，可以实现双向通信。而http请求仅能实现单向通信。comet也可以模拟双向通信，不过效率较低，需要耗费大量的服务器资源。</p>
-
-<h4>2、应用范围</h4>
-
-<p>可以作推送，聊天室等等</p>
-
-<h4>3、开始动工</h4>
-
-<ol>
-<li>将<code>websocket-rails</code> gem 加入 <code>gemfile</code>, and then excute <code>bundle</code></li>
-<li>Run the installation generator: <code>rails g websocket_rails:install</code></li>
-</ol>
-
-
-<h4>4、操作Controller</h4>
-
-<p>1.创建Controller</p>
-
-<pre><code>class ChatController &lt; WebsocketRails::BaseController
-    def initialize_session
-        可以在这里做一些初始操作
-
-            end
-</code></pre>
-
-<p><code>``
-2.设置路由
-在</code>events.rb`文件中加入：</p>
-
-<pre><code>WebsocketRails::EventMap.describe do
-    namespace :tasks do
-        subscribe :create, to: TaskController, with_method: :create
-    end
-end
-</code></pre>
-
-<p>也就是声明可以访问的websocket路由</p>
-
-<p>3.客户端发送请求</p>
-
-<p>在JS文件中，编写代码：</p>
-
-<pre><code>var task = {
-    name: 'i am roller'
-    age: 15
-}
-
-var dispatcher = new WebSocketRails('localhost:3000/websocket')
-
-#对tasks命名空间下的create方法(前面所定义的路由)发送请求，并且请求参数为task
-dispatcher.trigger('tasks.create', task)
-</code></pre>
-
-<p>4.服务端处理请求</p>
-
-<p>在controller中 handle 这个事件</p>
-
-<pre><code>class TaskController &lt; WebsocketRails::BaseControler
-    def create
-        # task为事先创建好的model
-        task = Task.new message
-        if task.save
-            send_message: create_success, task, namespace: :tasks
-        else
-            send_message: create_fail, task, namespace: :tasks
-        end
-    end
-end
-</code></pre>
-
-<p>5.服务端发送请求
-上面的代码，<code>send_message</code> 表示对客户端触发 &lsquo;create_success&#8217;事件，参数为task, 命名空间为tasks</p>
-
-<p>6.客户端处理请求</p>
-
-<pre><code>dispatcher.bind('tasks.create_success', function(task){
-    console.log('successfully created' + task.name)
-})
-</code></pre>
-
-<p>7.服务端发送请求，客户端处理请求的第二种写法</p>
-
-<p>在客户端：</p>
-
-<pre><code>var success = function(task){
-    console.log('something');
-}
-
-var failure = function(task){
-    console.log('something');
-}
-
-# 直接将方法绑定，然后由服务端去触发
-dispatcher.trigger('tasks.create', task, success, failure);
-</code></pre>
-
-<p>在服务端：</p>
-
-<pre><code>def create
-    task = Task.create message
-    if task.save
-      trigger_success task
-    else
-      trigger_failure task
-    end
-end         ils&gt;
-</code></pre>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-07-02T22:43:33+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/06/12/ru-he-shi-yong-gitbook/">
-		
-			如何使用gitbook</a>
-	</h2>
-	<div class="entry-content">
-		<h3>GitBook</h3>
-
-<p>GitBook是一款利用git和markdown快速写出电子书的工具</p>
-
-<h4>1、开始使用</h4>
-
-<p>首先</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ npm install gitbook -g</span></code></pre></td></tr></table></div></figure>
-
-
-<p>安装gitbook命令行工具, 该命令行工具是用Node.js所写。可以依靠该工具在本地生成预览</p>
-
-<p>接着去官网下载编辑器 <a href="https://www.gitbook.io">https://www.gitbook.io</a>，并且在上面注册账号</p>
-
-<h4>2、开始写书</h4>
-
-<p><img src="https://camo.githubusercontent.com/c1b6c55fca8e171120ce1fd73afcee699cc2a98f/68747470733a2f2f7261772e6769746875622e636f6d2f476974626f6f6b494f2f676974626f6f6b2f6d61737465722f707265766965772e706e67" alt="" /></p>
-
-<p>在File菜单上点击 new book,创建一本新书。
-然后在左边侧边栏右键创建capter,需要注意的是capter名不能为中文。要如何做呢？</p>
-
-<ol>
-<li>用英文名创建capter （其实就相当于在本地创建一个文件夹）</li>
-<li>右键修改capter名为中文</li>
-</ol>
-
-
-<p>否则会出现错误。</p>
-
-<p>然后就愉快的写书啦~~~~</p>
-
-<h4>3、上传数据</h4>
-
-<p>Book => publish as => done</p>
-
-<h4>4、协作写书</h4>
-
-<p>将book文件夹 share 出去即可</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-12T17:29:25+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/06/12/li-yong-octopresszai-githubshang-da-jian-bo-ke/">
-		
-			利用OCtopress在github上搭建博客</a>
-	</h2>
-	<div class="entry-content">
-		<h3>目录</h3>
-
-<ol>
-<li>安装ruby</li>
-<li>安装Octpress</li>
-<li>配置Octopress</li>
-<li>部署Octopress</li>
-<li>开始写博客</li>
-<li>更换主题</li>
-<li>绑定域名</li>
-<li>回顾</li>
-</ol>
-
-
-<h4>1、安装Ruby</h4>
-
-<p>Octopress需要Ruby环境，那么就来装下Ruby环境。</p>
-
-<p>首先安装RVM，RVM是用来负责安装和管理Ruby的环境</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>curl -L https://get.rvm.io | bash -s stable --ruby</span></code></pre></td></tr></table></div></figure>
-
-
-<p>接着安装Ruby</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sed -i -e 's/ftp\.ruby-lang\.org\/pub\/ruby/ruby\.taobao\.org\/mirrors\/ruby/g' ~/.rvm/config/db (切换rvm 的安装源，天朝的GFW，你懂的。)
-</span><span class='line'>rvm install 2.1.0
-</span><span class='line'>rvm use 2.1.0 --default
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>参考：<a href="http://rvm.io/rvm/install">http://rvm.io/rvm/install</a></p>
-
-<h4>2、安装Octopress</h4>
-
-<p>首先，请确认你的机子已经安装了git。
-git 安装之后，利用git命令将octopress从github上clone到本机。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git clone git://github.com/imathis/octopress.git blogName
-</span><span class='line'>cd blogName  
-</span><span class='line'>gem install bundler (如无bundler,则需要install, 一般rails开发人员都已安装)
-</span><span class='line'>bundle install
-</span><span class='line'>
-</span><span class='line'>rake install （安装Octopress）</span></code></pre></td></tr></table></div></figure>
-
-
-<p>参考：<a href="http://octopress.org/docs/setup/">http://octopress.org/docs/setup/</a></p>
-
-<h4>3、 部署Octopress</h4>
-
-<p>我们可以在github上托管我们的blog。
-具体做法：</p>
-
-<ol>
-<li>在github创建仓库，按照username.github.io 命名即可（之前是username.github.com,不过由于一系列原因改成了.io），随后十分钟左右即可在浏览器中访问username.github.io。</li>
-</ol>
-
-
-<p>配置好仓库后，我们需要利用Octopress的一个配置rake任务，来自动配置blog。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ rake setup_github.pages</span></code></pre></td></tr></table></div></figure>
-
-
-<p>上面的命令会做一系列操作</p>
-
-<ol>
-<li>会创建<code>_deploy</code>目录（该目录在 master 下)，该目录用来存放部署到master分支的内容（username.github.io 的内容是在master分支下的）。</li>
-<li>并且source/_post/ 目录是存放你所写的文章源码。</li>
-<li>期间会要求输入远程仓库的url。</li>
-<li>会自动切换到 source 分支，以后就直接在这分支上干活。</li>
-<li>注意，master 分支不要动，完全可以忽视它了。</li>
-</ol>
-
-
-<p>初次部署项目</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ rake generate (根据配置等生成所需要的静态文件，如：文章)
-</span><span class='line'>$ rake deploy (将_deploy目录部署到远程master分支)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>源码需要单独提交到git</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>
-</span><span class='line'>$ git add .
-</span><span class='line'>$ git commit -am 'first commit'
-</span><span class='line'>$ git push origin source
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>4、配置Octopress</h4>
-
-<p>大多数只需要配置<em>config.yml 和 Rakefile文件即可，不过Rakefile文件跟博客部署有关，一般不会去动。
-</em>config.yml是博客很重要的一个文件，根据需求开启第三方组件等等。另外，其中的URL需要填写github上的远程仓库地址。</p>
-
-<h4>5、开始写博客</h4>
-
-<p>新建一篇文章</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$rake new_post\['标题'\]</span></code></pre></td></tr></table></div></figure>
-
-
-<p>该操作会在_post目录下生成一个markdown文件，编辑该md文件写文章。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ rake generate (每次修改文章都需要执行)
-</span><span class='line'>$ rake preview  (在本地预览所写的内容 &lt;localhost:4000&gt;)
-</span><span class='line'>$ rake deploy   (部署)
-</span><span class='line'>
-</span><span class='line'>随后把源码push到 source 分支</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>6、更换主题</h4>
-
-<p>到网上搜索主题，比如我现在使用的主题<a href="http://zespia.tw/Octopress-Theme-Slash/index_tw.html">Slash</a>。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd blogname
-</span><span class='line'>$ git clone git://github.com/tommy351/Octopress-Theme-Slash.git .themes/slash
-</span><span class='line'>$ rake install\['slash'\]
-</span><span class='line'>$ rake generate</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>7、绑定域名</h4>
-
-<p>比如我有一个 <code>linjunzhu.me</code>这个域名，那要如何做才能当我访问<code>linjunzhu.github.io</code>会自动跳转到<code>linjunzhu.me</code>进行访问呢？</p>
-
-<ol>
-<li>在 Github 中的博客仓库中，添加一个 <code>CNAME</code> 文件，里面写明我们所跳转的域名 <code>linjunzhu.me</code></li>
-<li>使用 DNS 解析服务，将我们的域名指向该地址。</li>
-</ol>
-
-
-<p>不过，由于 <code>rake generate</code> 和 <code>rake deploy</code>每次都会重新生成整个<code>master</code>分支，建议第一步不要直接在 Github 上操作。</p>
-
-<p>而是在 Source 分支下的 source 目录添加<code>CNAME</code>文件。</p>
-
-<p>这样当运行<code>rake generate</code>时会将<code>source</code>目录整个复制到<code>public</code>目录，运行<code>rake deploy</code>则会将<code>public</code>目录整个复制到<code>_deploy</code>目录。</p>
-
-<h4>8、回顾</h4>
-
-<p>当成功后，我们访问<code>linjunzhu.github.io</code>时，会自动跳往<code>linjunzhu.me</code>，这时 Chrome 会自动缓存起来，以后访问<code>linjunzhu.github.io</code>都会自动跳往后者（无论有无 CANME）。</p>
-
-<p>因此，当时我<code>CNAME</code>文件丢失后，访问<code>linjunzhu.github.io</code>总会自动跳往后者并且显示<code>404</code>，搞了许久以为是博客搞乱了，其实是 Chrome 的原因。</p>
-
-<p>有人会问，为什么我还需要在分支上创建<code>CNAME</code>文件，而不能直接用 DNS 解析服务，将域名指向<code>linjunzhu.github.io</code>不就完事了吗？</p>
-
-<p>因为 Github 做了处理，只有域名是<code>linjunzhu.github.io</code>才会跳往至博客页面，而访问<code>linjunzhu.me</code>，域名不符，是不会的，因此才需要第一步创建<code>CNAME</code></p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-12T14:13:44+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>

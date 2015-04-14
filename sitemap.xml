@@ -51,7 +51,22 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/24/git/</loc>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/24/git%20copy/</loc>
+    <lastmod>2014-10-24T23:13:33+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/24/git-rebase/</loc>
+    <lastmod>2014-10-24T22:12:33+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/24/git-push-pull/</loc>
+    <lastmod>2014-10-24T21:12:33+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/24/git-base/</loc>
     <lastmod>2014-10-24T20:12:33+08:00</lastmod>
     <priority>0.8</priority>
   </url>
@@ -107,13 +122,13 @@
   </url>
   <url>
     <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/archives/</loc>
-    <lastmod>2015-03-06T15:54:05+08:00</lastmod>
+    <lastmod>2015-04-14T12:53:52+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://github.com/linjunzhu/linjunzhu.github.io.git/</loc>
-    <lastmod>2015-03-06T15:54:05+08:00</lastmod>
+    <lastmod>2015-04-14T12:53:52+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
