@@ -4,7 +4,7 @@
   <title><![CDATA[LinJunzhu's Blog]]></title>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/atom.xml" rel="self"/>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/"/>
-  <updated>2015-04-14T12:53:52+08:00</updated>
+  <updated>2015-04-21T14:01:26+08:00</updated>
   <id>https://github.com/linjunzhu/linjunzhu.github.io.git/</id>
   <author>
     <name><![CDATA[林俊柱]]></name>
@@ -12,6 +12,167 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA['Rails-CSRF-Explore']]></title>
+    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2015/04/20/rails-csrf-explore/"/>
+    <updated>2015-04-20T22:52:59+08:00</updated>
+    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2015/04/20/rails-csrf-explore</id>
+    <content type="html"><![CDATA[<h2>目录</h2>
+
+<ol>
+<li>引言</li>
+<li>session</li>
+<li>CSRF</li>
+<li>真相大白</li>
+<li>破解？</li>
+</ol>
+
+
+<h2>一、引言</h2>
+
+<p>这段时间一直在想，Rails 的 CSRF token 要破解不是很简单么？<code>GET</code>请求到网页拿到 token，随后发送恶意<code>POST</code>请求到服务器不就破解了么？事实证明我还是 Too young too simple.</p>
+
+<h2>二、尝试</h2>
+
+<ol>
+<li><p>写了个程序在<code>ruby</code>中去<code>GET</code>其他服务器的网页，获取到<code>token</code>后，伪造恶意<code>POST</code>请求，附带<code>token</code>，结果<code>402 invalid token</code></p></li>
+<li><p>真实打开浏览器，获取网页中<code>token</code>，随后复制该<code>token</code>，在<code>ruby</code>中恶意伪造<code>POST</code>请求并附带<code>token</code>，结果还是<code>402 invalid token</code></p></li>
+<li><p>真实打开浏览器，获取token，打开<code>postman</code>，发送<code>POST</code>请求。成功<code>200</code></p></li>
+</ol>
+
+
+<p>这是为什么呢？</p>
+
+<h2>二、session</h2>
+
+<p>在 Rails 中，默认的session存储方式是：<code>ActionDispatch::Session::CookieStore</code></p>
+
+<p>也就是默认将<code>session</code>的内容存放到客户端<code>cookie</code>中。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">_glassx_session</span><span class="p">:</span>
+</span><span class='line'><span class="no">TE9xZ3Zud1dxRFYxdEtSek5mYldTMkpnZ1NWUlF5SjdzODVRSkJYNGN6VmNDc1VGb1lzSGJPU0FLYWhoMU5ZSHZCeXUwNTFWdWFQaWpKZmZSUC96c0dWbFdDcmlZK3RTcENabXZoaFVScWx1SWlxR1dEbmcwU1BXSDBZWUVOVW1EN0ZscmZpWkJsOFBZajZST0Z3VWxJM09NOGVTRFp2djRyYVB4SVJZNkVWRlM4dmw0TVNYb01jOGJYdVRXKzYxY1pyeXNtT0VkVWZ4YjZFcTdVU1FLVEU2aXlXbGRIOWY3c0Q1THlPRGtWeFhOb1BCd1M0S3hOQ04xTHNSajh3MC0tS3I0UVZkK2tuWGx0d1BDSVp3b1diZz09</span><span class="o">--</span><span class="n">cd6094c15ae50026d0377b6c32b7e0986b447d74</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>session中的数据保存在cookie中时是先marshal后，然后利用密码来加密的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">marshal</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">---</span><span class="n">digest_with_secret_key</span><span class="p">(</span><span class="n">marshal</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里所用<code>secret key</code>则是我们在<code>config/secrets.yml</code>设置的。</p>
+
+<p>加密的原因是防止 session 被偷看，并且<code>防止 session 被修改</code>。</p>
+
+<h2>三、CSRF</h2>
+
+<p>我们在访问服务器的网页时，会找到这样的 token</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="n">meta</span> <span class="nb">name</span><span class="o">=</span><span class="s2">&quot;csrf-param&quot;</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;authenticity_token&quot;</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">meta</span> <span class="nb">name</span><span class="o">=</span><span class="s2">&quot;csrf-token&quot;</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;yT5/q+GxMDy96ISmdNfE4esNrc8YZOBUrQefXO21tJ19iGD1XjRkJ2/ELC1A952U5qDp3vpo6MhhHQB8fOmivw==&quot;</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这<code>token</code>是服务器生成后返回的。</p>
+
+<p>具体流程是：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 生成加密的token（也就是我们在网页上见到的csrf-token)</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">masked_authenticity_token</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">one_time_pad</span> <span class="o">=</span> <span class="no">SecureRandom</span><span class="o">.</span><span class="n">random_bytes</span><span class="p">(</span><span class="no">AUTHENTICITY_TOKEN_LENGTH</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">encrypted_csrf_token</span> <span class="o">=</span> <span class="n">xor_byte_strings</span><span class="p">(</span><span class="n">one_time_pad</span><span class="p">,</span> <span class="n">real_csrf_token</span><span class="p">(</span><span class="n">session</span><span class="p">))</span>
+</span><span class='line'>  <span class="n">masked_token</span> <span class="o">=</span> <span class="n">one_time_pad</span> <span class="o">+</span> <span class="n">encrypted_csrf_token</span>
+</span><span class='line'>  <span class="no">Base64</span><span class="o">.</span><span class="n">strict_encode64</span><span class="p">(</span><span class="n">masked_token</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 生成 _csrf_token，并且将其放入`session[:_csrf_token]`中</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">real_csrf_token</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">session</span><span class="o">[</span><span class="ss">:_csrf_token</span><span class="o">]</span> <span class="o">||=</span> <span class="no">SecureRandom</span><span class="o">.</span><span class="n">base64</span><span class="p">(</span><span class="no">AUTHENTICITY_TOKEN_LENGTH</span><span class="p">)</span>
+</span><span class='line'>  <span class="no">Base64</span><span class="o">.</span><span class="n">strict_decode64</span><span class="p">(</span><span class="n">session</span><span class="o">[</span><span class="ss">:_csrf_token</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 验证 token 是否有效（这段代码我简化过）</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">valid_authenticity_token?</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">encoded_masked_token</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">masked_token</span> <span class="o">=</span> <span class="no">Base64</span><span class="o">.</span><span class="n">strict_decode64</span><span class="p">(</span><span class="n">encoded_masked_token</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">masked_token</span><span class="o">.</span><span class="n">length</span> <span class="o">==</span> <span class="no">AUTHENTICITY_TOKEN_LENGTH</span>
+</span><span class='line'>       <span class="n">compare_with_real_token</span> <span class="n">masked_token</span><span class="p">,</span> <span class="n">session</span>
+</span><span class='line'>  <span class="k">elsif</span> <span class="n">masked_token</span><span class="o">.</span><span class="n">length</span> <span class="o">==</span> <span class="no">AUTHENTICITY_TOKEN_LENGTH</span> <span class="o">*</span> <span class="mi">2</span>
+</span><span class='line'>     <span class="n">one_time_pad</span> <span class="o">=</span> <span class="n">masked_token</span><span class="o">[</span><span class="mi">0</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">AUTHENTICITY_TOKEN_LENGTH</span><span class="o">]</span>
+</span><span class='line'>       <span class="n">encrypted_csrf_token</span> <span class="o">=</span> <span class="n">masked_token</span><span class="o">[</span><span class="no">AUTHENTICITY_TOKEN_LENGTH</span><span class="o">.</span><span class="n">.</span><span class="o">-</span><span class="mi">1</span><span class="o">]</span>
+</span><span class='line'>       <span class="n">csrf_token</span> <span class="o">=</span> <span class="n">xor_byte_strings</span><span class="p">(</span><span class="n">one_time_pad</span><span class="p">,</span> <span class="n">encrypted_csrf_token</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>       <span class="n">compare_with_real_token</span> <span class="n">csrf_token</span><span class="p">,</span> <span class="n">session</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 开始验证</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">compare_with_real_token</span><span class="p">(</span><span class="n">unmasked_token</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
+</span><span class='line'>   <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">SecurityUtils</span><span class="o">.</span><span class="n">secure_compare</span><span class="p">(</span><span class="n">unmasked_token</span><span class="p">,</span> <span class="n">real_csrf_token</span><span class="p">(</span><span class="n">session</span><span class="p">))</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从源码可以看出，服务器会将生成的<code>_csrf_token</code>放入用户的<code>session</code>中，当客户端将<code>csrf_token</code>随着<code>request</code>发送过来时，服务器会将<code>csrf_token</code>转换回非加密，随后与<code>session</code>中的<code>_csrf_token</code>进行验证。</p>
+
+<h2>四、真相大白</h2>
+
+<ol>
+<li>验证时需要<code>session内的_csrf_token</code>，而用<code>ruby</code>代码直接发送http请求时是不会附带<code>cookies</code>的，所以验证肯定不会通过，这也是上面尝试第一二步失败的原因。</li>
+<li>使用<code>postman</code>是会自带<code>cookies</code>发送过去的，因此验证通过。</li>
+</ol>
+
+
+<h3>Tips</h3>
+
+<p>附带<code>cookies</code>是浏览器的行为</p>
+
+<h2>五、破解？</h2>
+
+<p>这时有人会问，<code>rails</code>是开源的，有人看了源码之后，拿到网页的<code>csrf_token</code>，按照步骤一步步转换回非加密状态，不就破解了？</p>
+
+<p>还是 too young!</p>
+
+<p>在服务器是将<code>session[_csrf_token]</code>跟用户的<code>csrf_token</code>进行验证，就算你将<code>csrf_token</code>还原了也没用，还是需要<code>session[_csrf_token]</code>，而<code>session</code>是经过<code>secret</code>加密过的，因为无法篡改<code>session</code>，因而也破解不了。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[使用Ruby生成二维码]]></title>
@@ -2476,9 +2637,9 @@
   
   <entry>
     <title type="html"><![CDATA[Git -- 恢复撤销篇]]></title>
-    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/24/git%20copy/"/>
+    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/24/git-resume/"/>
     <updated>2014-10-24T23:13:33+08:00</updated>
-    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/24/git copy</id>
+    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/24/git-resume</id>
     <content type="html"><![CDATA[<h3>1、取消本地修改，恢复到上一次的commit</h3>
 
 <p>如果你的本地文件修改得一团乱，但是还没有提交，可以通过下面的命令恢复到上次提交时的状态( 其实就是恢复到上次的 commit，因此这次的本地修改自然没了）（<code>注意是修改，不包括添加文件</code>）</p>
@@ -2720,6 +2881,8 @@
 
 <h4>&ndash;no-ff</h4>
 
+<p>因为两条分支在合并时，当第一条分支完全没做修改时，此时 Git 会用到<code>Fast forward</code>模式，将 HEAD 指向第二条分支的最新 commit 去，这时候我们可以用该参数来禁止<code>fast forward</code>模式。</p>
+
 <p><code>git merge --no-ff</code>这参数的作用跟<code>rebase</code>恰恰相反，是故意弄出一条分支线，表明某些 commit 是为了实现某个功能的。</p>
 
 <p>适用于分支间的合并</p>
@@ -2733,6 +2896,8 @@
 <p>2、一旦分支提交到远程分支，最好不要使用 rebase 进行分支间的合并了，会造成混乱。</p>
 
 <p>3、一般来说，使用 rebase 后的 new_menu 分支就当做废弃了，如果还需要重新使用的话，继续从 dev 分支 new 出一条分支来。</p>
+
+<p>4、在实验中我发现，一旦在 dev 进行 rebase master,那么 origin/dev 的指向就消失了，那是因为 dev 的原先 commit 全部消失了，进行重新 commit，因此 origin/dev 也没得指向了。所以才会造成要 push 时要先<code>pull</code>的现象，因此我们可以用<code>git push --force</code> 强制 push 来解决。</p>
 
 <h2>整理 commit</h2>
 
@@ -2998,6 +3163,19 @@
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">dev</span>
 </span><span class='line'><span class="n">git</span> <span class="n">pull</span> <span class="n">origin</span> <span class="n">dev</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>三、切换远程分支</h4>
+
+<p>当小伙伴的新建分支 push 到远程分支，我们也想要拉取这条分支</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 如果当前分支没有tracking关系，那么git fetch 默认拉取所有分支</span>
+</span><span class='line'><span class="n">git</span> <span class="n">fetch</span> <span class="n">origin</span> <span class="n">test_branch</span>
+</span><span class='line'><span class="n">git</span> <span class="n">checkout</span> <span class="n">test_branch</span>
 </span></code></pre></td></tr></table></div></figure>
 
 ]]></content>
@@ -4112,223 +4290,6 @@ Mysql 版本5.5 以上，需要这么做：</p>
 <p><img src="http://user-image.logdown.io/user/2580/blog/2567/post/145023/YZa3unuQgSf2kUkoSMDF_oauth2-token-request-zh.png" alt="" /></p>
 
 <p>未完待续。。。。。。写得还不够完整。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Rails 中 Rake 的知识]]></title>
-    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/09/14/rails-zhong-rake-de-zhi-shi/"/>
-    <updated>2014-09-14T00:39:14+08:00</updated>
-    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/09/14/rails-zhong-rake-de-zhi-shi</id>
-    <content type="html"><![CDATA[<h3>1、什么是Rack?</h3>
-
-<p>其实 Rails 就是一个 Rack app。</p>
-
-<p> Rack 为使用 Ruby 开发的网页程序提供了小型模块化，适应性极高的接口。Rack 尽量使用最简单的方式封装 HTTP 请求和响应，为服务器、框架和二者之间的软件（中间件）提供了统一的 API，只要调用一个简单的方法就能完成一切操作。</p>
-
-<p>当然， Rack 还包含了许多东西，如处理静态文件，缓存， Log 等。</p>
-
-<p><code>这里的Rack可跟Rake不同</code></p>
-
-<h3>2、Rails 是如何启动的？</h3>
-
-<p>我们会在命令行打 <code>rails s</code></p>
-
-<p>这条命令其实是运行 app/rails， 而 rails 的内容为：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1">#!/usr/bin/env ruby</span>
-</span><span class='line'><span class="no">APP_PATH</span> <span class="o">=</span> <span class="no">File</span><span class="o">.</span><span class="n">expand_path</span><span class="p">(</span><span class="s1">&#39;../../config/application&#39;</span><span class="p">,</span>  <span class="bp">__FILE__</span><span class="p">)</span>
-</span><span class='line'><span class="n">require_relative</span> <span class="s1">&#39;../config/boot&#39;</span>
-</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;rails/commands&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>而 s 参数 则会调用 Rails::Server 模块</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Rails</span><span class="o">::</span><span class="no">Server</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">tap</span> <span class="k">do</span> <span class="o">|</span><span class="n">server</span><span class="o">|</span>
-</span><span class='line'>  <span class="nb">require</span> <span class="no">APP_PATH</span>
-</span><span class='line'>  <span class="no">Dir</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
-</span><span class='line'>  <span class="n">server</span><span class="o">.</span><span class="n">start</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>其中 Rails::Server 又是继承 Rake::Server</p>
-
-<h3>3、逻辑</h3>
-
-<p>一切从Rack开始. 几乎所有的ruby web framework都是rack app. Rack对象响应call方法, 返回三元素的array, 分别是status code, header, content body. 只要你的项目符合以上三个要求, 就是一个合法的rack app. 可以运行它, 在浏览器访问, 看到完整的响应内容. 所以, 主流程即是request与response的地程. 我们所做的事情就是在中间加入一些自己的东西.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;rack&#39;</span>
-</span><span class='line'><span class="k">class</span> <span class="nc">HelloWorld</span>
-</span><span class='line'>  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
-</span><span class='line'>    <span class="o">[</span><span class="mi">200</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span> <span class="o">=&gt;</span> <span class="s2">&quot;text/html&quot;</span><span class="p">},</span> <span class="o">[</span><span class="s2">&quot;Hello Rack!&quot;</span><span class="o">]]</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">Handler</span><span class="o">::</span><span class="no">Mongrel</span><span class="o">.</span><span class="n">run</span> <span class="no">HelloWorld</span><span class="o">.</span><span class="n">new</span><span class="p">,</span> <span class="ss">:Port</span> <span class="o">=&gt;</span> <span class="mi">9292</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>一、 http request 到达 web server 后会即被rack封装, 而后你得到一个env对象. 它包含了客户的请求类型(get/post/put/delete/..), 请求的地址(env[&lsquo;PATH_INFO&rsquo;], QUERY_STRING)等等.</p>
-
-<ol>
-<li><p>通过分析env, 我们知道客户的请求是指向哪个controller#action. 而后查看路由表我们的app能否响应此请求.</p></li>
-<li><p>路由表在新建app对象时通过routes方法来定义, 具体的做法是接受一个block, block内调用match, get, post等方法时, 生成路由规则加入路由表. 路由表里包含路径字符串的匹配正则, controller, action, params等等.</p></li>
-<li><p>参照上一条, 在路由规则中检查 env[&lsquo;PATH_INFO&rsquo;], 若匹配, 就知道了指向哪个controller的哪个action, 以及其params. 通过 ctrl_const = Object.const_get(params[:controller].capitalize)来得到相应的controller.</p></li>
-<li><p>通过 ctrl_const.new(env).call(params[:action]) 可以调用到相应的方法.</p></li>
-<li><p>到这一步, 已经初步描述了一个请求从客户端到服务器端并指向需要的controller#action的基本过程. 也即处理request的过程完成.</p></li>
-</ol>
-
-
-<p>二、Response的过程:</p>
-
-<ol>
-<li><p>在ctrl_const.new上调用action后新的对象内就会拥有相应的实例变量. 这时通过Tiltgem, 按规则生成目标view的名字, 找到它, 而后render, render时将self作为scope传入. 至此view里可以调用action里所有的实例变量.Tilt.new(view).render self 得到了应该返回的html的内容.</p></li>
-<li><p>上一步render得到的只是Controller#action对应的view, 需要将它交给layout处理.同样的使用Tilt, 将上一步得到的partial view 放到block中提交过去. 这样layout中的&lt;%= yield %>关键字生效. 至此, 得到完整的html内容.</p></li>
-<li><p>Rack要求调用call后的返回的值是一个三值的array, 分别是[status code, head content, body].上一步得到的是html内容就是body部分.</p></li>
-</ol>
-
-
-<h4>4、Rails中的中间件</h4>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">cd</span> <span class="n">your</span><span class="o">/</span><span class="n">project</span><span class="o">/</span><span class="n">path</span>
-</span><span class='line'><span class="n">rake</span> <span class="n">middleware</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">=&gt;</span>
-</span><span class='line'><span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Sendfile</span>
-</span><span class='line'><span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Static</span>
-</span><span class='line'><span class="n">use</span> <span class="c1">#&lt;ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007fd93e3aee58&gt;</span>
-</span><span class='line'><span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Runtime</span>
-</span><span class='line'><span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">MethodOverride</span>
-</span><span class='line'><span class="err">等等</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Action</span> <span class="no">Controller</span> <span class="err">的很多功能都以中间件的形式实现。下面解释各个中间件的作用。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">Sendfile</span><span class="err">：设置服务器上的</span> <span class="n">X</span><span class="o">-</span><span class="no">Sendfile</span> <span class="err">报头。通过</span> <span class="n">config</span><span class="o">.</span><span class="n">action_dispatch</span><span class="o">.</span><span class="n">x_sendfile_header</span> <span class="err">选项设置。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Static</span><span class="err">：用来服务静态资源文件。如果选项</span> <span class="n">config</span><span class="o">.</span><span class="n">serve_static_assets</span> <span class="err">为</span> <span class="kp">false</span><span class="err">，则禁用这个中间件。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">Lock</span><span class="err">：把</span> <span class="n">env</span><span class="o">[</span><span class="s2">&quot;rack.multithread&quot;</span><span class="o">]</span> <span class="err">旗标设为</span> <span class="kp">false</span><span class="err">，程序放入互斥锁中。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Cache</span><span class="o">::</span><span class="no">Strategy</span><span class="o">::</span><span class="no">LocalCache</span><span class="o">::</span><span class="no">Middleware</span><span class="err">：在内存中保存缓存，非线程安全。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">Runtime</span><span class="err">：设置</span> <span class="n">X</span><span class="o">-</span><span class="no">Runtime</span> <span class="err">报头，即执行请求的时长，单位为秒。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">MethodOverride</span><span class="err">：如果指定了</span> <span class="n">params</span><span class="o">[</span><span class="ss">:_method</span><span class="o">]</span> <span class="err">参数，会覆盖所用的请求方法。这个中间件实现了</span> <span class="no">PUT</span> <span class="err">和</span> <span class="no">DELETE</span> <span class="err">方法。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">RequestId</span><span class="err">：在响应中设置一个唯一的</span> <span class="n">X</span><span class="o">-</span><span class="no">Request</span><span class="o">-</span><span class="no">Id</span> <span class="err">报头，并启用</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Request</span><span class="c1">#uuid 方法。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rails</span><span class="o">::</span><span class="no">Rack</span><span class="o">::</span><span class="no">Logger</span><span class="err">：请求开始时提醒日志，请求完成后写入日志。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">ShowExceptions</span><span class="err">：补救程序抛出的所有异常，调用处理异常的程序，使用特定的格式显示给用户。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">DebugExceptions</span><span class="err">：如果在本地开发，把异常写入日志，并显示一个调试页面。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">RemoteIp</span><span class="err">：检查欺骗攻击的</span> <span class="no">IP</span><span class="err">。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Reloader</span><span class="err">：提供“准备”和“清理”回调，协助开发环境中的代码重新加载功能。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Callbacks</span><span class="err">：在处理请求之前调用“准备”回调。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="o">::</span><span class="no">CheckPending</span><span class="err">：检查是否有待运行的迁移，如果有就抛出</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">PendingMigrationError</span> <span class="err">异常。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">ConnectionAdapters</span><span class="o">::</span><span class="no">ConnectionManagement</span><span class="err">：请求处理完成后，清理活跃的连接，除非在发起请求的环境中把</span> <span class="n">rack</span><span class="o">.</span><span class="n">test</span> <span class="err">设为</span> <span class="kp">true</span><span class="err">。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">QueryCache</span><span class="err">：启用</span> <span class="no">Active</span> <span class="no">Record</span> <span class="err">查询缓存。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Cookies</span><span class="err">：设置请求的</span> <span class="n">cookies</span><span class="err">。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Session</span><span class="o">::</span><span class="no">CookieStore</span><span class="err">：负责把会话存储在</span> <span class="n">cookies</span> <span class="err">中。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Flash</span><span class="err">：设置</span> <span class="no">Flash</span> <span class="err">消息的键。只有设定了</span> <span class="n">config</span><span class="o">.</span><span class="n">action_controller</span><span class="o">.</span><span class="n">session_store</span> <span class="err">选项时才可用。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">ParamsParser</span><span class="err">：把请求中的参数出入</span> <span class="n">params</span><span class="err">。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Head</span><span class="err">：把</span> <span class="no">HEAD</span> <span class="err">请求转换成</span> <span class="no">GET</span> <span class="err">请求，并处理。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">ConditionalGet</span><span class="err">：添加对“条件</span> <span class="no">GET</span><span class="err">”的支持，如果页面未修改，就不响应。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">ETag</span><span class="err">：为所有字符串类型的主体添加</span> <span class="no">ETags</span> <span class="err">报头。</span><span class="no">ETags</span> <span class="err">用来验证缓存。</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><a href="https://ruby-china.org/topics/21517">https://ruby-china.org/topics/21517</a></p>
-
-<p><a href="http://wp.xdite.net/?p=1557">http://wp.xdite.net/?p=1557</a></p>
 ]]></content>
   </entry>
   

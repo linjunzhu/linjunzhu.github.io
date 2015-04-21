@@ -267,6 +267,19 @@
 </span><span class='line'><span class="n">git</span> <span class="n">pull</span> <span class="n">origin</span> <span class="n">dev</span>
 </span></code></pre></td></tr></table></div></figure>
 
+
+<h4>三、切换远程分支</h4>
+
+<p>当小伙伴的新建分支 push 到远程分支，我们也想要拉取这条分支</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 如果当前分支没有tracking关系，那么git fetch 默认拉取所有分支</span>
+</span><span class='line'><span class="n">git</span> <span class="n">fetch</span> <span class="n">origin</span> <span class="n">test_branch</span>
+</span><span class='line'><span class="n">git</span> <span class="n">checkout</span> <span class="n">test_branch</span>
+</span></code></pre></td></tr></table></div></figure>
+
 </div>
 
 

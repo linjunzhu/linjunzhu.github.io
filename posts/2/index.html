@@ -7,8 +7,7 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="1、取消本地修改，恢复到上一次的commit 如果你的本地文件修改得一团乱，但是还没有提交，可以通过下面的命令恢复到上次提交时的状态( 其实就是恢复到上次的 commit，因此这次的本地修改自然没了）（注意是修改，不包括添加文件） 1
-git reset --hard &hellip;">
+	<meta name="description" content="Dalli Dalli 对于 memcached 服务是一个高性能的纯Ruby 客户端，它工作于 1.4+ 版本的 memcached，因为它使用了较新的二进制协议。它被认为是 memcache-client gem 的替代品。 这个名字是一位葡萄牙画家的有名画作的变种。 Dalli的最初版本是 &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -80,7 +79,268 @@ git reset --hard &hellip;">
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2014/10/24/git%20copy/">
+		<a href="/blog/2014/12/26/dalli-%5Byi-%5D/">
+		
+			Dalli -「译」</a>
+	</h2>
+	<div class="entry-content">
+		<h1>Dalli</h1>
+
+<p>Dalli 对于 memcached 服务是一个高性能的纯Ruby 客户端，它工作于 1.4+ 版本的 memcached，因为它使用了较新的二进制协议。它被认为是 memcache-client gem 的替代品。</p>
+
+<p>  这个名字是一位葡萄牙画家的有名画作的变种。</p>
+
+<p>  Dalli的最初版本是 CouchBase 赞助的，非常感谢他！</p>
+
+<h2>设计</h2>
+
+<p>在维护 memcache-client 两年后，因为一些特殊的原因我决定去写 Dalli。</p>
+
+<ol>
+<li>代码太过老旧以及粗糙，大部分的代码是单独的 1000 行 .rb 文件</li>
+<li>它的许多参数都很少被使用并且复杂化了代码库</li>
+<li>实施监控钩子的时候没有单独的店</li>
+<li>使用太旧的文本协议，降低了未处理的性能</li>
+</ol>
+
+
+<p>所以有一些笔记，Dailli:</p>
+
+<ol>
+<li>使用确切相同的算法去选择一个服务，因此存在的 memcached集群运行起 TB级的数据跟 memcache-client 一样</li>
+<li>在 Ruby 1.9.2 中大约比 memcache-client 快百分之20</li>
+<li>包含详细的“阻塞点”方法，能够处理所有请求；这些通过检测工具能够被 hook 来追踪 memcached的使用情况</li>
+<li>在管理环境下支持 SASL</li>
+<li>提供正确的故障切换和可调控的超时</li>
+</ol>
+
+
+<h1>支持 Ruby 版本</h1>
+
+<p>Dalli应该工作于：</p>
+
+<ol>
+<li>JRuby 1.6+</li>
+<li>Ruby 1.9.3+</li>
+<li>Rubinius 2.0</li>
+</ol>
+
+
+<p>如果你有问题，请提 issue</p>
+
+<h1>安装和使用</h1>
+
+<p>记住，Dalli要求 memcached 1.4+，你可以通过 <code>memcached -h</code> 来检查版本。请注意 memcached 1.2.8 版本和 Mac OS X Snow Leopadrd 不兼容。通过 Homebrew 来安装 memacached 1.4.x</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">brew</span> <span class="n">install</span> <span class="n">memcached</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在 Ubuntu 上你可以通过运行以下命令来安装：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">memcached</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>你可以使用下面这段代码来确认安装情况</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="n">install</span> <span class="n">dalli</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;dalli&#39;</span>
+</span><span class='line'><span class="n">options</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">:namespace</span> <span class="o">=&gt;</span> <span class="s2">&quot;app_v1&quot;</span><span class="p">,</span> <span class="ss">:compress</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">}</span>
+</span><span class='line'><span class="n">dc</span> <span class="o">=</span> <span class="no">Dalli</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;localhost:11211&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+</span><span class='line'><span class="n">dc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;abc&#39;</span><span class="p">,</span> <span class="mi">123</span><span class="p">)</span>
+</span><span class='line'><span class="n">value</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;abc&#39;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这测试套件要求 memcached 1.4.3+ 和激活的 SASL。Dalli 没有运行时依赖并且以后也不会有。你可以自定义安装 &lsquo;kgio&rsquo; gem 去给 Dalli 提升 百分之20到30的运行提升。</p>
+
+<h2>在 Rails3.X 和 Rails4.X 的使用</h2>
+
+<p>在你的 gemfile:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s1">&#39;dalli&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在<code>config/environments/production.rb</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:dalli_store</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里是一个更全面的例子，在这个 Rails App 中，设置了一天内的最大缓存，压缩过大的数据和对所有记录进行命名空间规划，如果你有多个 APP 并且要共享缓存的值，可以移除命名空间。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:dalli_store</span><span class="p">,</span> <span class="s1">&#39;cache-1.example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;cache-2.example.com&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">{</span> <span class="ss">:namespace</span> <span class="o">=&gt;</span> <span class="no">NAME_OF_RAILS_APP</span><span class="p">,</span> <span class="ss">:expires_in</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="ss">:compress</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果你的服务器在<code>ENV["MEMCACHE_SERVERS"]</code>有特别的设置（比如在 Heroku使用第三方缓存服务时），在服务器中简单的提供<code>nil</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:dalli_store</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="p">{</span> <span class="ss">:namespace</span> <span class="o">=&gt;</span> <span class="no">NAME_OF_RAILS_APP</span><span class="p">,</span> <span class="ss">:expires_in</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="ss">:compress</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用 Dalli 为了20分钟后 Rails 的 session 存储过期， 在<code>config/initializers/session_store.rb</code>中：</p>
+
+<p>针对 Rails >= 3.2.4 :</p>
+
+<pre><code class="`ruby"> Rails.application.config.session_store ActionDispatch::Session::CacheStore, :expire_after =&gt; 20.minutes
+</code></pre>
+
+<p>针对 Rails 3.X :</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;action_dispatch/middleware/session/dalli_store&#39;</span>
+</span><span class='line'><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">session_store</span> <span class="ss">:dalli_store</span><span class="p">,</span> <span class="ss">:memcache_server</span> <span class="o">=&gt;</span> <span class="o">[</span><span class="s1">&#39;host1&#39;</span><span class="p">,</span> <span class="s1">&#39;host2&#39;</span><span class="o">]</span><span class="p">,</span> <span class="ss">:namespace</span> <span class="o">=&gt;</span> <span class="s1">&#39;sessions&#39;</span><span class="p">,</span> <span class="ss">:key</span> <span class="o">=&gt;</span> <span class="s1">&#39;_foundation_session&#39;</span><span class="p">,</span> <span class="ss">:expire_after</span> <span class="o">=&gt;</span> <span class="mi">20</span><span class="o">.</span><span class="n">minutes</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Dalli 不支持 Rails 2.X。</p>
+
+<h1>Rails 和多线程</h1>
+
+<p>如果你使用 Puma 或者其他的多线程 APP SERVER，在 Dalli 2.7 中，你可以使用Dalli 客户端池，并且确认 Rails.cache 并不会变成多线程的资源。你必须添加 <code>gem 'connection_pool</code> 到你的 gemfile 中，以及加上 <code>:pool_size</code> 到 <code>dalli_store</code> 配置中：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:dalli_store</span><span class="p">,</span> <span class="s1">&#39;cache-1.example.com&#39;</span><span class="p">,</span> <span class="p">{</span> <span class="ss">:pool_size</span> <span class="o">=&gt;</span> <span class="mi">5</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>之后你可以像平常一样使用 Rails 的 cache，并且 Rails.cache 会使用连接池，或者你可以检验 Dalli 客户端指向：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Rails</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="ss">:expires_in</span> <span class="o">=&gt;</span> <span class="mi">300</span><span class="p">)</span> <span class="k">do</span>
+</span><span class='line'>  <span class="s1">&#39;bar&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">Rails</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">dalli</span><span class="o">.</span><span class="n">with</span> <span class="k">do</span> <span class="o">|</span><span class="n">client</span><span class="o">|</span>
+</span><span class='line'>  <span class="c1"># client is a Dalli::Client instance which you can</span>
+</span><span class='line'>  <span class="c1"># use ONLY within this block</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>配置</h1>
+
+<p><code>Dalli:Client</code>接受以下的参数，所有的时间都在几秒内。</p>
+
+<p><code>expires_in</code> : 全局默认 TTL 的 key 为 0，意味着不过期</p>
+
+<p><code>namespace</code> : 如果有规定，预先考虑每一个key和它的值提供一个简单的命名空间，默认是 nil</p>
+
+<p><code>failover</code> ：boolean 值，如果为 true 并且当主要的服务崩溃时，Daill 将会切换到另一个服务，默认为 true</p>
+
+<p><code>threadsafe</code> : boolean 值，如果为 true，Dalli 会确保只有一个线程在给定的时间内使用socket，默认为 true, 设置为 false 是很危险的。</p>
+
+<p><code>serializer</code> : 能够使对象进行存储。</p>
+
+<p><code>compress</code> : boolean  值， 如果为true, Dalli 将会用 gzip 来压缩超过 1K 的数据，默认为 false</p>
+
+<p><code>compression_min_size</code>  ：当超过这个数值时就尝试压缩，默认为1K</p>
+
+<p><code>compression_max_size</code> ：低于这个数值时才尝试压缩，默认为无限</p>
+
+<p><code>compressor</code> : 被压缩的对象将被存储，默认为 zlib，通过<code>Dalli::Compressor</code>来实现。如果正被压缩的数据使用 nginx 的 HttpMemcachedModule， 设置</p>
+
+<p><code>memcached_gzip_flag 2</code> 并且使用 <code>Dalli::GzipCompressor</code></p>
+
+<p><code>keepalive</code> : boolean值，如果为 true, Dalli 将会使 socket 长久连接，默认为 true</p>
+
+<p><code>socket_timeout</code> : 所有的 socket 操作超时时间，默认为 0.5</p>
+
+<p><code>socket_max_failures</code> : 当socket 超时后，socket 操作失败，一个相同的操作将会重试，当处于一个非常缓慢的网络问题时，并不会即时去执行，默认为2</p>
+
+<p><code>socket_failure_delay</code> : 重试一个 socket 操作之前，这段时间进程将会睡眠，默认为 0.01，设置为 nil 将无延迟</p>
+
+<p><code>down_retry_delay</code> : 当一个服务因为许多失败明显的崩溃了，仅仅会在这段时间服务将会再次检查以求正常运行。不要将这个值设置得太低，不然每一个到达崩溃服务的请求也许会固定在最大的 socket_timeout，默认为 1 秒</p>
+
+<h1>监控</h1>
+
+<p><code>telnet 127.0.0.1 11211</code>  连接上 memcache</p>
+
+<p>输入 <code>stats</code> 获得状态</p>
+
+<h1>反省</h1>
+
+<p>第一次翻译，翻译得太生硬太渣了。。。</p>
+
+<h1>疑惑</h1>
+
+<p>看了官方文档，写着：“使用 memcached 来存储缓存时， Rails 会使用默认附带安装的 Dalli gem。” 但是我并没有看到有 Dalli gem 的安装，而且配置也跟 Dalli 有差别。</p>
+
+<p>自带：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:mem_cache_store</span><span class="p">,</span> <span class="s2">&quot;cache-1.example.com&quot;</span><span class="p">,</span> <span class="s2">&quot;cache-2.example.com&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Dalli:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:dalli_store</span><span class="p">,</span> <span class="s2">&quot;cache-1.example.com&quot;</span><span class="p">,</span> <span class="s2">&quot;cache-2.example.com&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这是为毛- -！</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-12-26T14:55:59+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/24/git-resume/">
 		
 			Git &#8211; 恢复撤销篇</a>
 	</h2>
@@ -354,6 +614,8 @@ git reset --hard &hellip;">
 
 <h4>&ndash;no-ff</h4>
 
+<p>因为两条分支在合并时，当第一条分支完全没做修改时，此时 Git 会用到<code>Fast forward</code>模式，将 HEAD 指向第二条分支的最新 commit 去，这时候我们可以用该参数来禁止<code>fast forward</code>模式。</p>
+
 <p><code>git merge --no-ff</code>这参数的作用跟<code>rebase</code>恰恰相反，是故意弄出一条分支线，表明某些 commit 是为了实现某个功能的。</p>
 
 <p>适用于分支间的合并</p>
@@ -367,6 +629,8 @@ git reset --hard &hellip;">
 <p>2、一旦分支提交到远程分支，最好不要使用 rebase 进行分支间的合并了，会造成混乱。</p>
 
 <p>3、一般来说，使用 rebase 后的 new_menu 分支就当做废弃了，如果还需要重新使用的话，继续从 dev 分支 new 出一条分支来。</p>
+
+<p>4、在实验中我发现，一旦在 dev 进行 rebase master,那么 origin/dev 的指向就消失了，那是因为 dev 的原先 commit 全部消失了，进行重新 commit，因此 origin/dev 也没得指向了。所以才会造成要 push 时要先<code>pull</code>的现象，因此我们可以用<code>git push --force</code> 强制 push 来解决。</p>
 
 <h2>整理 commit</h2>
 
@@ -660,6 +924,19 @@ git reset --hard &hellip;">
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">dev</span>
 </span><span class='line'><span class="n">git</span> <span class="n">pull</span> <span class="n">origin</span> <span class="n">dev</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>三、切换远程分支</h4>
+
+<p>当小伙伴的新建分支 push 到远程分支，我们也想要拉取这条分支</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 如果当前分支没有tracking关系，那么git fetch 默认拉取所有分支</span>
+</span><span class='line'><span class="n">git</span> <span class="n">fetch</span> <span class="n">origin</span> <span class="n">test_branch</span>
+</span><span class='line'><span class="n">git</span> <span class="n">checkout</span> <span class="n">test_branch</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -1962,251 +2239,6 @@ Mysql 版本5.5 以上，需要这么做：</p>
 
 
 <time datetime="2014-09-21T21:39:25+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/09/14/rails-zhong-rake-de-zhi-shi/">
-		
-			Rails 中 Rake 的知识</a>
-	</h2>
-	<div class="entry-content">
-		<h3>1、什么是Rack?</h3>
-
-<p>其实 Rails 就是一个 Rack app。</p>
-
-<p> Rack 为使用 Ruby 开发的网页程序提供了小型模块化，适应性极高的接口。Rack 尽量使用最简单的方式封装 HTTP 请求和响应，为服务器、框架和二者之间的软件（中间件）提供了统一的 API，只要调用一个简单的方法就能完成一切操作。</p>
-
-<p>当然， Rack 还包含了许多东西，如处理静态文件，缓存， Log 等。</p>
-
-<p><code>这里的Rack可跟Rake不同</code></p>
-
-<h3>2、Rails 是如何启动的？</h3>
-
-<p>我们会在命令行打 <code>rails s</code></p>
-
-<p>这条命令其实是运行 app/rails， 而 rails 的内容为：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1">#!/usr/bin/env ruby</span>
-</span><span class='line'><span class="no">APP_PATH</span> <span class="o">=</span> <span class="no">File</span><span class="o">.</span><span class="n">expand_path</span><span class="p">(</span><span class="s1">&#39;../../config/application&#39;</span><span class="p">,</span>  <span class="bp">__FILE__</span><span class="p">)</span>
-</span><span class='line'><span class="n">require_relative</span> <span class="s1">&#39;../config/boot&#39;</span>
-</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;rails/commands&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>而 s 参数 则会调用 Rails::Server 模块</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Rails</span><span class="o">::</span><span class="no">Server</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">tap</span> <span class="k">do</span> <span class="o">|</span><span class="n">server</span><span class="o">|</span>
-</span><span class='line'>  <span class="nb">require</span> <span class="no">APP_PATH</span>
-</span><span class='line'>  <span class="no">Dir</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
-</span><span class='line'>  <span class="n">server</span><span class="o">.</span><span class="n">start</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>其中 Rails::Server 又是继承 Rake::Server</p>
-
-<h3>3、逻辑</h3>
-
-<p>一切从Rack开始. 几乎所有的ruby web framework都是rack app. Rack对象响应call方法, 返回三元素的array, 分别是status code, header, content body. 只要你的项目符合以上三个要求, 就是一个合法的rack app. 可以运行它, 在浏览器访问, 看到完整的响应内容. 所以, 主流程即是request与response的地程. 我们所做的事情就是在中间加入一些自己的东西.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;rack&#39;</span>
-</span><span class='line'><span class="k">class</span> <span class="nc">HelloWorld</span>
-</span><span class='line'>  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
-</span><span class='line'>    <span class="o">[</span><span class="mi">200</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span> <span class="o">=&gt;</span> <span class="s2">&quot;text/html&quot;</span><span class="p">},</span> <span class="o">[</span><span class="s2">&quot;Hello Rack!&quot;</span><span class="o">]]</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">Handler</span><span class="o">::</span><span class="no">Mongrel</span><span class="o">.</span><span class="n">run</span> <span class="no">HelloWorld</span><span class="o">.</span><span class="n">new</span><span class="p">,</span> <span class="ss">:Port</span> <span class="o">=&gt;</span> <span class="mi">9292</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>一、 http request 到达 web server 后会即被rack封装, 而后你得到一个env对象. 它包含了客户的请求类型(get/post/put/delete/..), 请求的地址(env[&lsquo;PATH_INFO&rsquo;], QUERY_STRING)等等.</p>
-
-<ol>
-<li><p>通过分析env, 我们知道客户的请求是指向哪个controller#action. 而后查看路由表我们的app能否响应此请求.</p></li>
-<li><p>路由表在新建app对象时通过routes方法来定义, 具体的做法是接受一个block, block内调用match, get, post等方法时, 生成路由规则加入路由表. 路由表里包含路径字符串的匹配正则, controller, action, params等等.</p></li>
-<li><p>参照上一条, 在路由规则中检查 env[&lsquo;PATH_INFO&rsquo;], 若匹配, 就知道了指向哪个controller的哪个action, 以及其params. 通过 ctrl_const = Object.const_get(params[:controller].capitalize)来得到相应的controller.</p></li>
-<li><p>通过 ctrl_const.new(env).call(params[:action]) 可以调用到相应的方法.</p></li>
-<li><p>到这一步, 已经初步描述了一个请求从客户端到服务器端并指向需要的controller#action的基本过程. 也即处理request的过程完成.</p></li>
-</ol>
-
-
-<p>二、Response的过程:</p>
-
-<ol>
-<li><p>在ctrl_const.new上调用action后新的对象内就会拥有相应的实例变量. 这时通过Tiltgem, 按规则生成目标view的名字, 找到它, 而后render, render时将self作为scope传入. 至此view里可以调用action里所有的实例变量.Tilt.new(view).render self 得到了应该返回的html的内容.</p></li>
-<li><p>上一步render得到的只是Controller#action对应的view, 需要将它交给layout处理.同样的使用Tilt, 将上一步得到的partial view 放到block中提交过去. 这样layout中的&lt;%= yield %>关键字生效. 至此, 得到完整的html内容.</p></li>
-<li><p>Rack要求调用call后的返回的值是一个三值的array, 分别是[status code, head content, body].上一步得到的是html内容就是body部分.</p></li>
-</ol>
-
-
-<h4>4、Rails中的中间件</h4>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">cd</span> <span class="n">your</span><span class="o">/</span><span class="n">project</span><span class="o">/</span><span class="n">path</span>
-</span><span class='line'><span class="n">rake</span> <span class="n">middleware</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">=&gt;</span>
-</span><span class='line'><span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Sendfile</span>
-</span><span class='line'><span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Static</span>
-</span><span class='line'><span class="n">use</span> <span class="c1">#&lt;ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007fd93e3aee58&gt;</span>
-</span><span class='line'><span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Runtime</span>
-</span><span class='line'><span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">MethodOverride</span>
-</span><span class='line'><span class="err">等等</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Action</span> <span class="no">Controller</span> <span class="err">的很多功能都以中间件的形式实现。下面解释各个中间件的作用。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">Sendfile</span><span class="err">：设置服务器上的</span> <span class="n">X</span><span class="o">-</span><span class="no">Sendfile</span> <span class="err">报头。通过</span> <span class="n">config</span><span class="o">.</span><span class="n">action_dispatch</span><span class="o">.</span><span class="n">x_sendfile_header</span> <span class="err">选项设置。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Static</span><span class="err">：用来服务静态资源文件。如果选项</span> <span class="n">config</span><span class="o">.</span><span class="n">serve_static_assets</span> <span class="err">为</span> <span class="kp">false</span><span class="err">，则禁用这个中间件。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">Lock</span><span class="err">：把</span> <span class="n">env</span><span class="o">[</span><span class="s2">&quot;rack.multithread&quot;</span><span class="o">]</span> <span class="err">旗标设为</span> <span class="kp">false</span><span class="err">，程序放入互斥锁中。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Cache</span><span class="o">::</span><span class="no">Strategy</span><span class="o">::</span><span class="no">LocalCache</span><span class="o">::</span><span class="no">Middleware</span><span class="err">：在内存中保存缓存，非线程安全。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">Runtime</span><span class="err">：设置</span> <span class="n">X</span><span class="o">-</span><span class="no">Runtime</span> <span class="err">报头，即执行请求的时长，单位为秒。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">MethodOverride</span><span class="err">：如果指定了</span> <span class="n">params</span><span class="o">[</span><span class="ss">:_method</span><span class="o">]</span> <span class="err">参数，会覆盖所用的请求方法。这个中间件实现了</span> <span class="no">PUT</span> <span class="err">和</span> <span class="no">DELETE</span> <span class="err">方法。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">RequestId</span><span class="err">：在响应中设置一个唯一的</span> <span class="n">X</span><span class="o">-</span><span class="no">Request</span><span class="o">-</span><span class="no">Id</span> <span class="err">报头，并启用</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Request</span><span class="c1">#uuid 方法。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rails</span><span class="o">::</span><span class="no">Rack</span><span class="o">::</span><span class="no">Logger</span><span class="err">：请求开始时提醒日志，请求完成后写入日志。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">ShowExceptions</span><span class="err">：补救程序抛出的所有异常，调用处理异常的程序，使用特定的格式显示给用户。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">DebugExceptions</span><span class="err">：如果在本地开发，把异常写入日志，并显示一个调试页面。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">RemoteIp</span><span class="err">：检查欺骗攻击的</span> <span class="no">IP</span><span class="err">。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Reloader</span><span class="err">：提供“准备”和“清理”回调，协助开发环境中的代码重新加载功能。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Callbacks</span><span class="err">：在处理请求之前调用“准备”回调。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="o">::</span><span class="no">CheckPending</span><span class="err">：检查是否有待运行的迁移，如果有就抛出</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">PendingMigrationError</span> <span class="err">异常。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">ConnectionAdapters</span><span class="o">::</span><span class="no">ConnectionManagement</span><span class="err">：请求处理完成后，清理活跃的连接，除非在发起请求的环境中把</span> <span class="n">rack</span><span class="o">.</span><span class="n">test</span> <span class="err">设为</span> <span class="kp">true</span><span class="err">。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">QueryCache</span><span class="err">：启用</span> <span class="no">Active</span> <span class="no">Record</span> <span class="err">查询缓存。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Cookies</span><span class="err">：设置请求的</span> <span class="n">cookies</span><span class="err">。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Session</span><span class="o">::</span><span class="no">CookieStore</span><span class="err">：负责把会话存储在</span> <span class="n">cookies</span> <span class="err">中。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Flash</span><span class="err">：设置</span> <span class="no">Flash</span> <span class="err">消息的键。只有设定了</span> <span class="n">config</span><span class="o">.</span><span class="n">action_controller</span><span class="o">.</span><span class="n">session_store</span> <span class="err">选项时才可用。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">ParamsParser</span><span class="err">：把请求中的参数出入</span> <span class="n">params</span><span class="err">。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Head</span><span class="err">：把</span> <span class="no">HEAD</span> <span class="err">请求转换成</span> <span class="no">GET</span> <span class="err">请求，并处理。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">ConditionalGet</span><span class="err">：添加对“条件</span> <span class="no">GET</span><span class="err">”的支持，如果页面未修改，就不响应。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">ETag</span><span class="err">：为所有字符串类型的主体添加</span> <span class="no">ETags</span> <span class="err">报头。</span><span class="no">ETags</span> <span class="err">用来验证缓存。</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><a href="https://ruby-china.org/topics/21517">https://ruby-china.org/topics/21517</a></p>
-
-<p><a href="http://wp.xdite.net/?p=1557">http://wp.xdite.net/?p=1557</a></p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-14T00:39:14+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>

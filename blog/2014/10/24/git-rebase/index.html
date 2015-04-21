@@ -193,6 +193,8 @@ A---B---C---F &hellip;">
 
 <h4>&ndash;no-ff</h4>
 
+<p>因为两条分支在合并时，当第一条分支完全没做修改时，此时 Git 会用到<code>Fast forward</code>模式，将 HEAD 指向第二条分支的最新 commit 去，这时候我们可以用该参数来禁止<code>fast forward</code>模式。</p>
+
 <p><code>git merge --no-ff</code>这参数的作用跟<code>rebase</code>恰恰相反，是故意弄出一条分支线，表明某些 commit 是为了实现某个功能的。</p>
 
 <p>适用于分支间的合并</p>
@@ -206,6 +208,8 @@ A---B---C---F &hellip;">
 <p>2、一旦分支提交到远程分支，最好不要使用 rebase 进行分支间的合并了，会造成混乱。</p>
 
 <p>3、一般来说，使用 rebase 后的 new_menu 分支就当做废弃了，如果还需要重新使用的话，继续从 dev 分支 new 出一条分支来。</p>
+
+<p>4、在实验中我发现，一旦在 dev 进行 rebase master,那么 origin/dev 的指向就消失了，那是因为 dev 的原先 commit 全部消失了，进行重新 commit，因此 origin/dev 也没得指向了。所以才会造成要 push 时要先<code>pull</code>的现象，因此我们可以用<code>git push --force</code> 强制 push 来解决。</p>
 
 <h2>整理 commit</h2>
 
