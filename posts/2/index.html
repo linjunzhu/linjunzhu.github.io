@@ -7,7 +7,7 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="Dalli Dalli 对于 memcached 服务是一个高性能的纯Ruby 客户端，它工作于 1.4+ 版本的 memcached，因为它使用了较新的二进制协议。它被认为是 memcache-client gem 的替代品。 这个名字是一位葡萄牙画家的有名画作的变种。 Dalli的最初版本是 &hellip;">
+	<meta name="description" content="Linux 使用 LVM 进行硬盘扩容 前言 这阵子某个项目的服务器硬盘爆了，导致服务出现了异常，汗，现在用着 Google 和 阿里云 的云服务器，但发现两者都没有直接扩容的功能。因此需要用到 LVM 来对硬盘进行动态扩容，不过并不能在云服务器的默认硬盘上，需要另外购置一块硬盘 什么是 LVM &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -74,6 +74,513 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/12/26/linux-shi-yong-lvm-lai-jin-xing-ying-pan-kuo-rong/">
+		
+			Linux 使用 LVM 来进行硬盘扩容</a>
+	</h2>
+	<div class="entry-content">
+		<h1>Linux 使用 LVM 进行硬盘扩容</h1>
+
+<h2>前言</h2>
+
+<p>这阵子某个项目的服务器硬盘爆了，导致服务出现了异常，汗，现在用着 Google 和 阿里云 的云服务器，但发现两者都没有直接扩容的功能。因此需要用到 LVM 来对硬盘进行动态扩容，不过并不能在云服务器的默认硬盘上，需要另外购置一块硬盘</p>
+
+<h2>什么是 LVM？</h2>
+
+<p>LVM 的全名是 Logical Volumn Manager，逻辑卷轴管理员，其中有几个概念： PV VG LV PE</p>
+
+<p>PV 指将硬盘转成 <code>Linux LVM</code> 格式</p>
+
+<p>PE 是 LVM 的最小存储区块。</p>
+
+<p><img src="http://linux.vbird.org/linux_basic/0420quota/pe_vg.gif" alt="" /></p>
+
+<h2>对硬盘进行分区</h2>
+
+<p>先切换到 root 用户</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">sudo</span> <span class="n">su</span> <span class="o">-</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>查看系统已经识别的硬盘</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">fdisk</span> <span class="o">-</span><span class="n">l</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 显示主要信息，会发现有两块硬盘，sdb 则是我们刚刚购置的硬盘</span>
+</span><span class='line'><span class="no">Disk</span> <span class="sr">/dev/s</span><span class="ss">da</span><span class="p">:</span> <span class="mi">10</span><span class="o">.</span><span class="mi">7</span> <span class="no">GB</span><span class="p">,</span> <span class="mi">10737418240</span> <span class="n">bytes</span>
+</span><span class='line'><span class="no">Disk</span> <span class="sr">/dev/s</span><span class="ss">db</span><span class="p">:</span> <span class="mi">75</span><span class="o">.</span><span class="mi">2</span> <span class="no">GB</span><span class="p">,</span> <span class="mi">75161927680</span> <span class="n">bytes</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">$</span> <span class="n">fdisk</span> <span class="sr">/dev/s</span><span class="n">db</span>      <span class="c1"># 对硬盘进行操作</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">$</span>  <span class="nb">p</span><span class="p">(</span><span class="err">显示分区情况</span><span class="p">)</span>
+</span><span class='line'>   <span class="n">n</span><span class="p">(</span><span class="err">新建分区</span><span class="p">)</span>
+</span><span class='line'>   <span class="n">e</span><span class="p">(</span><span class="err">创建扩展分区</span><span class="p">)</span>
+</span><span class='line'>   <span class="n">n</span> <span class="o">-&gt;</span> <span class="n">l</span><span class="p">(</span><span class="err">创建逻辑分区</span><span class="p">)</span>
+</span><span class='line'>   <span class="n">t</span><span class="p">(</span><span class="err">设置磁盘</span><span class="no">Hex</span> <span class="n">code</span><span class="p">)</span><span class="err">——</span><span class="o">&gt;</span><span class="c1">#8e(LinuxLVM)——&gt;#w(保存操作)</span>
+</span><span class='line'> <span class="sb">```</span>
+</span><span class='line'>
+</span><span class='line'><span class="sb"> ```</span><span class="n">ruby</span>
+</span><span class='line'><span class="err">$</span> <span class="n">fdisk</span> <span class="sr">/dev/s</span><span class="n">db</span>
+</span><span class='line'><span class="err">$</span> <span class="nb">p</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">会发现：</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="no">Device</span> <span class="no">Boot</span>      <span class="no">Start</span>     <span class="no">End</span>      <span class="no">Blocks</span>      <span class="no">Id</span>     <span class="no">System</span>
+</span><span class='line'>    <span class="sr">/dev/s</span><span class="n">db1</span>          <span class="mi">1</span>       <span class="mi">2080</span>     <span class="mi">1048288</span><span class="o">+</span>     <span class="mi">5</span>     <span class="no">Extended</span>
+</span><span class='line'>    <span class="sr">/dev/s</span><span class="n">db5</span>          <span class="mi">1</span>       <span class="mi">2080</span>     <span class="mi">1048257</span>      <span class="mi">8</span><span class="n">e</span>    <span class="no">Linux</span> <span class="no">LVM</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里的逻辑分区 sdb5 已经成功的成为了 <code>Linux LVM</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">partprobe</span> <span class="p">(</span> <span class="err">让</span> <span class="n">kernel</span> <span class="err">重新读取磁盘分区表，即刻生效）</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>安装 LVM</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">lvm2</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>创建 PV</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">pvcreate</span> <span class="sr">/dev/s</span><span class="n">db5</span>      <span class="c1"># 将此分区转换成为 PV</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">$</span> <span class="n">pvs</span>    <span class="c1"># 显示所有 PV 情况</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="no">PV</span>         <span class="no">VG</span>   <span class="no">Fmt</span>  <span class="no">Attr</span> <span class="no">PSize</span>  <span class="no">PFree</span>
+</span><span class='line'>  <span class="sr">/dev/s</span><span class="n">db5</span>       <span class="n">lvm2</span> <span class="n">a</span><span class="o">-</span>   <span class="mi">70</span><span class="o">.</span><span class="mo">00</span><span class="n">g</span> <span class="mi">70</span><span class="o">.</span><span class="mo">00</span><span class="n">g</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>此时发现还没有一个VG</p>
+
+<h2>创建 VG</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">vgcreate</span> <span class="n">vg_data</span> <span class="sr">/dev/s</span><span class="n">db5</span>     <span class="c1"># 这里的 vg_data 是自定义的</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">$</span> <span class="n">vgs</span>   <span class="c1"># 显示所有 VG </span>
+</span><span class='line'>
+</span><span class='line'>  <span class="no">VG</span>      <span class="c1">#PV #LV #SN Attr   VSize  VFree</span>
+</span><span class='line'>  <span class="n">vg_data</span>   <span class="mi">1</span>   <span class="mi">0</span>   <span class="mi">0</span> <span class="n">wz</span><span class="o">--</span><span class="n">n</span><span class="o">-</span> <span class="mi">70</span><span class="o">.</span><span class="mo">00</span><span class="n">g</span> <span class="mi">70</span><span class="o">.</span><span class="mo">00</span><span class="n">g</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">$</span> <span class="n">pvs</span>  <span class="c1"># 显示所有 PV</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="no">PV</span>         <span class="no">VG</span>      <span class="no">Fmt</span>  <span class="no">Attr</span> <span class="no">PSize</span>  <span class="no">PFree</span>
+</span><span class='line'>  <span class="sr">/dev/s</span><span class="n">db5</span>  <span class="n">vg_data</span> <span class="n">lvm2</span> <span class="n">a</span><span class="o">-</span>   <span class="mi">70</span><span class="o">.</span><span class="mo">00</span><span class="n">g</span> <span class="mi">70</span><span class="o">.</span><span class="mo">00</span><span class="n">g</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># 会发现 PV 下有个 VG 了  </span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>创建 LV</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">lvcreate</span> <span class="o">-</span><span class="n">n</span> <span class="n">lv_data</span> <span class="o">-</span><span class="n">L</span> <span class="mi">69</span><span class="o">.</span><span class="mi">5</span><span class="n">G</span> <span class="n">vg_data</span>  <span class="c1"># 另外的 0.5 G 需要用于其他用途</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">$</span> <span class="n">lvs</span>  <span class="c1"># 显示所有 LV</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">LV</span>      <span class="no">VG</span>      <span class="no">Attr</span>   <span class="no">LSize</span>  <span class="no">Origin</span> <span class="no">Snap</span><span class="o">%</span>  <span class="no">Move</span> <span class="no">Log</span> <span class="no">Copy</span><span class="o">%</span>  <span class="no">Convert</span>
+</span><span class='line'>  <span class="n">lv_data</span> <span class="n">vg_data</span> <span class="o">-</span><span class="n">wi</span><span class="o">-</span><span class="n">a</span><span class="o">-</span> <span class="mi">69</span><span class="o">.</span><span class="mi">50</span><span class="n">g</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>格式化分区</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">mkfs</span><span class="o">.</span><span class="n">ext4</span> <span class="sr">/dev/</span><span class="n">vg_data</span><span class="o">/</span><span class="n">lv_data</span>
+</span><span class='line'><span class="err">$</span> <span class="n">fdisk</span> <span class="o">-</span><span class="n">l</span>
+</span><span class='line'><span class="err">$</span> <span class="n">mount</span> <span class="sr">/dev/</span><span class="n">vg_data</span><span class="o">/</span><span class="n">lv_data</span> <span class="sr">/mnt/</span>   <span class="c1"># 挂到 mnt 下</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>以后如何动态扩容？</h2>
+
+<ol>
+<li>用 fdisk 設定新的具有 8e system ID 的 partition</li>
+<li>利用 pvcreate 建置 PV</li>
+<li>利用 vgextend 將 PV 加入我們的 vg_data</li>
+<li>用 lvresize 將新加入的 PV 內的 PE 加入 lv_data 中</li>
+<li>透過 resize2fs 將檔案系統的容量確實增加！</li>
+</ol>
+
+
+<h3>实际操作</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">fdisk</span> <span class="sr">/dev/s</span><span class="n">db10</span>   <span class="o">=&gt;</span> <span class="err">其他动作参考上面</span>
+</span><span class='line'><span class="err">$</span> <span class="n">partprobe</span>
+</span><span class='line'><span class="err">$</span> <span class="n">pvcreate</span> <span class="sr">/dev/s</span><span class="n">db10</span>
+</span><span class='line'><span class="err">$</span> <span class="n">vgextend</span> <span class="n">vg_data</span> <span class="sr">/dev/s</span><span class="n">db10</span>
+</span><span class='line'><span class="err">$</span> <span class="n">vgdisplay</span> <span class="c1"># 显示 VG 的具体信息，会看到剩余的 PE ，假设为 90个</span>
+</span><span class='line'><span class="err">$</span> <span class="n">lvresize</span> <span class="o">-</span><span class="n">l</span> <span class="o">+</span><span class="mi">90</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">vg_data</span><span class="o">/</span><span class="n">lv_data</span>    <span class="c1"># 放大 LV</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这时 LVM 扩容了，但是档案系统还显示原先的大小</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">resize2fs</span> <span class="sr">/dev/</span><span class="n">vg_data</span><span class="o">/</span><span class="n">lv_data</span>  <span class="c1"># 完整将 LV 容量扩充到整个 filesystem</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># df /mnt/lvm   # 查看大小</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>机子重启后自动挂载</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="vg">$blkid</span> <span class="sr">/dev/</span><span class="n">vg_data</span><span class="o">/</span><span class="n">lv_data</span>  <span class="c1"># 查看该设备的 UUID</span>
+</span><span class='line'><span class="err">$</span> <span class="n">vim</span> <span class="sr">/etc/</span><span class="n">fstab</span>   <span class="c1"># 编辑自动挂载的名单</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">=</span><span class="err">》</span><span class="no">UUID</span><span class="o">=</span><span class="mi">1</span><span class="n">eb099f3</span><span class="o">-</span><span class="mi">5332</span><span class="o">-</span><span class="mi">43</span><span class="n">d7</span><span class="o">-</span><span class="n">a98d</span><span class="o">-</span><span class="mi">6</span><span class="n">c1238572cd5</span> <span class="sr">/home/</span><span class="n">deploy</span><span class="o">/</span><span class="n">red_mansions</span>        <span class="n">ext4</span>    <span class="n">defaults</span> <span class="mi">0</span>   <span class="mi">0</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">$</span> <span class="n">df</span> <span class="o">-</span><span class="no">TH</span>  <span class="c1"># 查看下所有设备</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">Filesystem</span>     <span class="no">Type</span>      <span class="no">Size</span>  <span class="no">Used</span> <span class="no">Avail</span> <span class="no">Use</span><span class="o">%</span> <span class="no">Mounted</span> <span class="n">on</span>
+</span><span class='line'><span class="sr">/dev/s</span><span class="n">da1</span>      <span class="n">ext4</span>       <span class="mi">11</span><span class="n">G</span>  <span class="mi">2</span><span class="o">.</span><span class="mi">7</span><span class="n">G</span>  <span class="mi">7</span><span class="o">.</span><span class="mi">5</span><span class="n">G</span>  <span class="mi">27</span><span class="o">%</span> <span class="o">/</span>
+</span><span class='line'><span class="n">udev</span>           <span class="n">devtmpfs</span>  <span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="n">G</span>  <span class="mi">8</span><span class="o">.</span><span class="mi">2</span><span class="n">k</span>  <span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="n">G</span>   <span class="mi">1</span><span class="o">%</span> <span class="sr">/dev</span>
+</span><span class='line'><span class="sr">tmpfs          tmpfs     389M  242k  388M   1% /</span><span class="n">run</span>
+</span><span class='line'><span class="n">none</span>           <span class="n">tmpfs</span>     <span class="mi">5</span><span class="o">.</span><span class="mi">3</span><span class="n">M</span>     <span class="mi">0</span>  <span class="mi">5</span><span class="o">.</span><span class="mi">3</span><span class="n">M</span>   <span class="mi">0</span><span class="o">%</span> <span class="sr">/run/</span><span class="n">lock</span>
+</span><span class='line'><span class="n">none</span>           <span class="n">tmpfs</span>     <span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="n">G</span>     <span class="mi">0</span>  <span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="n">G</span>   <span class="mi">0</span><span class="o">%</span> <span class="sr">/run/s</span><span class="n">hm</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">$</span>  <span class="n">mount</span> <span class="o">-</span><span class="n">a</span> <span class="c1"># 按照 fstab 文件重新挂载一遍</span>
+</span><span class='line'><span class="err">$</span>  <span class="n">df</span> <span class="o">-</span><span class="no">TH</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">Filesystem</span>                  <span class="no">Type</span>      <span class="no">Size</span>  <span class="no">Used</span> <span class="no">Avail</span> <span class="no">Use</span><span class="o">%</span> <span class="no">Mounted</span> <span class="n">on</span>
+</span><span class='line'><span class="sr">/dev/s</span><span class="n">da1</span>                   <span class="n">ext4</span>       <span class="mi">11</span><span class="n">G</span>  <span class="mi">2</span><span class="o">.</span><span class="mi">7</span><span class="n">G</span>  <span class="mi">7</span><span class="o">.</span><span class="mi">5</span><span class="n">G</span>  <span class="mi">27</span><span class="o">%</span> <span class="o">/</span>
+</span><span class='line'><span class="n">udev</span>                        <span class="n">devtmpfs</span>  <span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="n">G</span>  <span class="mi">8</span><span class="o">.</span><span class="mi">2</span><span class="n">k</span>  <span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="n">G</span>   <span class="mi">1</span><span class="o">%</span> <span class="sr">/dev</span>
+</span><span class='line'><span class="sr">tmpfs                       tmpfs     389M  242k  388M   1% /</span><span class="n">run</span>
+</span><span class='line'><span class="n">none</span>                        <span class="n">tmpfs</span>     <span class="mi">5</span><span class="o">.</span><span class="mi">3</span><span class="n">M</span>     <span class="mi">0</span>  <span class="mi">5</span><span class="o">.</span><span class="mi">3</span><span class="n">M</span>   <span class="mi">0</span><span class="o">%</span> <span class="sr">/run/</span><span class="n">lock</span>
+</span><span class='line'><span class="n">none</span>                        <span class="n">tmpfs</span>     <span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="n">G</span>     <span class="mi">0</span>  <span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="n">G</span>   <span class="mi">0</span><span class="o">%</span> <span class="sr">/run/s</span><span class="n">hm</span>
+</span><span class='line'><span class="sr">/dev/m</span><span class="n">apper</span><span class="o">/</span><span class="n">vg_data</span><span class="o">-</span><span class="n">lv_data</span> <span class="n">ext4</span>       <span class="mi">74</span><span class="n">G</span>  <span class="mi">7</span><span class="o">.</span><span class="mi">5</span><span class="n">G</span>   <span class="mi">63</span><span class="n">G</span>  <span class="mi">11</span><span class="o">%</span> <span class="sr">/home/</span><span class="n">deploy</span><span class="o">/</span><span class="n">red_mansions</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 会发现设备已经挂载上去了。</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>给 设备 赋予授权</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">chown</span> <span class="o">-</span><span class="n">R</span> <span class="ss">deploy</span><span class="p">:</span><span class="n">deploy</span> <span class="sr">/home/</span><span class="n">deploy</span><span class="o">/</span>  <span class="c1"># 因为默认属于 root 权限</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>参考</h2>
+
+<p><a href="http://linux.vbird.org/linux_basic/0420quota.php#lvm">http://linux.vbird.org/linux_basic/0420quota.php#lvm</a>
+<a href="http://www.ichiayi.com/wiki/tech/lvm">http://www.ichiayi.com/wiki/tech/lvm</a>
+<a href="http://allen7111382.blog.51cto.com/202304/268562">http://allen7111382.blog.51cto.com/202304/268562</a></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-12-26T14:56:45+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/12/26/hou-tai-ren-wu-vs-xiao-xi-dui-lie-%5Byi-%5D/">
+		
+			后台任务 vs 消息队列 -「译」</a>
+	</h2>
+	<div class="entry-content">
+		<h1>后台任务 VS 消息队列</h1>
+
+<p>一件常见的事情，我看到工程师们认为消息队列跟后台任务是相等的。这是他们所忽略的：消息队列是一个后台任务的超集。所有的信息进程都在后台完成，但是后台任务并没有通过消息队列来完成。</p>
+
+<p>拿一个简单的使用例子：当一个用户注册时，我想要去发一条欢迎 email，正常你会想在后台发送这封 Email，因此不影响用户的使用体验，但你真的需要去安装 ActiveMQ，RabbitMQ 或者 Resque 去做这些吗？显然不需要。</p>
+
+<p>在建造一个复杂的系统时消息队列是一个基本的建筑模式。你的许多系统组件也许被不同团队所编写，但是他们用队列实现消息发送来通信，一个组件可以发送消息给另外一个组件说：“请发送这封邮件”。但是消息队列系统有它们的代价：它们是复杂的，因为他们被设计成你的分发系统的地基，他们必须被部署和监控，他们必须是可靠并且高可用的。</p>
+
+<p>很多人安装消息队列去运行简单的后台程序，我认为并不需要这么复杂，我有一个简单的问题：“我是在让两个不同的子系统进行通信还是仅仅在衍生相同的工作？”几乎每一个网站都会立即面临注册邮件案例。想想在用户的浏览器投票结果中，执行一些操作可能需要30-60秒的时间，衍生出单独的线程去运行这些工程是完全充足且太过于简单的，这也是我 girl_friday 项目背后的原因，我想要一个简单并且可靠的方式去运行后台任务，而不需要复杂的消息队列系统。</p>
+
+<h2>总结</h2>
+
+<p>总的来说， 简单的任务用 sidekiq 等后台任务来处理即可。</p>
+
+<p>MQ 适用于比较大型的，异构系统，多个系统间的相互通信。</p>
+
+<p>MQ 是 sidekiq 的超集。</p>
+
+<p>Sidekiq 背后的原理是将任务都放入队列，然后用多个线程去运行任务。</p>
+
+<h2>Sidekiq 使用场景</h2>
+
+<p>比如发邮件，完成一些耗时的任务等。</p>
+
+<p>代码大概是：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># app/workers/hard_worker.rb</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">HardWorker</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Worker</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="c1"># 这里系统会不断将任务压入队列，然后启动线程去执行任务</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="nb">name</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="s1">&#39;Doing hard work&#39;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>MQ 使用场景</h2>
+
+<p>将一堆任务压入消息队列，然后让其他系统取出任务进行实现。</p>
+
+<p>虽然我也可以将「发邮件」压入消息队列，然后在系统内取出进行发邮件，不过总归大材小用</p>
+
+<p>代码大概是：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 发布者</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Publisher</span>
+</span><span class='line'>  <span class="c1"># In order to publish message we need a exchange name.</span>
+</span><span class='line'>  <span class="c1"># Note that RabbitMQ does not care about the payload -</span>
+</span><span class='line'>  <span class="c1"># we will be using JSON-encoded strings</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">publish</span><span class="p">(</span><span class="n">exchange</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="p">{})</span>
+</span><span class='line'>    <span class="c1"># grab the fanout exchange</span>
+</span><span class='line'>    <span class="n">x</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">fanout</span><span class="p">(</span><span class="s2">&quot;blog.</span><span class="si">#{</span><span class="n">exchange</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="c1"># and simply publish message</span>
+</span><span class='line'>    <span class="n">x</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">to_json</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">channel</span>
+</span><span class='line'>    <span class="vi">@channel</span> <span class="o">||=</span> <span class="n">connection</span><span class="o">.</span><span class="n">create_channel</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># We are using default settings here</span>
+</span><span class='line'>  <span class="c1"># The `Bunny.new(...)` is a place to</span>
+</span><span class='line'>  <span class="c1"># put any specific RabbitMQ settings</span>
+</span><span class='line'>  <span class="c1"># like host or port</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">connection</span>
+</span><span class='line'>    <span class="vi">@connection</span> <span class="o">||=</span> <span class="no">Bunny</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">tap</span> <span class="k">do</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span>
+</span><span class='line'>      <span class="n">c</span><span class="o">.</span><span class="n">start</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 消费者</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># dashboard/app/workers/posts_worker.rb</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">PostsWorker</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="no">Sneakers</span><span class="o">::</span><span class="no">Worker</span>
+</span><span class='line'>  <span class="c1"># This worker will connect to &quot;dashboard.posts&quot; queue</span>
+</span><span class='line'>  <span class="c1"># env is set to nil since by default the actuall queue name would be</span>
+</span><span class='line'>  <span class="c1"># &quot;dashboard.posts_development&quot;</span>
+</span><span class='line'>  <span class="n">from_queue</span> <span class="s2">&quot;dashboard.posts&quot;</span><span class="p">,</span> <span class="ss">env</span><span class="p">:</span> <span class="kp">nil</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># work method receives message payload in raw format</span>
+</span><span class='line'>  <span class="c1"># in our case it is JSON encoded string</span>
+</span><span class='line'>  <span class="c1"># which we can pass to RecentPosts service without</span>
+</span><span class='line'>  <span class="c1"># changes</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">work</span><span class="p">(</span><span class="n">raw_post</span><span class="p">)</span>
+</span><span class='line'>    <span class="no">RecentPosts</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">raw_post</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">ack!</span> <span class="c1"># we need to let queue know that message was received</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">然后还有</span> <span class="no">Exchange</span> <span class="n">queue</span> <span class="err">绑定啊之类的</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>相信看完代码会对两者的区别更清晰点。</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-12-26T14:56:25+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -1927,318 +2434,6 @@ Mysql 版本5.5 以上，需要这么做：</p>
 
 
 <time datetime="2014-10-05T11:43:10+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/04/nginxde-fan-xiang-dai-li/">
-		
-			Nginx的反向代理</a>
-	</h2>
-	<div class="entry-content">
-		<p>最近需要在微信、Google Glass 上开发，需要两者服务器上的回调信息，因此需要正式服务器来让两者回调，但是这样的话我总需要在服务器上调试，是非常麻烦的。因此反向代理就正中红心。</p>
-
-<h3>1、什么是反向代理？</h3>
-
-<p>反向代理（Reverse Proxy）方式是指以代理服务器来接受internet上的连接请求，然后将请求转发给内部网络上的服务器，并将从服务器上得到的结果返回给internet上请求连接的客户端，此时代理服务器对外就表现为一个服务器。</p>
-
-<h3>2、使用方式</h3>
-
-<p>WEB服务器： Nginx</p>
-
-<h4>步骤一</h4>
-
-<p>用自己熟悉的编辑器打开 Nginx 的配置文件 <code>nginx.conf</code> / <code>/etc/nginx/sites-available/default</code></p>
-
-<p>开始配置：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">server</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">listen</span> <span class="mi">80</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">server_name</span> <span class="n">linjunzhu</span><span class="o">.</span><span class="n">com</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">location</span> <span class="o">/</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">proxy_pass</span> <span class="ss">http</span><span class="p">:</span><span class="sr">//</span><span class="mi">127</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">1</span><span class="p">:</span><span class="mi">9090</span><span class="p">;</span>
-</span><span class='line'>        <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="no">Real</span><span class="o">-</span><span class="no">IP</span> <span class="vg">$remote_addr</span><span class="p">;</span>
-</span><span class='line'>        <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="no">Forwarded</span><span class="o">-</span><span class="no">For</span> <span class="vg">$proxy_add_x_forwarded_for</span><span class="p">;</span>
-</span><span class='line'>        <span class="n">proxy_redirect</span> <span class="n">off</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>其中<code>proxy_pass</code>为反向代理地址，意思是，当接受到 <code>80</code>端口的<code>linjunzhu.com</code>地址时，就自动将请求转发给服务器本地的<code>9090</code>端口</p>
-
-<h4>步骤二</h4>
-
-<p>打开本地的 shell 工具</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">ssh</span> <span class="n">deploy</span><span class="err">@服务器</span><span class="n">ip</span> <span class="o">-</span><span class="n">R</span> <span class="mi">9090</span><span class="p">:</span><span class="mi">127</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">1</span><span class="p">:</span><span class="mi">3000</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这样本地的<code>3000</code>端口就会跟服务器的<code>9090</code>端口进行绑定，当服务器转发请求到服务器本地的<code>9090</code>端口时，又会将请求转发给本地的<code>3000</code>端口</p>
-
-<p>完成，Enjoy it : )</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-04T18:28:48+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/09/21/doorkeepershi-yong-jian-jie/">
-		
-			Doorkeeper使用简介</a>
-	</h2>
-	<div class="entry-content">
-		<h3>1、doorkeeper 是什么？</h3>
-
-<p>最近在项目里需要构建自己的一套 Oauth2.0，而doorkeeper正是帮助我们构建 Oauth2.0 的gem</p>
-
-<h3>2、安装</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s1">&#39;doorkeeper&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and then run the order</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">rails</span> <span class="n">g</span> <span class="ss">doorkeeper</span><span class="p">:</span><span class="n">install</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It will install the doorkeeper initializer into <code>doorkeeper.rb</code></p>
-
-<p>And next step If U use <code>Active Record</code>:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">rails</span> <span class="n">g</span> <span class="ss">doorkeeper</span><span class="p">:</span><span class="n">migration</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>3、配置</h3>
-
-<p>这时你会发现在你的routes.rb里添加了这样一段话：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">draw</span> <span class="k">do</span>
-</span><span class='line'>  <span class="n">use_doorkeeper</span>
-</span><span class='line'>  <span class="c1"># your routes</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>对应生成：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">GET</span>       <span class="sr">/oauth/</span><span class="n">authorize</span><span class="o">/</span><span class="ss">:code</span>
-</span><span class='line'><span class="no">GET</span>       <span class="sr">/oauth/</span><span class="n">authorize</span>
-</span><span class='line'><span class="no">POST</span>      <span class="sr">/oauth/</span><span class="n">authorize</span>
-</span><span class='line'><span class="no">PUT</span>       <span class="sr">/oauth/</span><span class="n">authorize</span>
-</span><span class='line'><span class="no">DELETE</span>    <span class="sr">/oauth/</span><span class="n">authorize</span>
-</span><span class='line'><span class="no">POST</span>      <span class="sr">/oauth/</span><span class="n">token</span>
-</span><span class='line'><span class="no">POST</span>      <span class="sr">/oauth/</span><span class="n">revoke</span>
-</span><span class='line'><span class="n">resources</span> <span class="sr">/oauth/</span><span class="n">applications</span>
-</span><span class='line'><span class="no">GET</span>       <span class="sr">/oauth/</span><span class="n">authorized_applications</span>
-</span><span class='line'><span class="no">DELETE</span>    <span class="sr">/oauth/</span><span class="n">authorized_applications</span><span class="o">/</span><span class="ss">:id</span>
-</span><span class='line'><span class="no">GET</span>       <span class="sr">/oauth/</span><span class="n">token</span><span class="o">/</span><span class="n">info</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>4、权限</h3>
-
-<p>为了使用户访问 API 时，有权限，需要：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Doorkeeper</span><span class="o">.</span><span class="n">configure</span> <span class="k">do</span>
-</span><span class='line'>  <span class="n">resource_owner_authenticator</span> <span class="k">do</span>
-</span><span class='line'>    <span class="no">User</span><span class="o">.</span><span class="n">find_by_id</span><span class="p">(</span><span class="n">session</span><span class="o">[</span><span class="ss">:current_user_id</span><span class="o">]</span><span class="p">)</span> <span class="o">||</span> <span class="n">redirect_to</span><span class="p">(</span><span class="n">login_url</span><span class="p">)</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果使用<code>devise</code>，可以添加下面这段代码</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">resource_owner_authenticator</span> <span class="k">do</span>
-</span><span class='line'>  <span class="n">current_user</span> <span class="o">||</span> <span class="n">warden</span><span class="o">.</span><span class="n">authenticate!</span><span class="p">(</span><span class="ss">:scope</span> <span class="o">=&gt;</span> <span class="ss">:user</span><span class="p">)</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>5、保护API</h3>
-
-<p>It needs to add the follow block for protecting API</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Api</span><span class="o">::</span><span class="no">V1</span><span class="o">::</span><span class="no">ProductsController</span> <span class="o">&lt;</span> <span class="no">Api</span><span class="o">::</span><span class="no">V1</span><span class="o">::</span><span class="no">ApiController</span>
-</span><span class='line'>  <span class="n">before_action</span> <span class="ss">:doorkeeper_authorize!</span> <span class="c1"># Require access token for all actions</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1"># your actions</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>6、访问不同权限的API</h3>
-
-<p>在 <code>doorkeeper.rb</code>中设置权限范围</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Doorkeeper</span><span class="o">.</span><span class="n">configure</span> <span class="k">do</span>
-</span><span class='line'>  <span class="n">default_scopes</span> <span class="ss">:public</span> <span class="c1"># if no scope was requested, this will be the default</span>
-</span><span class='line'>  <span class="n">optional_scopes</span> <span class="ss">:admin</span><span class="p">,</span> <span class="ss">:write</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>要求不同action需要不同权限</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Api</span><span class="o">::</span><span class="no">V1</span><span class="o">::</span><span class="no">ProductsController</span> <span class="o">&lt;</span> <span class="no">Api</span><span class="o">::</span><span class="no">V1</span><span class="o">::</span><span class="no">ApiController</span>
-</span><span class='line'>  <span class="n">before_action</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">doorkeeper_authorize!</span> <span class="ss">:public</span> <span class="p">},</span> <span class="ss">only</span><span class="p">:</span> <span class="ss">:index</span>
-</span><span class='line'>  <span class="n">before_action</span> <span class="ss">only</span><span class="p">:</span> <span class="o">[</span><span class="ss">:create</span><span class="p">,</span> <span class="ss">:update</span><span class="p">,</span> <span class="ss">:destroy</span><span class="o">]</span> <span class="k">do</span>
-</span><span class='line'>    <span class="n">doorkeeper_authorize!</span> <span class="ss">:admin</span><span class="p">,</span> <span class="ss">:write</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>7、开始使用</h3>
-
-<p>我们的 Authorization Server 已经盖好了，此时我们申请个 client 来使用。
-访问<code>/oauth/applications</code>来申请client</p>
-
-<h4>7.1 开client</h4>
-
-<p>其中 Client 的 redierct URI 填入 <code>http://localhost:12345/auth/demo/callback</code> ，實際上沒有跑 Web server 在 localhost:12345 也沒關係，最終目的是拿到 code 或 token
-<img src="http://user-image.logdown.io/user/2580/blog/2567/post/145023/1wLQZN9CS9SixjFgRaq1_oauth2-new-client.png" alt="" /></p>
-
-<h4>7.2 获取 access token</h4>
-
-<p>首先打開剛剛生的 Client 的 show 頁面，會看到有 Application ID 、 Secret 等資訊的頁面。最下面有一個 Authorize 的連結，點下去會打開到這個網址</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">http</span><span class="p">:</span><span class="sr">//</span><span class="ss">localhost</span><span class="p">:</span><span class="mi">9999</span><span class="o">/</span><span class="n">oauth</span><span class="o">/</span><span class="n">authorize</span>
-</span><span class='line'>    <span class="p">?</span><span class="n">client_id</span><span class="o">=</span><span class="mi">4</span><span class="n">a407c6a8d3c75e17a5560d0d0e4507c77b047940db6df882c86aaeac2c788d6</span>
-</span><span class='line'>    <span class="o">&amp;</span><span class="n">redirect_uri</span><span class="o">=</span><span class="n">http</span><span class="o">%</span><span class="mi">3</span><span class="n">A</span><span class="o">%</span><span class="mi">2</span><span class="n">F</span><span class="o">%</span><span class="mi">2</span><span class="no">Flocalhost</span><span class="o">%</span><span class="mi">3</span><span class="no">A12345</span><span class="o">%</span><span class="mi">2</span><span class="no">Fauth</span><span class="o">%</span><span class="mi">2</span><span class="no">Fdemo</span><span class="o">%</span><span class="mi">2</span><span class="no">Fcallback</span>
-</span><span class='line'>    <span class="o">&amp;</span><span class="n">response_type</span><span class="o">=</span><span class="n">code</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>点击<code>Authorize</code>后</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">http</span><span class="p">:</span><span class="sr">//</span><span class="ss">localhost</span><span class="p">:</span><span class="mi">12345</span><span class="o">/</span><span class="n">auth</span><span class="o">/</span><span class="n">demo</span><span class="o">/</span><span class="n">callback</span>
-</span><span class='line'>    <span class="p">?</span><span class="n">code</span><span class="o">=</span><span class="mi">21</span><span class="n">e1c81db4e619a23d4ed46134884104225d4189baa005220bd9b358be8b591a</span>
-</span><span class='line'>          <span class="o">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span>
-</span><span class='line'>          <span class="no">Grant</span> <span class="no">Code</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>使用<code>postman</code>来获取access_token</p>
-
-<p><img src="http://user-image.logdown.io/user/2580/blog/2567/post/145023/YZa3unuQgSf2kUkoSMDF_oauth2-token-request-zh.png" alt="" /></p>
-
-<p>未完待续。。。。。。写得还不够完整。</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-21T21:39:25+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>

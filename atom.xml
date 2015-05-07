@@ -4,7 +4,7 @@
   <title><![CDATA[LinJunzhu's Blog]]></title>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/atom.xml" rel="self"/>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/"/>
-  <updated>2015-04-21T14:01:26+08:00</updated>
+  <updated>2015-05-07T21:41:15+08:00</updated>
   <id>https://github.com/linjunzhu/linjunzhu.github.io.git/</id>
   <author>
     <name><![CDATA[林俊柱]]></name>
@@ -14,7 +14,286 @@
 
   
   <entry>
-    <title type="html"><![CDATA['Rails-CSRF-Explore']]></title>
+    <title type="html"><![CDATA[使用Circleci]]></title>
+    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2015/04/22/shi-yong-circleci/"/>
+    <updated>2015-04-22T12:11:21+08:00</updated>
+    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2015/04/22/shi-yong-circleci</id>
+    <content type="html"><![CDATA[<p>这货棒棒的好用！</p>
+
+<p>我们每次部署任务时，都会跑测试，测试通过再手动跑部署命令。而有了这货，就可以自动跑测试，跑完自动部署。</p>
+
+<h2>第一步</h2>
+
+<p>先上<a href="https://circleci.com/">Circleci官网</a>注册账号。默认有一个<code>free container</code>，如果该项目是<code>public</code>的，那么有四个<code>free container</code>。也就是你可以同时 hold 四个项目</p>
+
+<h2>第二步</h2>
+
+<p>选择账号，选择仓库，建立容器container</p>
+
+<h2>第三步</h2>
+
+<p>只要在 master 上面有新的 commit</p>
+
+<p>就会自动直接跑了！！！
+卧槽！！！
+什么配置都不用啊！！！！</p>
+
+<p>(当然只是build项目，跑测试，部署到哪里还是要自己添加命令的）</p>
+
+<p>因为 Circleci 会自动检测你是什么项目，然后采取不同的默认配置进行跑你的项目。</p>
+
+<h2>circle.yml</h2>
+
+<p>通过该配置文件你可以做很多事情，默认可以不用去动他，如果想添加自己的东西，可以写一些参数覆盖掉默认配置。</p>
+
+<p>比如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">machine</span><span class="p">:</span>
+</span><span class='line'>  <span class="ss">ruby</span><span class="p">:</span>
+</span><span class='line'>    <span class="ss">version</span><span class="p">:</span> <span class="mi">2</span><span class="o">.</span><span class="mi">1</span><span class="o">.</span><span class="mi">2</span>
+</span><span class='line'>  <span class="ss">services</span><span class="p">:</span>
+</span><span class='line'>    <span class="o">-</span> <span class="n">redis</span>
+</span><span class='line'><span class="ss">general</span><span class="p">:</span>
+</span><span class='line'>  <span class="ss">branches</span><span class="p">:</span>
+</span><span class='line'>    <span class="ss">only</span><span class="p">:</span>
+</span><span class='line'>      <span class="o">-</span> <span class="n">master</span>
+</span><span class='line'>      <span class="o">-</span> <span class="n">staging</span>
+</span><span class='line'><span class="ss">deployment</span><span class="p">:</span>
+</span><span class='line'>  <span class="ss">production</span><span class="p">:</span>
+</span><span class='line'>    <span class="ss">branch</span><span class="p">:</span> <span class="n">master</span>
+</span><span class='line'>    <span class="ss">commands</span><span class="p">:</span>
+</span><span class='line'>      <span class="o">-</span> <span class="n">bundle</span> <span class="nb">exec</span> <span class="n">cap</span> <span class="n">production</span> <span class="n">deploy</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>指明了需要什么 branch，如何部署，该跑什么 services.默认的services有<code>mysql``Postgres``Redis``MongoDB</code></p>
+
+<h2>容器</h2>
+
+<p>每一个项目它都会给我们生成一个 VM，相当于一个虚拟机，因此我们还可以自己<code>ssh</code>上 VM，进行查看问题。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[WEB跨域与同源]]></title>
+    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2015/04/21/webkua-yu-yu-tong-yuan/"/>
+    <updated>2015-04-21T20:08:09+08:00</updated>
+    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2015/04/21/webkua-yu-yu-tong-yuan</id>
+    <content type="html"><![CDATA[<p>这几天遇到<code>跨域</code>跟<code>同源</code>的问题。整理下知识点。</p>
+
+<h1>同源策略</h1>
+
+<p>浏览器有一个很重要的概念——同源策略(Same-Origin Policy)。所谓同源是指，域名，协议，端口相同。不同源的客户端脚(javascript、ActionScript)本在没明确授权的情况下，不能读写对方的资源。</p>
+
+<p>如果Web世界没有同源策略，当你登录Gmail邮箱并打开另一个站点时，这个站点上的JavaScript就可以跨域读取你的Gmail邮箱数据，这样整个Web世界就无隐私可言了。</p>
+
+<p>不同源举例：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 同源要求同域名同协议同端口</span>
+</span><span class='line'><span class="err">域名：</span>
+</span><span class='line'><span class="ss">http</span><span class="p">:</span><span class="sr">//</span><span class="n">www</span><span class="o">.</span><span class="n">bigertech</span><span class="o">.</span><span class="n">com</span>
+</span><span class='line'><span class="ss">http</span><span class="p">:</span><span class="sr">//</span><span class="n">bigertech</span><span class="o">.</span><span class="n">com</span>
+</span><span class='line'><span class="ss">http</span><span class="p">:</span><span class="sr">//</span><span class="n">www</span><span class="o">.</span><span class="n">bigertech</span><span class="o">.</span><span class="n">cn</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">协议：</span>
+</span><span class='line'><span class="n">http</span><span class="err">、</span><span class="n">https</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">端口</span>
+</span><span class='line'><span class="mi">127</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">1</span><span class="p">:</span><span class="mi">3000</span><span class="err">、</span> <span class="mi">127</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">1</span><span class="p">:</span><span class="mi">3001</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>常见的：</p>
+
+<p>我的 A 站点，发了个 AJAX 请求到 B 站点，会收到这样的错误</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">No</span> <span class="s1">&#39;Access-Control-Allow-Origin&#39;</span> <span class="n">header</span> <span class="n">is</span> <span class="n">present</span> <span class="n">on</span> <span class="n">the</span> <span class="n">requested</span> <span class="n">resource</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>解决方法</h1>
+
+<p>1、在 Rails 中</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">after_action</span> <span class="ss">:set_access_control_headers</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">set_access_control_header</span>
+</span><span class='line'>  <span class="n">headers</span><span class="o">[</span><span class="s1">&#39;Access-Control-Allow-Origin&#39;</span><span class="o">]</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+</span><span class='line'>  <span class="n">headers</span><span class="o">[</span><span class="s1">&#39;Access-Control-Request-Method&#39;</span><span class="o">]</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当然这里偷懒指定了所有域名都允许跨域，一般来说是指定我们允许的域名</p>
+
+<p>2、使用<code>JSONP</code>方式</p>
+
+<p>JSONP(JSON with Padding)是一个非官方的协议，它允许在服务器端集成Script tags返回至客户端，通过javascript callback的形式实现跨域访问（这仅仅是JSONP简单的实现形式）</p>
+
+<p>虽然浏览器有<code>同源策略</code>，但是<code>HTML</code>中的<code>img,script</code>等标签是不用遵循同源策略的， JSONP 则是利用了 script 这个特点。</p>
+
+<p>服务端：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># callback 是 rails 直接支持 JSONP 的参数</span>
+</span><span class='line'><span class="c1"># hello 一般是客户端给过来的 callback 函数名</span>
+</span><span class='line'><span class="c1"># `callback函数` 将在客户端进行执行 script</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">index</span>
+</span><span class='line'>   <span class="n">render</span> <span class="ss">json</span><span class="p">:</span> <span class="p">{</span><span class="ss">hello</span><span class="p">:</span> <span class="ss">:world</span><span class="p">},</span> <span class="ss">callback</span><span class="p">:</span> <span class="n">hello</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 关闭 csrf 防护</span>
+</span><span class='line'><span class="c1"># 因为返回格式为 xxx()，属于危险字符script</span>
+</span><span class='line'><span class="c1"># protect_from_forgery with: :exception</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 返回结果</span>
+</span><span class='line'><span class="sr">/**/</span><span class="n">hello</span><span class="p">({</span><span class="s2">&quot;hello&quot;</span><span class="ss">:&quot;world&quot;</span><span class="p">})</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>客户端：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 方式1</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">script</span> <span class="n">src</span><span class="o">=</span><span class="s2">&quot;localhost:3001/students&quot;</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 方式2 ( 使用 jquery )</span>
+</span><span class='line'><span class="n">function</span> <span class="n">hello</span><span class="p">(){</span>
+</span><span class='line'>  <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;something&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="vg">$.</span><span class="n">ajax</span><span class="p">({</span>
+</span><span class='line'>    <span class="ss">type</span><span class="p">:</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">jsonp</span><span class="p">:</span> <span class="s1">&#39;callback函数名&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">dataType</span><span class="p">:</span> <span class="s2">&quot;jsonp&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">url</span><span class="p">:</span> <span class="s2">&quot;http://localhost:3001/students&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">success</span><span class="p">:</span> <span class="n">function</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>       <span class="c1"># 一旦返回将会自动执行hello()</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="ss">error</span><span class="p">:</span> <span class="n">function</span><span class="p">(</span><span class="no">XMLHttpRequest</span><span class="p">,</span> <span class="n">textStatus</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>Tips</h1>
+
+<p>虽然说有<code>同源策略</code>的存在，站点 A 拿不到站点 B 的信息。但其实站点 B 已经处理完请求 response 回去了，只不过被站点 A 的浏览器给拦截了。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 站点 B，此时已经成功处理请求返回 response 了</span>
+</span><span class='line'><span class="no">Started</span> <span class="no">GET</span> <span class="s2">&quot;/students&quot;</span> <span class="k">for</span> <span class="o">::</span><span class="mi">1</span> <span class="n">at</span> <span class="mi">2015</span><span class="o">-</span><span class="mo">04</span><span class="o">-</span><span class="mi">21</span> <span class="mi">20</span><span class="p">:</span><span class="mi">32</span><span class="p">:</span><span class="mi">32</span> <span class="o">+</span><span class="mi">0800</span>
+</span><span class='line'><span class="no">Processing</span> <span class="n">by</span> <span class="no">StudentsController</span><span class="c1">#index as */*</span>
+</span><span class='line'><span class="no">Completed</span> <span class="mi">200</span> <span class="no">OK</span> <span class="k">in</span> <span class="mi">1</span><span class="n">ms</span> <span class="p">(</span><span class="ss">Views</span><span class="p">:</span> <span class="mi">0</span><span class="o">.</span><span class="mi">1</span><span class="n">ms</span> <span class="o">|</span> <span class="ss">ActiveRecord</span><span class="p">:</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="n">ms</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>因此，如果你在后台代码中 / Shell 中进行访问请求的话：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 是成功返回信息的</span>
+</span><span class='line'><span class="err">$</span> <span class="n">curl</span> <span class="ss">http</span><span class="p">:</span><span class="sr">//</span><span class="ss">localhost</span><span class="p">:</span><span class="mi">3001</span><span class="o">/</span><span class="n">students</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">=&gt;</span>   <span class="sr">/**/</span><span class="n">hello</span><span class="p">({</span><span class="s2">&quot;hello&quot;</span><span class="ss">:&quot;world&quot;</span><span class="p">})</span><span class="o">%</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>有人说这样子那同源策略有什么用？不是一下子就被破解了么？</p>
+
+<p>首先，<code>同源策略</code>是浏览器的行为。</p>
+
+<p>其次，当你登录了网银后，打开<code>站点A</code>，此时<code>站点A</code>向<code>网银</code>发送一条<code>request</code>，注意，此时是会附带你<code>网银cookies</code>过去的，相当于你在<code>网银</code>自己发的<code>request</code>一样，如果没有<code>同源策略</code>，这时你的<code>网银</code>就相当于别人的了。。。（当然网银的安全程度远远大于此- -)</p>
+
+<p>而如果你用后台进行发送请求的话，是不会附带任何<code>cookies</code>的。因此也就无效了。</p>
+
+<p>注意 <code>postman</code>是可以成功请求的。（不知道postman做了什么，总之postman没有阻止跨域的情况)</p>
+
+<h2>XSS 与 CSRF</h2>
+
+<p>说起安全，这两者可是 WEB 届大名鼎鼎的漏洞明星啊！</p>
+
+<p>XSS :  跨站脚本攻击</p>
+
+<p>CSRF : 跨站请求伪造攻击。</p>
+
+<p>以下這篇文章写得非常好，值得一看。
+<a href="http://snoopyxdy.blog.163.com/blog/static/60117440201281294147873/">http://snoopyxdy.blog.163.com/blog/static/60117440201281294147873/</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Rails-CSRF-Explore]]></title>
     <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2015/04/20/rails-csrf-explore/"/>
     <updated>2015-04-20T22:52:59+08:00</updated>
     <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2015/04/20/rails-csrf-explore</id>
@@ -4034,262 +4313,6 @@ Mysql 版本5.5 以上，需要这么做：</p>
 <p>说说 Rails 的套娃缓存机制:  <a href="https://ruby-china.org/topics/21488?page=1#replies">https://ruby-china.org/topics/21488?page=1#replies</a></p>
 
 <p>官方缓存讲解：<a href="http://guides.ruby-china.org/caching_with_rails.html">http://guides.ruby-china.org/caching_with_rails.html</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Nginx的反向代理]]></title>
-    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/04/nginxde-fan-xiang-dai-li/"/>
-    <updated>2014-10-04T18:28:48+08:00</updated>
-    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/04/nginxde-fan-xiang-dai-li</id>
-    <content type="html"><![CDATA[<p>最近需要在微信、Google Glass 上开发，需要两者服务器上的回调信息，因此需要正式服务器来让两者回调，但是这样的话我总需要在服务器上调试，是非常麻烦的。因此反向代理就正中红心。</p>
-
-<h3>1、什么是反向代理？</h3>
-
-<p>反向代理（Reverse Proxy）方式是指以代理服务器来接受internet上的连接请求，然后将请求转发给内部网络上的服务器，并将从服务器上得到的结果返回给internet上请求连接的客户端，此时代理服务器对外就表现为一个服务器。</p>
-
-<h3>2、使用方式</h3>
-
-<p>WEB服务器： Nginx</p>
-
-<h4>步骤一</h4>
-
-<p>用自己熟悉的编辑器打开 Nginx 的配置文件 <code>nginx.conf</code> / <code>/etc/nginx/sites-available/default</code></p>
-
-<p>开始配置：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">server</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">listen</span> <span class="mi">80</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">server_name</span> <span class="n">linjunzhu</span><span class="o">.</span><span class="n">com</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">location</span> <span class="o">/</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">proxy_pass</span> <span class="ss">http</span><span class="p">:</span><span class="sr">//</span><span class="mi">127</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">1</span><span class="p">:</span><span class="mi">9090</span><span class="p">;</span>
-</span><span class='line'>        <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="no">Real</span><span class="o">-</span><span class="no">IP</span> <span class="vg">$remote_addr</span><span class="p">;</span>
-</span><span class='line'>        <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="no">Forwarded</span><span class="o">-</span><span class="no">For</span> <span class="vg">$proxy_add_x_forwarded_for</span><span class="p">;</span>
-</span><span class='line'>        <span class="n">proxy_redirect</span> <span class="n">off</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>其中<code>proxy_pass</code>为反向代理地址，意思是，当接受到 <code>80</code>端口的<code>linjunzhu.com</code>地址时，就自动将请求转发给服务器本地的<code>9090</code>端口</p>
-
-<h4>步骤二</h4>
-
-<p>打开本地的 shell 工具</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">ssh</span> <span class="n">deploy</span><span class="err">@服务器</span><span class="n">ip</span> <span class="o">-</span><span class="n">R</span> <span class="mi">9090</span><span class="p">:</span><span class="mi">127</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">1</span><span class="p">:</span><span class="mi">3000</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这样本地的<code>3000</code>端口就会跟服务器的<code>9090</code>端口进行绑定，当服务器转发请求到服务器本地的<code>9090</code>端口时，又会将请求转发给本地的<code>3000</code>端口</p>
-
-<p>完成，Enjoy it : )</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[doorkeeper使用简介]]></title>
-    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/09/21/doorkeepershi-yong-jian-jie/"/>
-    <updated>2014-09-21T21:39:25+08:00</updated>
-    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/09/21/doorkeepershi-yong-jian-jie</id>
-    <content type="html"><![CDATA[<h3>1、doorkeeper 是什么？</h3>
-
-<p>最近在项目里需要构建自己的一套 Oauth2.0，而doorkeeper正是帮助我们构建 Oauth2.0 的gem</p>
-
-<h3>2、安装</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s1">&#39;doorkeeper&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and then run the order</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">rails</span> <span class="n">g</span> <span class="ss">doorkeeper</span><span class="p">:</span><span class="n">install</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It will install the doorkeeper initializer into <code>doorkeeper.rb</code></p>
-
-<p>And next step If U use <code>Active Record</code>:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">rails</span> <span class="n">g</span> <span class="ss">doorkeeper</span><span class="p">:</span><span class="n">migration</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>3、配置</h3>
-
-<p>这时你会发现在你的routes.rb里添加了这样一段话：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">draw</span> <span class="k">do</span>
-</span><span class='line'>  <span class="n">use_doorkeeper</span>
-</span><span class='line'>  <span class="c1"># your routes</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>对应生成：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">GET</span>       <span class="sr">/oauth/</span><span class="n">authorize</span><span class="o">/</span><span class="ss">:code</span>
-</span><span class='line'><span class="no">GET</span>       <span class="sr">/oauth/</span><span class="n">authorize</span>
-</span><span class='line'><span class="no">POST</span>      <span class="sr">/oauth/</span><span class="n">authorize</span>
-</span><span class='line'><span class="no">PUT</span>       <span class="sr">/oauth/</span><span class="n">authorize</span>
-</span><span class='line'><span class="no">DELETE</span>    <span class="sr">/oauth/</span><span class="n">authorize</span>
-</span><span class='line'><span class="no">POST</span>      <span class="sr">/oauth/</span><span class="n">token</span>
-</span><span class='line'><span class="no">POST</span>      <span class="sr">/oauth/</span><span class="n">revoke</span>
-</span><span class='line'><span class="n">resources</span> <span class="sr">/oauth/</span><span class="n">applications</span>
-</span><span class='line'><span class="no">GET</span>       <span class="sr">/oauth/</span><span class="n">authorized_applications</span>
-</span><span class='line'><span class="no">DELETE</span>    <span class="sr">/oauth/</span><span class="n">authorized_applications</span><span class="o">/</span><span class="ss">:id</span>
-</span><span class='line'><span class="no">GET</span>       <span class="sr">/oauth/</span><span class="n">token</span><span class="o">/</span><span class="n">info</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>4、权限</h3>
-
-<p>为了使用户访问 API 时，有权限，需要：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Doorkeeper</span><span class="o">.</span><span class="n">configure</span> <span class="k">do</span>
-</span><span class='line'>  <span class="n">resource_owner_authenticator</span> <span class="k">do</span>
-</span><span class='line'>    <span class="no">User</span><span class="o">.</span><span class="n">find_by_id</span><span class="p">(</span><span class="n">session</span><span class="o">[</span><span class="ss">:current_user_id</span><span class="o">]</span><span class="p">)</span> <span class="o">||</span> <span class="n">redirect_to</span><span class="p">(</span><span class="n">login_url</span><span class="p">)</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果使用<code>devise</code>，可以添加下面这段代码</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">resource_owner_authenticator</span> <span class="k">do</span>
-</span><span class='line'>  <span class="n">current_user</span> <span class="o">||</span> <span class="n">warden</span><span class="o">.</span><span class="n">authenticate!</span><span class="p">(</span><span class="ss">:scope</span> <span class="o">=&gt;</span> <span class="ss">:user</span><span class="p">)</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>5、保护API</h3>
-
-<p>It needs to add the follow block for protecting API</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Api</span><span class="o">::</span><span class="no">V1</span><span class="o">::</span><span class="no">ProductsController</span> <span class="o">&lt;</span> <span class="no">Api</span><span class="o">::</span><span class="no">V1</span><span class="o">::</span><span class="no">ApiController</span>
-</span><span class='line'>  <span class="n">before_action</span> <span class="ss">:doorkeeper_authorize!</span> <span class="c1"># Require access token for all actions</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1"># your actions</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>6、访问不同权限的API</h3>
-
-<p>在 <code>doorkeeper.rb</code>中设置权限范围</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Doorkeeper</span><span class="o">.</span><span class="n">configure</span> <span class="k">do</span>
-</span><span class='line'>  <span class="n">default_scopes</span> <span class="ss">:public</span> <span class="c1"># if no scope was requested, this will be the default</span>
-</span><span class='line'>  <span class="n">optional_scopes</span> <span class="ss">:admin</span><span class="p">,</span> <span class="ss">:write</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>要求不同action需要不同权限</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Api</span><span class="o">::</span><span class="no">V1</span><span class="o">::</span><span class="no">ProductsController</span> <span class="o">&lt;</span> <span class="no">Api</span><span class="o">::</span><span class="no">V1</span><span class="o">::</span><span class="no">ApiController</span>
-</span><span class='line'>  <span class="n">before_action</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">doorkeeper_authorize!</span> <span class="ss">:public</span> <span class="p">},</span> <span class="ss">only</span><span class="p">:</span> <span class="ss">:index</span>
-</span><span class='line'>  <span class="n">before_action</span> <span class="ss">only</span><span class="p">:</span> <span class="o">[</span><span class="ss">:create</span><span class="p">,</span> <span class="ss">:update</span><span class="p">,</span> <span class="ss">:destroy</span><span class="o">]</span> <span class="k">do</span>
-</span><span class='line'>    <span class="n">doorkeeper_authorize!</span> <span class="ss">:admin</span><span class="p">,</span> <span class="ss">:write</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>7、开始使用</h3>
-
-<p>我们的 Authorization Server 已经盖好了，此时我们申请个 client 来使用。
-访问<code>/oauth/applications</code>来申请client</p>
-
-<h4>7.1 开client</h4>
-
-<p>其中 Client 的 redierct URI 填入 <code>http://localhost:12345/auth/demo/callback</code> ，實際上沒有跑 Web server 在 localhost:12345 也沒關係，最終目的是拿到 code 或 token
-<img src="http://user-image.logdown.io/user/2580/blog/2567/post/145023/1wLQZN9CS9SixjFgRaq1_oauth2-new-client.png" alt="" /></p>
-
-<h4>7.2 获取 access token</h4>
-
-<p>首先打開剛剛生的 Client 的 show 頁面，會看到有 Application ID 、 Secret 等資訊的頁面。最下面有一個 Authorize 的連結，點下去會打開到這個網址</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">http</span><span class="p">:</span><span class="sr">//</span><span class="ss">localhost</span><span class="p">:</span><span class="mi">9999</span><span class="o">/</span><span class="n">oauth</span><span class="o">/</span><span class="n">authorize</span>
-</span><span class='line'>    <span class="p">?</span><span class="n">client_id</span><span class="o">=</span><span class="mi">4</span><span class="n">a407c6a8d3c75e17a5560d0d0e4507c77b047940db6df882c86aaeac2c788d6</span>
-</span><span class='line'>    <span class="o">&amp;</span><span class="n">redirect_uri</span><span class="o">=</span><span class="n">http</span><span class="o">%</span><span class="mi">3</span><span class="n">A</span><span class="o">%</span><span class="mi">2</span><span class="n">F</span><span class="o">%</span><span class="mi">2</span><span class="no">Flocalhost</span><span class="o">%</span><span class="mi">3</span><span class="no">A12345</span><span class="o">%</span><span class="mi">2</span><span class="no">Fauth</span><span class="o">%</span><span class="mi">2</span><span class="no">Fdemo</span><span class="o">%</span><span class="mi">2</span><span class="no">Fcallback</span>
-</span><span class='line'>    <span class="o">&amp;</span><span class="n">response_type</span><span class="o">=</span><span class="n">code</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>点击<code>Authorize</code>后</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">http</span><span class="p">:</span><span class="sr">//</span><span class="ss">localhost</span><span class="p">:</span><span class="mi">12345</span><span class="o">/</span><span class="n">auth</span><span class="o">/</span><span class="n">demo</span><span class="o">/</span><span class="n">callback</span>
-</span><span class='line'>    <span class="p">?</span><span class="n">code</span><span class="o">=</span><span class="mi">21</span><span class="n">e1c81db4e619a23d4ed46134884104225d4189baa005220bd9b358be8b591a</span>
-</span><span class='line'>          <span class="o">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span>
-</span><span class='line'>          <span class="no">Grant</span> <span class="no">Code</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>使用<code>postman</code>来获取access_token</p>
-
-<p><img src="http://user-image.logdown.io/user/2580/blog/2567/post/145023/YZa3unuQgSf2kUkoSMDF_oauth2-token-request-zh.png" alt="" /></p>
-
-<p>未完待续。。。。。。写得还不够完整。</p>
 ]]></content>
   </entry>
   
