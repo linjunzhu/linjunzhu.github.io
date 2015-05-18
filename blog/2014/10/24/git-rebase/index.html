@@ -153,7 +153,7 @@ A---B---C---F &hellip;">
 </span><span class='line'><span class="c1"># 但是返回 dev 时，如果要继续使用 dev, 需要先 pull 一下</span>
 </span><span class='line'><span class="c1"># 此时 dev 分支的 nerwork 图是：</span>
 </span><span class='line'><span class="c1"># * b6fa04b (HEAD, master, dev) dev01 ( 10 seconds ago )</span>
-</span><span class='line'><span class="c1"># 这点我还很疑惑。</span>
+</span><span class='line'><span class="c1"># 原因见下面</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -209,7 +209,14 @@ A---B---C---F &hellip;">
 
 <p>3、一般来说，使用 rebase 后的 new_menu 分支就当做废弃了，如果还需要重新使用的话，继续从 dev 分支 new 出一条分支来。</p>
 
-<p>4、在实验中我发现，一旦在 dev 进行 rebase master,那么 origin/dev 的指向就消失了，那是因为 dev 的原先 commit 全部消失了，进行重新 commit，因此 origin/dev 也没得指向了。所以才会造成要 push 时要先<code>pull</code>的现象，因此我们可以用<code>git push --force</code> 强制 push 来解决。</p>
+<p>4、在实验中我发现，一旦在 dev 进行 rebase master,那么 origin/dev 的指向就消失了，那是因为 dev 的原先 commit 全部消失了，进行重新 commit，因此本地的 origin/dev 也没得指向了。所以才会造成要 push 时要先<code>pull</code>的现象，(也就是 master分支上的最新commit点,「此时dev也是指向最新commit点」，会跟远程服务器上的origin/dev最新commit点进行merge)因此我们可以用<code>git push --force</code> 强制 push 来解决。</p>
+
+<p>pull 后
+<img src="http://data-storage.qiniudn.com/2546D03D-A4B6-4765-9DF4-0154F62606DC.png" alt="" /></p>
+
+<p><img src="http://data-storage.qiniudn.com/C142553B-FE45-42B3-BC10-92111A969C3F.png" alt="" /></p>
+
+<p><code>git push --force 的话就会成为一条直线。</code></p>
 
 <h2>整理 commit</h2>
 
