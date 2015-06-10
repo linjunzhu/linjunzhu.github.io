@@ -7,7 +7,7 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="这货棒棒的好用！ 我们每次部署任务时，都会跑测试，测试通过再手动跑部署命令。而有了这货，就可以自动跑测试，跑完自动部署。 第一步 先上Circleci官网注册账号。默认有一个free container，如果该项目是public的，那么有四个free container。也就是你可以同时 &hellip;">
+	<meta name="description" content="前言 最近有两个 Android 同事在调用我写的 API 时，向我反映调用有问题，仔细一查，发现是客户端所设置的 Content-Type 与 Accept 有关系。所以写一下，后续有同事还有疑问，就可以丢这文章给他了~~ Content-Type 该 header 头是用来告诉服务器， &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -74,6 +74,143 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2015/06/10/content-typeyu-json/">
+		
+			Content-type与json</a>
+	</h2>
+	<div class="entry-content">
+		<h2>前言</h2>
+
+<p>最近有两个 Android 同事在调用我写的 API 时，向我反映调用有问题，仔细一查，发现是客户端所设置的 Content-Type 与 Accept 有关系。所以写一下，后续有同事还有疑问，就可以丢这文章给他了~~</p>
+
+<h2>Content-Type</h2>
+
+<p>该 header 头是用来告诉服务器，请求体是如何进行编码的，以便服务器进行相对应的解码。</p>
+
+<p>一般来说，有如下几种:</p>
+
+<ol>
+<li>application/x-www-form-urlencoded</li>
+<li>multipart/form-data</li>
+<li>application/json</li>
+<li>application/xml</li>
+<li>text/html</li>
+<li>text/plain</li>
+</ol>
+
+
+<p>等等</p>
+
+<h3>application/x-www-form-urlencoded</h3>
+
+<p>这是我们最常见的 content-type 头了，我们使用浏览器原生 form 表单，提交时便会自动设置 content-type 为这个，其中提交的数据按照：<code>key1=val1&amp;key2=val2</code>进行编码，key val 会进行 URL 转码</p>
+
+<p>注意：content-type 头仅仅只是告诉服务器要如何解码，跟浏览器发送请求时对请求体如何编码无关。</p>
+
+<p>也就是说，此时用 form 表单提交，但是 content-type 手动设置为 application/json，那么浏览器还是会以 form 形式对请求体编码。</p>
+
+<h3>multipart/form-data</h3>
+
+<p>当我们需要上传文件时，就会用到这种方式。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Content</span><span class="o">-</span><span class="ss">Type</span><span class="p">:</span><span class="n">multipart</span><span class="o">/</span><span class="n">form</span><span class="o">-</span><span class="n">data</span><span class="p">;</span> <span class="n">boundary</span><span class="o">=----</span><span class="no">WebKitFormBoundaryrGKCBY7qhFd3TrwA</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">------</span><span class="no">WebKitFormBoundaryrGKCBY7qhFd3TrwA</span>
+</span><span class='line'><span class="no">Content</span><span class="o">-</span><span class="ss">Disposition</span><span class="p">:</span> <span class="n">form</span><span class="o">-</span><span class="n">data</span><span class="p">;</span> <span class="nb">name</span><span class="o">=</span><span class="s2">&quot;text&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">title</span>
+</span><span class='line'><span class="o">------</span><span class="no">WebKitFormBoundaryrGKCBY7qhFd3TrwA</span>
+</span><span class='line'><span class="no">Content</span><span class="o">-</span><span class="ss">Disposition</span><span class="p">:</span> <span class="n">form</span><span class="o">-</span><span class="n">data</span><span class="p">;</span> <span class="nb">name</span><span class="o">=</span><span class="s2">&quot;file&quot;</span><span class="p">;</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;chrome.png&quot;</span>
+</span><span class='line'><span class="no">Content</span><span class="o">-</span><span class="ss">Type</span><span class="p">:</span> <span class="n">image</span><span class="o">/</span><span class="n">png</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">PNG</span> <span class="o">.</span><span class="n">.</span><span class="o">.</span> <span class="n">content</span> <span class="n">of</span> <span class="n">chrome</span><span class="o">.</span><span class="n">png</span> <span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span><span class='line'><span class="o">------</span><span class="no">WebKitFormBoundaryrGKCBY7qhFd3TrwA</span><span class="o">--</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>浏览器会以<code>multipart/form-data</code>形式进行编码，同时设置 content-type</p>
+
+<h3>application/json</h3>
+
+<p>这种方式在当今 restful 盛行的年代，特别常用。</p>
+
+<p>我们只需要将 json 格式的参数附带到请求体便是，同时手动设置 content-type 为 application/json ( jquery 中的 ajax,设置某个参数为 json即可，还有其他的，主要看框架是否会自动处理，否则就手动设置）</p>
+
+<h2>Accept</h2>
+
+<p>该 header 头是告诉服务器，客户端需要什么格式的响应。</p>
+
+<ol>
+<li>Accept : application/json</li>
+<li>Accept : text/html</li>
+</ol>
+
+
+<p>还有一种方式，直接在 URL 尾部添加 <code>.json</code>，这种方式需要服务端的支持，告诉服务端，我需要<code>json</code>的响应</p>
+
+<p>在 Rails 中，如果附带<code>.json</code>，会自动解析成一个参数 params[:format] = &lsquo;json&#8217;，之后便能通过代码针对不同解析返回不同数据</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># Rails 会自动处理 Accept 以及 .json 两种情况</span>
+</span><span class='line'><span class="n">respond_to</span> <span class="k">do</span> <span class="o">|</span><span class="nb">format</span><span class="o">|</span>
+</span><span class='line'>  <span class="nb">format</span><span class="o">.</span><span class="n">html</span> <span class="p">{</span> <span class="n">redirect_to</span> <span class="n">groups_url</span> <span class="p">}</span>
+</span><span class='line'>  <span class="nb">format</span><span class="o">.</span><span class="n">json</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>同事遇到的问题</h2>
+
+<p>1、调用接口时，反应接口返回了<code>500</code>，看了下，发现是服务器接收到的请求头为：content-type: application/json，但是请求体却是以<code>application/x-www-form-urlencoded</code>的形式进行编码的，因此两者不对称，解析出错。</p>
+
+<p>2、调用接口时，返回的并不是 json 数据，check 后，发现调用接口时，没加 Accept: application/json，并且 URL 尾部没加<code>.json</code>，因此服务器就果断返回<code>text/html</code>对应的数据回去啦~~~</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-06-10T18:00:47+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -2417,371 +2554,6 @@
 
 
 <time datetime="2014-12-26T15:00:12+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/12/26/shi-yong-capistrano-lai-bu-shu-ying-yong/">
-		
-			使用 Capistrano 来部署应用</a>
-	</h2>
-	<div class="entry-content">
-		<h1>使用 Capistrano 部署应用</h1>
-
-<h2>前言</h2>
-
-<p>由于 Mina 一直以简单好用为著称，因此一直都是用 Mina 来部署应用。但是  Mina 也有局限性，之前的多机部署就遇到了难题，于是学习下如何用 Capistrano 来部署 Rails 应用</p>
-
-<h2>使用环境</h2>
-
-<ol>
-<li>Capistrano 3.x</li>
-<li>Rails4.1</li>
-<li>Ruby2.0</li>
-<li>RVM</li>
-</ol>
-
-
-<h2>安装</h2>
-
-<p>在<code>gemfile</code>中添加支持的 gem</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">group</span> <span class="ss">:development</span> <span class="k">do</span>
-</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;capistrano&#39;</span>
-</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;capistrano-bundler&#39;</span>
-</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;capistrano-rails&#39;</span>
-</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;capistrano-rvm&#39;</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>初始化</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cap</span> <span class="n">install</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>其中有几个比较重要的文件：</p>
-
-<ol>
-<li>Capfile用来配置Capistrano</li>
-<li>deploy.rb是一些共用task的定义</li>
-<li>production.rb / staging.rb用来定义具体的stage的tasks。</li>
-</ol>
-
-
-<p>通过 <code>cap -vT</code> 可以查看当前可用的 task</p>
-
-<h2>配置</h2>
-
-<p><code>capfile</code></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># Load DSL and Setup Up Stages</span>
-</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/setup&#39;</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># Includes default deployment tasks</span>
-</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/deploy&#39;</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 配置支持的插件</span>
-</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rvm&#39;</span>
-</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/bundler&#39;</span>
-</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rails/assets&#39;</span>
-</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rails/migrations&#39;</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># Loads custom tasks from `lib/capistrano/tasks&#39; if you have any defined.</span>
-</span><span class='line'><span class="no">Dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;lib/capistrano/tasks/*.rake&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">r</span><span class="o">|</span> <span class="n">import</span> <span class="n">r</span> <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>deploy.rb</code></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># config valid only for Capistrano 3.1</span>
-</span><span class='line'><span class="n">lock</span> <span class="s1">&#39;3.2.1&#39;</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">set</span> <span class="ss">:application</span><span class="p">,</span> <span class="s1">&#39;student_lottery&#39;</span>
-</span><span class='line'><span class="n">set</span> <span class="ss">:repo_url</span><span class="p">,</span> <span class="s1">&#39;git@bitbucket.org:linjunzhugg/student_lottery.git&#39;</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># Default branch is :master</span>
-</span><span class='line'><span class="c1"># ask :branch, proc { `git rev-parse --abbrev-ref HEAD`.chomp }.call</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># Default deploy_to directory is /var/www/my_app</span>
-</span><span class='line'><span class="n">set</span> <span class="ss">:deploy_to</span><span class="p">,</span> <span class="s1">&#39;/home/deploy/student_lottery&#39;</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># Default value for :scm is :git</span>
-</span><span class='line'><span class="n">set</span> <span class="ss">:scm</span><span class="p">,</span> <span class="ss">:git</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># Default value for :format is :pretty</span>
-</span><span class='line'><span class="c1"># set :format, :pretty</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># Default value for :log_level is :debug</span>
-</span><span class='line'><span class="c1"># set :log_level, :debug</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># Default value for :pty is false</span>
-</span><span class='line'><span class="c1"># set :pty, true</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># Default value for :linked_files is []</span>
-</span><span class='line'><span class="n">set</span> <span class="ss">:linked_files</span><span class="p">,</span> <span class="sx">%w{config/database.yml}</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># Default value for linked_dirs is []</span>
-</span><span class='line'><span class="n">set</span> <span class="ss">:linked_dirs</span><span class="p">,</span> <span class="sx">%w{bin log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system}</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">set</span> <span class="ss">:rvm_ruby_version</span><span class="p">,</span> <span class="s1">&#39;ruby-2.0.0-p481@rails4.0.4&#39;</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># Default value for default_env is {}</span>
-</span><span class='line'><span class="c1"># set :default_env, { path: &quot;/opt/ruby/bin:$PATH&quot; }</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># Default value for keep_releases is 5</span>
-</span><span class='line'><span class="c1"># set :keep_releases, 5</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">namespace</span> <span class="ss">:deploy</span> <span class="k">do</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">desc</span> <span class="s1">&#39;Restart application&#39;</span>
-</span><span class='line'>  <span class="n">task</span> <span class="ss">:restart</span> <span class="k">do</span>
-</span><span class='line'>    <span class="n">on</span> <span class="n">roles</span><span class="p">(</span><span class="ss">:app</span><span class="p">),</span> <span class="k">in</span><span class="p">:</span> <span class="ss">:sequence</span><span class="p">,</span> <span class="ss">wait</span><span class="p">:</span> <span class="mi">5</span> <span class="k">do</span>
-</span><span class='line'>      <span class="c1"># Your restart mechanism here, for example:</span>
-</span><span class='line'>      <span class="c1"># execute :touch, release_path.join(&#39;tmp/restart.txt&#39;)</span>
-</span><span class='line'>    <span class="k">end</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1"># 就是这里插入的任务</span>
-</span><span class='line'>  <span class="n">after</span> <span class="ss">:publishing</span><span class="p">,</span> <span class="ss">:restart</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">after</span> <span class="ss">:restart</span><span class="p">,</span> <span class="ss">:clear_cache</span> <span class="k">do</span>
-</span><span class='line'>    <span class="n">on</span> <span class="n">roles</span><span class="p">(</span><span class="ss">:web</span><span class="p">),</span> <span class="k">in</span><span class="p">:</span> <span class="ss">:groups</span><span class="p">,</span> <span class="ss">limit</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="ss">wait</span><span class="p">:</span> <span class="mi">10</span> <span class="k">do</span>
-</span><span class='line'>      <span class="c1"># Here we can do anything such as:</span>
-</span><span class='line'>      <span class="c1"># within release_path do</span>
-</span><span class='line'>      <span class="c1">#   execute :rake, &#39;cache:clear&#39;</span>
-</span><span class='line'>      <span class="c1"># end</span>
-</span><span class='line'>    <span class="k">end</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>config/production.rb</code></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">set</span> <span class="ss">:branch</span><span class="p">,</span> <span class="s1">&#39;master&#39;</span>
-</span><span class='line'><span class="n">server</span> <span class="s1">&#39;192.168.0.13&#39;</span><span class="p">,</span> <span class="ss">user</span><span class="p">:</span> <span class="s1">&#39;deploy&#39;</span><span class="p">,</span> <span class="ss">roles</span><span class="p">:</span> <span class="sx">%w{web}</span>
-</span><span class='line'><span class="n">set</span> <span class="ss">:rails_env</span><span class="p">,</span> <span class="ss">:production</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>开始部署</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cap</span> <span class="n">production</span> <span class="n">deploy</span>  <span class="c1"># 开始部署</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这时有人疑惑了，咦？这条命令的 task 在哪呢？我要如何定义自己的task 呢？</p>
-
-<p>根据官方文档：一旦运行 <code>cap production deploy</code> ，就默认有以下这些任务：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">starting</span>    <span class="o">-</span> <span class="n">start</span> <span class="n">a</span> <span class="n">deployment</span><span class="p">,</span> <span class="n">make</span> <span class="n">sure</span> <span class="n">everything</span> <span class="n">is</span> <span class="n">ready</span>
-</span><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">started</span>     <span class="o">-</span> <span class="n">started</span> <span class="n">hook</span> <span class="p">(</span><span class="k">for</span> <span class="n">custom</span> <span class="n">tasks</span><span class="p">)</span>
-</span><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">updating</span>    <span class="o">-</span> <span class="n">update</span> <span class="n">server</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="n">with</span> <span class="n">a</span> <span class="kp">new</span> <span class="n">release</span>
-</span><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">updated</span>     <span class="o">-</span> <span class="n">updated</span> <span class="n">hook</span>
-</span><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">publishing</span>  <span class="o">-</span> <span class="n">publish</span> <span class="n">the</span> <span class="kp">new</span> <span class="n">release</span>
-</span><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">published</span>   <span class="o">-</span> <span class="n">published</span> <span class="n">hook</span>
-</span><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">finishing</span>   <span class="o">-</span> <span class="n">finish</span> <span class="n">the</span> <span class="n">deployment</span><span class="p">,</span> <span class="n">clean</span> <span class="n">up</span> <span class="n">everything</span>
-</span><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">finished</span>    <span class="o">-</span> <span class="n">finished</span> <span class="n">hook</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>而我们之前在 <code>capfile</code> 中添加了以下的代码：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 配置支持的插件</span>
-</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rvm&#39;</span>
-</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/bundler&#39;</span>
-</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rails/assets&#39;</span>
-</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rails/migrations&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这些会自动在 starting  updating 等任务中插入 before after 任务，例如：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">deploy</span>
-</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">starting</span>
-</span><span class='line'>    <span class="o">[</span><span class="n">before</span><span class="o">]</span>
-</span><span class='line'>      <span class="ss">deploy</span><span class="p">:</span><span class="n">ensure_stage</span>
-</span><span class='line'>      <span class="ss">deploy</span><span class="p">:</span><span class="n">set_shared_assets</span>
-</span><span class='line'>    <span class="ss">deploy</span><span class="p">:</span><span class="n">check</span>
-</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">started</span>
-</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">updating</span>
-</span><span class='line'>    <span class="ss">git</span><span class="p">:</span><span class="n">create_release</span>
-</span><span class='line'>    <span class="ss">deploy</span><span class="p">:</span><span class="ss">symlink</span><span class="p">:</span><span class="n">shared</span>
-</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">updated</span>
-</span><span class='line'>    <span class="o">[</span><span class="n">before</span><span class="o">]</span>
-</span><span class='line'>      <span class="ss">deploy</span><span class="p">:</span><span class="n">bundle</span>
-</span><span class='line'>    <span class="o">[</span><span class="n">after</span><span class="o">]</span>
-</span><span class='line'>      <span class="ss">deploy</span><span class="p">:</span><span class="n">migrate</span>
-</span><span class='line'>      <span class="ss">deploy</span><span class="p">:</span><span class="n">compile_assets</span>
-</span><span class='line'>      <span class="ss">deploy</span><span class="p">:</span><span class="n">normalize_assets</span>
-</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">publishing</span>
-</span><span class='line'>    <span class="ss">deploy</span><span class="p">:</span><span class="ss">symlink</span><span class="p">:</span><span class="n">release</span>
-</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">published</span>
-</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">finishing</span>
-</span><span class='line'>    <span class="ss">deploy</span><span class="p">:</span><span class="n">cleanup</span>
-</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">finished</span>
-</span><span class='line'>    <span class="ss">deploy</span><span class="p">:</span><span class="n">log_revision</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>从中我们可以看到里面有 bundle   migrate 等任务。</p>
-
-<h2>其他插件</h2>
-
-<p>比如 sidekiq 的自动重启，可以加上 <code>capistrano-sidekiq</code>  gem</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-12-26T14:58:57+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>

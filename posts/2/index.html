@@ -7,7 +7,8 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="Linux 使用 LVM 进行硬盘扩容 前言 这阵子某个项目的服务器硬盘爆了，导致服务出现了异常，汗，现在用着 Google 和 阿里云 的云服务器，但发现两者都没有直接扩容的功能。因此需要用到 LVM 来对硬盘进行动态扩容，不过并不能在云服务器的默认硬盘上，需要另外购置一块硬盘 什么是 LVM &hellip;">
+	<meta name="description" content="使用 Capistrano 部署应用 前言 由于 Mina 一直以简单好用为著称，因此一直都是用 Mina 来部署应用。但是 Mina 也有局限性，之前的多机部署就遇到了难题，于是学习下如何用 Capistrano 来部署 Rails 应用 使用环境 Capistrano 3.x
+Rails4. &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -74,6 +75,371 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/12/26/shi-yong-capistrano-lai-bu-shu-ying-yong/">
+		
+			使用 Capistrano 来部署应用</a>
+	</h2>
+	<div class="entry-content">
+		<h1>使用 Capistrano 部署应用</h1>
+
+<h2>前言</h2>
+
+<p>由于 Mina 一直以简单好用为著称，因此一直都是用 Mina 来部署应用。但是  Mina 也有局限性，之前的多机部署就遇到了难题，于是学习下如何用 Capistrano 来部署 Rails 应用</p>
+
+<h2>使用环境</h2>
+
+<ol>
+<li>Capistrano 3.x</li>
+<li>Rails4.1</li>
+<li>Ruby2.0</li>
+<li>RVM</li>
+</ol>
+
+
+<h2>安装</h2>
+
+<p>在<code>gemfile</code>中添加支持的 gem</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">group</span> <span class="ss">:development</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;capistrano&#39;</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;capistrano-bundler&#39;</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;capistrano-rails&#39;</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;capistrano-rvm&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>初始化</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cap</span> <span class="n">install</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其中有几个比较重要的文件：</p>
+
+<ol>
+<li>Capfile用来配置Capistrano</li>
+<li>deploy.rb是一些共用task的定义</li>
+<li>production.rb / staging.rb用来定义具体的stage的tasks。</li>
+</ol>
+
+
+<p>通过 <code>cap -vT</code> 可以查看当前可用的 task</p>
+
+<h2>配置</h2>
+
+<p><code>capfile</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># Load DSL and Setup Up Stages</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/setup&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Includes default deployment tasks</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/deploy&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 配置支持的插件</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rvm&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/bundler&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rails/assets&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rails/migrations&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Loads custom tasks from `lib/capistrano/tasks&#39; if you have any defined.</span>
+</span><span class='line'><span class="no">Dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;lib/capistrano/tasks/*.rake&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">r</span><span class="o">|</span> <span class="n">import</span> <span class="n">r</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>deploy.rb</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># config valid only for Capistrano 3.1</span>
+</span><span class='line'><span class="n">lock</span> <span class="s1">&#39;3.2.1&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">set</span> <span class="ss">:application</span><span class="p">,</span> <span class="s1">&#39;student_lottery&#39;</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:repo_url</span><span class="p">,</span> <span class="s1">&#39;git@bitbucket.org:linjunzhugg/student_lottery.git&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Default branch is :master</span>
+</span><span class='line'><span class="c1"># ask :branch, proc { `git rev-parse --abbrev-ref HEAD`.chomp }.call</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Default deploy_to directory is /var/www/my_app</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:deploy_to</span><span class="p">,</span> <span class="s1">&#39;/home/deploy/student_lottery&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Default value for :scm is :git</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:scm</span><span class="p">,</span> <span class="ss">:git</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Default value for :format is :pretty</span>
+</span><span class='line'><span class="c1"># set :format, :pretty</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Default value for :log_level is :debug</span>
+</span><span class='line'><span class="c1"># set :log_level, :debug</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Default value for :pty is false</span>
+</span><span class='line'><span class="c1"># set :pty, true</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Default value for :linked_files is []</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:linked_files</span><span class="p">,</span> <span class="sx">%w{config/database.yml}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Default value for linked_dirs is []</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:linked_dirs</span><span class="p">,</span> <span class="sx">%w{bin log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">set</span> <span class="ss">:rvm_ruby_version</span><span class="p">,</span> <span class="s1">&#39;ruby-2.0.0-p481@rails4.0.4&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Default value for default_env is {}</span>
+</span><span class='line'><span class="c1"># set :default_env, { path: &quot;/opt/ruby/bin:$PATH&quot; }</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Default value for keep_releases is 5</span>
+</span><span class='line'><span class="c1"># set :keep_releases, 5</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">namespace</span> <span class="ss">:deploy</span> <span class="k">do</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">desc</span> <span class="s1">&#39;Restart application&#39;</span>
+</span><span class='line'>  <span class="n">task</span> <span class="ss">:restart</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">on</span> <span class="n">roles</span><span class="p">(</span><span class="ss">:app</span><span class="p">),</span> <span class="k">in</span><span class="p">:</span> <span class="ss">:sequence</span><span class="p">,</span> <span class="ss">wait</span><span class="p">:</span> <span class="mi">5</span> <span class="k">do</span>
+</span><span class='line'>      <span class="c1"># Your restart mechanism here, for example:</span>
+</span><span class='line'>      <span class="c1"># execute :touch, release_path.join(&#39;tmp/restart.txt&#39;)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># 就是这里插入的任务</span>
+</span><span class='line'>  <span class="n">after</span> <span class="ss">:publishing</span><span class="p">,</span> <span class="ss">:restart</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">after</span> <span class="ss">:restart</span><span class="p">,</span> <span class="ss">:clear_cache</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">on</span> <span class="n">roles</span><span class="p">(</span><span class="ss">:web</span><span class="p">),</span> <span class="k">in</span><span class="p">:</span> <span class="ss">:groups</span><span class="p">,</span> <span class="ss">limit</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="ss">wait</span><span class="p">:</span> <span class="mi">10</span> <span class="k">do</span>
+</span><span class='line'>      <span class="c1"># Here we can do anything such as:</span>
+</span><span class='line'>      <span class="c1"># within release_path do</span>
+</span><span class='line'>      <span class="c1">#   execute :rake, &#39;cache:clear&#39;</span>
+</span><span class='line'>      <span class="c1"># end</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>config/production.rb</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">set</span> <span class="ss">:branch</span><span class="p">,</span> <span class="s1">&#39;master&#39;</span>
+</span><span class='line'><span class="n">server</span> <span class="s1">&#39;192.168.0.13&#39;</span><span class="p">,</span> <span class="ss">user</span><span class="p">:</span> <span class="s1">&#39;deploy&#39;</span><span class="p">,</span> <span class="ss">roles</span><span class="p">:</span> <span class="sx">%w{web}</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:rails_env</span><span class="p">,</span> <span class="ss">:production</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>开始部署</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cap</span> <span class="n">production</span> <span class="n">deploy</span>  <span class="c1"># 开始部署</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这时有人疑惑了，咦？这条命令的 task 在哪呢？我要如何定义自己的task 呢？</p>
+
+<p>根据官方文档：一旦运行 <code>cap production deploy</code> ，就默认有以下这些任务：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">starting</span>    <span class="o">-</span> <span class="n">start</span> <span class="n">a</span> <span class="n">deployment</span><span class="p">,</span> <span class="n">make</span> <span class="n">sure</span> <span class="n">everything</span> <span class="n">is</span> <span class="n">ready</span>
+</span><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">started</span>     <span class="o">-</span> <span class="n">started</span> <span class="n">hook</span> <span class="p">(</span><span class="k">for</span> <span class="n">custom</span> <span class="n">tasks</span><span class="p">)</span>
+</span><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">updating</span>    <span class="o">-</span> <span class="n">update</span> <span class="n">server</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="n">with</span> <span class="n">a</span> <span class="kp">new</span> <span class="n">release</span>
+</span><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">updated</span>     <span class="o">-</span> <span class="n">updated</span> <span class="n">hook</span>
+</span><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">publishing</span>  <span class="o">-</span> <span class="n">publish</span> <span class="n">the</span> <span class="kp">new</span> <span class="n">release</span>
+</span><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">published</span>   <span class="o">-</span> <span class="n">published</span> <span class="n">hook</span>
+</span><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">finishing</span>   <span class="o">-</span> <span class="n">finish</span> <span class="n">the</span> <span class="n">deployment</span><span class="p">,</span> <span class="n">clean</span> <span class="n">up</span> <span class="n">everything</span>
+</span><span class='line'><span class="ss">deploy</span><span class="p">:</span><span class="n">finished</span>    <span class="o">-</span> <span class="n">finished</span> <span class="n">hook</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>而我们之前在 <code>capfile</code> 中添加了以下的代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 配置支持的插件</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rvm&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/bundler&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rails/assets&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rails/migrations&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这些会自动在 starting  updating 等任务中插入 before after 任务，例如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">deploy</span>
+</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">starting</span>
+</span><span class='line'>    <span class="o">[</span><span class="n">before</span><span class="o">]</span>
+</span><span class='line'>      <span class="ss">deploy</span><span class="p">:</span><span class="n">ensure_stage</span>
+</span><span class='line'>      <span class="ss">deploy</span><span class="p">:</span><span class="n">set_shared_assets</span>
+</span><span class='line'>    <span class="ss">deploy</span><span class="p">:</span><span class="n">check</span>
+</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">started</span>
+</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">updating</span>
+</span><span class='line'>    <span class="ss">git</span><span class="p">:</span><span class="n">create_release</span>
+</span><span class='line'>    <span class="ss">deploy</span><span class="p">:</span><span class="ss">symlink</span><span class="p">:</span><span class="n">shared</span>
+</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">updated</span>
+</span><span class='line'>    <span class="o">[</span><span class="n">before</span><span class="o">]</span>
+</span><span class='line'>      <span class="ss">deploy</span><span class="p">:</span><span class="n">bundle</span>
+</span><span class='line'>    <span class="o">[</span><span class="n">after</span><span class="o">]</span>
+</span><span class='line'>      <span class="ss">deploy</span><span class="p">:</span><span class="n">migrate</span>
+</span><span class='line'>      <span class="ss">deploy</span><span class="p">:</span><span class="n">compile_assets</span>
+</span><span class='line'>      <span class="ss">deploy</span><span class="p">:</span><span class="n">normalize_assets</span>
+</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">publishing</span>
+</span><span class='line'>    <span class="ss">deploy</span><span class="p">:</span><span class="ss">symlink</span><span class="p">:</span><span class="n">release</span>
+</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">published</span>
+</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">finishing</span>
+</span><span class='line'>    <span class="ss">deploy</span><span class="p">:</span><span class="n">cleanup</span>
+</span><span class='line'>  <span class="ss">deploy</span><span class="p">:</span><span class="n">finished</span>
+</span><span class='line'>    <span class="ss">deploy</span><span class="p">:</span><span class="n">log_revision</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从中我们可以看到里面有 bundle   migrate 等任务。</p>
+
+<h2>其他插件</h2>
+
+<p>比如 sidekiq 的自动重启，可以加上 <code>capistrano-sidekiq</code>  gem</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-12-26T14:58:57+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -1139,12 +1505,12 @@
 
 <p>4、在实验中我发现，一旦在 dev 进行 rebase master,那么 origin/dev 的指向就消失了，那是因为 dev 的原先 commit 全部消失了，进行重新 commit，因此本地的 origin/dev 也没得指向了。所以才会造成要 push 时要先<code>pull</code>的现象，(也就是 master分支上的最新commit点,「此时dev也是指向最新commit点」，会跟远程服务器上的origin/dev最新commit点进行merge)因此我们可以用<code>git push --force</code> 强制 push 来解决。</p>
 
-<p>pull 后
+<p>如果是<code>pull</code>:
 <img src="http://data-storage.qiniudn.com/2546D03D-A4B6-4765-9DF4-0154F62606DC.png" alt="" /></p>
 
 <p><img src="http://data-storage.qiniudn.com/C142553B-FE45-42B3-BC10-92111A969C3F.png" alt="" /></p>
 
-<p><code>git push --force 的话就会成为一条直线。</code></p>
+<p>如果是<code>git push --force</code> 的话就会成为一条直线。</p>
 
 <h2>整理 commit</h2>
 
@@ -1998,449 +2364,6 @@ Mysql 版本5.5 以上，需要这么做：</p>
 
 
 <time datetime="2014-10-07T13:58:12+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/05/railszhong-de-huan-cun-ji-zhi/">
-		
-			Rails中的缓存机制</a>
-	</h2>
-	<div class="entry-content">
-		<h2>1、前言</h2>
-
-<p>之前一直对缓存处于模模糊糊的概念，昨天下定决心好好恶补一下，因此写下這篇文章做下总结，只有简单的知识点，木有高深内容:  )</p>
-
-<h2>2、前端缓存</h2>
-
-<p>我们平常所使用的浏览器，是有带缓存区的。</p>
-
-<p><img src="http://data-storage.qiniudn.com/%E5%89%8D%E7%AB%AF%E7%BC%93%E5%AD%98%E5%9B%BE.png" alt="" /></p>
-
-<p>图不太好画啊，泪流满面。</p>
-
-<p>图中的“文字太长，下面解释”：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>浏览器会附带`If-None-Match`属性（内容id ) 或 `If-Modified-Since`（修改内容时间戳）
-</span><span class='line'>
-</span><span class='line'>服务器的响应头会附带：
-</span><span class='line'>
-</span><span class='line'>1. ETag ： 对应请求的 `If-None-Match`属性
-</span><span class='line'>2. Last-modified：对应请求的`If-modified-Since`属性
-</span><span class='line'>
-</span><span class='line'>两者有一个相同就返回 `304`</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>2.1、静态文件请求</h3>
-
-<p>当使用 WEB 服务器时，如： Nginx，是会自动处理静态文件的缓存的，而不会通过服务器。当然，也是根据 <code>ETag</code> 和 <code>Last-modified</code> 来判断</p>
-
-<h3>2.2、动态文件请求(这里其实不算前端范畴了）</h3>
-
-<p>当请求动态文件时，就需要通过服务器来处理了，在 Rails 中默认使用<code>Rack::ETag middleware</code>中间件，它会自动给无 ETag 的 response 加上 ETag，再根据 ETag 来判断资源是否更改，从而返回 200 / 304。</p>
-
-<p><code>注意</code>: 返回304并不是说服务器没有处理资源直接就返回304，而是完成的处理完了资源，生成了response准备响应了，才进行生成 ETag，然后进行判断，这样虽然也会消耗服务器的资源，但是可以大大减少客户端传输网络的时间。</p>
-
-<p>之前有个疑惑：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>为什么要等到生成完整 response 再加上 ETag 进行判断呢？我的想法是：因为判断
-</span><span class='line'>资源是否有变化，所以需要判断`response内的某些资源`是否有变化，因此迟早都要生成response，
-</span><span class='line'>所以是否等到生成完整response再加上ETag是无所谓的</span></code></pre></td></tr></table></div></figure>
-
-
-<p>补充几点 :</p>
-
-<ol>
-<li>发送「条件GET请求」是需要服务器的支持的。</li>
-<li>HTTP在传输的时候是先给状态再给内容</li>
-</ol>
-
-
-<h3>2.3、条件GET请求简介</h3>
-
-<p>如果浏览器缓存中已经有一个 HTML 内容元素的副本，却不能保证该缓存是否有效，这时，一个条件 GET 请求就出现了。</p>
-
-<p>通常情况下，缓存是否有效取决于最后一次修改时间，而浏览器是根据返回报头中的 Last-Mofidied 属性来获取到这个时间，浏览器则会在请求报头中加入 If-Modified-Since 属性到服务端。
-<img src="http://data-storage.qiniudn.com/%E6%9D%A1%E4%BB%B6get%E8%AF%B7%E6%B1%82.png" alt="" />
-如果时间点一致，则直接303，跳过响应的内容体。</p>
-
-<h2>3、Rails的缓存机制</h2>
-
-<p>服务器端缓存区存储有两种方式：</p>
-
-<ol>
-<li>硬盘</li>
-<li>内存</li>
-</ol>
-
-
-<p>运行流程图：</p>
-
-<p><img src="http://data-storage.qiniudn.com/%E5%90%8E%E7%AB%AF%E7%BC%93%E5%AD%98.png" alt="" /></p>
-
-<p>画得有点呵呵，将就着看吧。</p>
-
-<p>说明几点：</p>
-
-<ol>
-<li>每次请求都会重新计算<code>cache_key</code>，而计算<code>cache_key</code>则会进入到数据库去查询，比如<code>products</code>需要查询<code>products.max(&amp;:updated_at)</code>。</li>
-<li>缓存本质倒不是查不查，而是把一个长查询转化成短查询。</li>
-<li>当资源更新时，对应缓存区的缓存会过期，但过期不是删除，缓存还是会存在缓存区中，只是不再命中，<code>所以基于 file 的缓存方案会产生许多重复的垃圾，dhh 推荐使用 memcache 就是把删除缓存的操作交给 memcache 来做。</code></li>
-</ol>
-
-
-<h2>4、Rails中使用缓存</h2>
-
-<p>在 Rails 中使用缓存是个大学问</p>
-
-<h3>4.1、fresh_when</h3>
-
-<p>前文说到，Rails 默认的中间件<code>Rack::ETag middleware</code>会自动给无<code>ETag</code>的<code>response</code>加上<code>ETag</code>，那么，有没办法在生成完整的response之前（节省资源）我们自己加上<code>ETag</code>呢？ Rails 提供了 <code>fresh_when</code> helper</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ArticlesController</span>
-</span><span class='line'>  <span class="k">def</span> <span class="nf">show</span>
-</span><span class='line'>    <span class="vi">@article</span> <span class="o">=</span> <span class="no">Article</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">fresh_when</span> <span class="ss">:last_modified</span> <span class="o">=&gt;</span> <span class="vi">@article</span><span class="o">.</span><span class="n">updated_at</span><span class="o">.</span><span class="n">utc</span><span class="p">,</span> <span class="ss">:etag</span> <span class="o">=&gt;</span> <span class="vi">@article</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>下次用户再访问的时候，会对比request header里面的If-Modified-Since和If-None-Match，如果相符合，就直接返回304，而不再生成response body。</p>
-
-<p>但是这样会遇到一个问题，假设我们的网站导航有用户信息，一个用户在未登陆专题访问了一下，然后登陆以后再访问，会发现页面上显示的还是未登陆状态。或者在app访问一篇文章，做了一下收藏，下次再进入这篇文章，还是显示未收藏状态。解决这个问题的方法很简单，将用户相关的变量也加入到etag的计算里面：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'> <span class="n">fresh_when</span> <span class="ss">:etag</span> <span class="o">=&gt;</span> <span class="o">[</span><span class="vi">@article</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="o">]</span>
-</span><span class='line'> <span class="n">fresh_when</span> <span class="ss">:etag</span> <span class="o">=&gt;</span> <span class="o">[</span><span class="vi">@article</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">current_user_favorited</span><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>和fresh_when相比，自动etag能够节省的只是客户端时间</code></p>
-
-<h3>4.2  Fragment Caching</h3>
-
-<p>Rails  中有几种 cache，这种是最常见使用最多的。</p>
-
-<p>如下，有个项目页面：
-<img src="http://data-storage.qiniudn.com/%E5%A5%97%E5%A8%83%E6%9C%BA%E5%88%B6.jpg" alt="" /></p>
-
-<p>接下来我们看看，如果这个页面的某一条数据，比如「任务 A-1」 的内容被改变了，会发生什么。</p>
-
-<p>首先，这条任务自己对应的 L4 Todo Item 缓存失效了，所以在拼装外面的 L3 级「任务清单A」缓存的时候，会从缓存里获取任务 A-2、A-3 的缓存，速度嗖嗖快，快到可以忽略不计，然后对任务 A-1 重新渲染一次，放入缓存，这样「任务清单A」通过直接从缓存里读取两条任务（A-2 和 A-3），以及渲染一条新的（ A-1 ）生成了整个 L3 Todolist Item 的页面片段。剩下的「任务清单B」和「任务清单C」，都没有变化，因此由在生成「任务清单」Section 缓存的时候，直接拼装即可。</p>
-
-<p>其它几个 Section 片段因为和任务没有任何关系，所有缓存都不会过期，因此这几个 Section 的页面片段都是直接从缓存里捞出来，同样嗖嗖快。</p>
-
-<p>最后，整个项目详情页把这几个 Section 拼装起来，返回给客户。从上面的过程可以看出，只有「任务 A-1」 这个片段的页面被重新渲染了。</p>
-
-<p>所以，这种套娃式的缓存，能够保证页面缓存利用率的最大化，任何数据的更新，只会导致某一个片段的缓存失效，这样在组装完整页面的时候，由于大量的页面片段都是直接从缓存里读取，所以页面生成的时间开销就很小。</p>
-
-<p>那么，套娃是如何在缓存中存取页面片段的呢？主要是靠一个叫做 cache_key 的东西来决定的。</p>
-
-<h3>4.2.1、cache_key</h3>
-
-<p>代码初级版：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@project</span> <span class="k">do</span>  <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx">  &lt;%= @project.name %&gt;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="o">&lt;!--</span> <span class="no">Section</span> <span class="no">Topics</span> <span class="o">--&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@top3_topics</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span> <span class="k">do</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;topics/topic&#39;, collection: @top3_topics %&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sx">  &lt;!-- Section todolists --&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@todolists</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span> <span class="k">do</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;todolists/todolist&#39;, collection: @todolists %&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sx">  &lt;!-- Section uploads --&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@uploads</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span> <span class="k">do</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;uploads/upload&#39;, collection: @uploads %&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sx">  &lt;!-- Section documents --&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@documents</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span> <span class="k">do</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;documents/document&#39;, collection: @documents %&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sx">  &lt;!-- Section calendar_events --&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@calendar_events</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span> <span class="k">do</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;calendar_events/calendar_event&#39;, collection: @calendar_events %&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sx">&lt;% end %&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>单个资源</h3>
-
-<p>可以看到，最外层有个<code>&lt;% cache @project %&gt;</code>，这个<code>cache</code>使用<code>@project</code>作为参数，cache内部会对该对象进行处理，计算出<code>cache_key</code></p>
-
-<p>大概是：<code>views/projects/1-20140906112338</code></p>
-
-<p>Rails 会使用该<code>cache_key</code> 作为<code>key</code>,将包含的所有东西（包括数据和html）通通放入缓存区。每次有请求到来时，就会重新计算 cache_key，然后到缓存区进行查找，命中则返回，不命中则服务器查询资源，重新将资源放入缓存区。</p>
-
-<p>当资源更新时，<code>cache_key</code> 也随之变化（注意，<code>cache_key</code> 大部分需要自己设计)，因此就不会命中缓存，缓存自然过期。</p>
-
-<p><code>注意：</code> 如果不生成<code>cache_key</code>，缓存永远都不会变！！！无论资源是否更新
-<code>注意：</code> 缓存过期不代表缓存被删除，因为缓存区会存在大量垃圾，需要memcached来解决。</p>
-
-<h3>多个资源</h3>
-
-<p>那如果是资源列表呢？如果我们直接把 <code>@top3_topics</code> 对象作为 cache 的参数 <code>&lt;% cache @top3_topics %&gt;</code>，得到的 <code>cache_key</code> 实际上会是这样的形式：</p>
-
-<p><code>views/topics/3-20140906112338/topics/2-20140906102338/topics/3-20140906092338</code></p>
-
-<p>显然，这样做不太好，因此我们可以取这组数据内最新一个被更新的数据的updated_at时间戳，这样会生成：</p>
-
-<p><code>views/20140906112338</code></p>
-
-<p>但这样会出现一个问题，假如此时<code>@top_topics</code>为空，那么我们此时是对 nil 进行缓存，不幸的是，所有 nil 的 <code>cache_key</code> 都一模一样，这样就会造成混乱。再加上，加入任务清单 Section 和讨论 Section 最后更新的那条数据的 updated_at 时间戳恰好一样，也会造成两个缓存片混淆的问题。</p>
-
-<p>解决方法就是给每个cache都加上model名
-<code>&lt;% cache [:topics, @top3_topics.max(&amp;:updated_at)] %&gt;</code></p>
-
-<p>代码更新版：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@project</span> <span class="k">do</span>  <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx">  &lt;%= @project.name %&gt;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="o">&lt;!--</span> <span class="no">Section</span> <span class="no">Topics</span> <span class="o">--&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="o">[</span><span class="ss">:topics</span><span class="p">,</span> <span class="vi">@top3_topics</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span><span class="o">]</span> <span class="k">do</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;topics/topic&#39;, collection: @top3_topics %&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sx">  &lt;!-- Section todolists --&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="o">[</span><span class="p">:</span> <span class="n">todolists</span><span class="p">,</span>  <span class="vi">@todolists</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span><span class="o">]</span> <span class="k">do</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;todolists/todolist&#39;, collection: @todolists %&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sx">  &lt;!-- Section uploads --&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="o">[</span><span class="p">:</span> <span class="n">uploads</span><span class="p">,</span>  <span class="vi">@uploads</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span><span class="o">]</span> <span class="k">do</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;uploads/upload&#39;, collection: @uploads %&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sx">  &lt;!-- Section documents --&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="o">[</span><span class="p">:</span> <span class="n">documents</span><span class="p">,</span>  <span class="vi">@documents</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span><span class="o">]</span> <span class="k">do</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;documents/document&#39;, collection: @documents %&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sx">  &lt;!-- Section calendar_events --&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="o">[</span><span class="p">:</span> <span class="n">calendar_events</span><span class="p">,</span>  <span class="vi">@calendar_events</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span><span class="o">]</span> <span class="k">do</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;calendar_events/calendar_event&#39;, collection: @calendar_events %&gt;</span>
-</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sx">&lt;% end %&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>4.2.2 touch!机制</h3>
-
-<p>我们回过头来再看看套娃缓存的读取机制，访问项目详情页的时候，首先读取最外层的大套娃 &lt;% cache @project %> ，如果这个缓存片对应的 <code>cache_key</code>在缓存里能找到，则直接取出来并且返回，如果缓存过期，则读取第二级套娃 — 几个列表 Section 缓存，这些缓存根据列表里最新一条数据的更新时间生成 cache_key，如果最新一条数据的更新时间没有变化，则缓存不过期，直接取出来供页面拼装用，如果缓存过期，则继续读取各自的第三级套娃。</p>
-
-<p>等等，这里有个问题，如果我改变了一条任务的内容，也就是作废了任务 partial 自己的缓存，但是包裹任务的任务清单，以及包裹任务清单的项目都没有变化，这样当页面加载的时候，读取到的第一个大套娃 &ndash; &lt;% cache @project %> 都没有更新，会直接返回被缓存了的整个项目详情页，所以根本不会走到渲染更新的任务 partial 那里去。对于这个问题的解决方案，是 Rails 模型层的 touch 机制。</p>
-
-<p>简单的说，我们需要让里面的子套娃在数据更新了以后，touch 一下处在外面的套娃，告诉它，嘿，我更新了，你也得更新才行。我们直接看看这个代码片段：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Project</span> <span class="o">&lt;</span> <span class="no">ActiveRecode</span><span class="o">::</span><span class="no">Base</span>
-</span><span class='line'>  <span class="c1">#...</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">Todolist</span> <span class="o">&lt;</span> <span class="no">ActiveRecode</span><span class="o">::</span><span class="no">Base</span>
-</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:project</span><span class="p">,</span> <span class="ss">touch</span><span class="p">:</span> <span class="kp">true</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">Todo</span> <span class="o">&lt;</span> <span class="no">ActiveRecode</span><span class="o">::</span><span class="no">Base</span>
-</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:todolist</span><span class="p">,</span> <span class="ss">touch</span><span class="p">:</span> <span class="kp">true</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>由于 touch 的存在，当 todo 的某条任务修改时，会自动通知到 todolist, 让其修改 updated_at 属性，而 todolist 也会修改到 project，一层层保证整个缓存系统的正常运作。</p>
-
-<h2>5、Rails 里使用缓存的坑</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@project</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx"> &lt;% cache [:todolists, @todolists.max(&amp;:updated_at)] do %&gt;</span>
-</span><span class='line'>       <span class="o">&lt;</span><span class="n">span</span><span class="o">&gt;</span><span class="err">清单所属项目：</span> <span class="o">&lt;</span><span class="sx">%= @project.name %&gt;&lt;/span&gt;</span>
-</span><span class='line'><span class="sx">     &lt;%=</span> <span class="n">render</span> <span class="ss">partial</span><span class="p">:</span> <span class="s1">&#39;todolists/todolsit&#39;</span><span class="p">,</span> <span class="ss">collection</span><span class="p">:</span> <span class="vi">@todolists</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx">&lt;% end %&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>
-当出现以上情况时，属于父级cache的属性出现在子级cache内，当@project的内容更改了，这时 @todolists 的 cache_key 并没有改变，也就是说这段缓存没有过期，<code>&lt;%= @project.name %&gt;</code> 显示的还是过去的 name</p>
-
-<p>解决方法：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@project</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx"> &lt;% cache [:todolists, @project, @todolists.max(&amp;:updated_at)] do %&gt;</span>
-</span><span class='line'>       <span class="o">&lt;</span><span class="n">span</span><span class="o">&gt;</span><span class="err">清单所属项目：</span> <span class="o">&lt;</span><span class="sx">%= @project.name %&gt;&lt;/span&gt;</span>
-</span><span class='line'><span class="sx">     &lt;%=</span> <span class="n">render</span> <span class="ss">partial</span><span class="p">:</span> <span class="s1">&#39;todolists/todolsit&#39;</span><span class="p">,</span> <span class="ss">collection</span><span class="p">:</span> <span class="vi">@todolists</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx">&lt;% end %&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@project</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx"> &lt;% cache [:todolists, @project.name, @todolists.max(&amp;:updated_at)] do %&gt;</span>
-</span><span class='line'>       <span class="o">&lt;</span><span class="n">span</span><span class="o">&gt;</span><span class="err">清单所属项目：</span> <span class="o">&lt;</span><span class="sx">%= @project.name %&gt;&lt;/span&gt;</span>
-</span><span class='line'><span class="sx">     &lt;%=</span> <span class="n">render</span> <span class="ss">partial</span><span class="p">:</span> <span class="s1">&#39;todolists/todolsit&#39;</span><span class="p">,</span> <span class="ss">collection</span><span class="p">:</span> <span class="vi">@todolists</span> <span class="sx">%&gt;</span>
-</span><span class='line'><span class="sx">&lt;% end %&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>
-这样子当修改@project时，也会修改子级的 cache_key</p>
-
-<h2>6、注意</h2>
-
-<p>当请求过来时，还是会经过controller,进行lazy select,再经过erb,再进行真正的 cache_key 计算，当然，此时 controller 中查询的那些还没有真正的查询，因为是 lazy select</p>
-
-<p>分割好粒度，否则会得不偿失</p>
-
-<p>还有第二个坑，写得脑仁疼，不写啦，看下面参考文</p>
-
-<h2>参考</h2>
-
-<p>总结 web 应用中常用的各种 cache: <a href="https://ruby-china.org/topics/19389">https://ruby-china.org/topics/19389</a></p>
-
-<p>Cache 在 Ruby China 里面的应用:  <a href="https://ruby-china.org/topics/19436">https://ruby-china.org/topics/19436</a></p>
-
-<p>说说 Rails 的套娃缓存机制:  <a href="https://ruby-china.org/topics/21488?page=1#replies">https://ruby-china.org/topics/21488?page=1#replies</a></p>
-
-<p>官方缓存讲解：<a href="http://guides.ruby-china.org/caching_with_rails.html">http://guides.ruby-china.org/caching_with_rails.html</a></p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-05T11:43:10+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>
