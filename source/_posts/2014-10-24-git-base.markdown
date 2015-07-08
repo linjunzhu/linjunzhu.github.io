@@ -1,0 +1,94 @@
+---
+layout: post
+title: "Git -- 基础篇"
+date: 2014-10-24 20:12:33 +0800
+comments: true
+categories: 
+---
+##Git 和 SVN 的区别
+Git 和  SVN 最大的区别概念在于：Git 是分布式，而 SVN 是集中式管理。
+
+###一、SVN
+
+所谓集中式版本控制工具，总有一个中心服务器，提供一个项目仓库，大家的代码的提交都是统一提交到这个中心服务器上的
+
+SVN 的模式：
+
+1. 写代码。
+2. 从服务器拉回服务器的当前版本库，并解决服务器版本库与本地代码的冲突。
+3. 将本地代码提交到服务器。
+
+每个人的 commit 都是直接提交到服务器。容易造成与其他人的冲突
+
+###二、Git
+
+分布式版本控制工具类似Git，可以有多个代码仓库，比如可以在本地。同时它可以方便的进行代码仓库合并
+
+Git 的模式：
+
+1. 写代码。
+2. 提交到本地版本库。
+3. 从服务器拉回服务器的当前版本库，并解决服务器版本库与本地代码的冲突。
+4. 将远程库与本地代码合并结果提交到本地版本库。
+5. 将本地版本库推到服务器。
+
+###三、总结
+虽然  Git 和 SVN 看起来很像，都有一个服务器库，但其实 Git 是没有中心服务器这个概念的，尽管每个人平时都是先将代码统一提交到中央服务器再统一 pull 其他人的代码，但实际情况是我们可以先 pull 张三的库，再 push 给李四等等操作，只要知道对方的IP地址仓库地址即可( 不过很少这么做)
+
+在 Github 上，你可以任意 fork 别人的仓库，按照自己的需求进行改造，或者提出 pull request 请原作者 merge 你所修改的代码。这里面没有‘中心’这个概念。
+
+每一次的 commit，SVN 都需要网络，而 Git 则不用，因为有本地仓库的概念，这样的好处是，即使你短时间断网都无所谓，还是可以不断的 commit，来追踪版本。
+
+分布式版本控制系统通常也有一台充当“中央服务器”的电脑，但这个服务器的作用仅仅是用来方便“交换”大家的修改，没有它大家也一样干活，只是交换修改不方便而已。
+
+## Git 基础知识
+
+###Git 的对象模型
+<https://ruby-china.org/topics/20723>
+这帖子讲得很好。
+总共分为：
+
+1. commit 
+2. tree
+3. blog
+
+commit ： 提交信息
+
+tree ：指向其他的 tree / blog
+
+blog：文件的内容
+
+###Git 的结构
+
+![](http://data-storage.qiniudn.com/git_struct.png)
+分为工作区，暂存区，以及本地仓库
+
+###基本操作
+```ruby
+# 将文件加入暂存区
+$ git add .
+
+# 将文件提交到本地仓库（HEAD)
+$ git commit -am 'First commit'
+
+$ 将改动推送到远程仓库
+$ git push origin master
+```
+
+### 关于 -am 的解释
+
+`git commit -am 'message'`: git add（只针对已知的文件) 和 git commit同时执行，并且会自动移除掉不在工作区的文件
+
+```ruby
+# 看下 commit 命令带 -a 参数的文档
+by using the -a switch with the commit command to automatically "add" changes from all known files (i.e. all files that are
+ already listed in the index) and to automatically "rm" files in the index that
+  have been removed from the working tree, and then perform the actual commit;
+```
+
+删除文件有两种操作
+
+1、手动 rm，但此时文件还存在于 Git 控制下，需要`git commit -am'msg'`
+2、`git rm file_name`， 然后`git commit -m “xx”` 即可。
+
+因此，平常只要  git add .  （提交新增、更改后的文件），然后git commit -am “xx” （保存新增，更改后的文件，以及删除的文件），然后push即可。

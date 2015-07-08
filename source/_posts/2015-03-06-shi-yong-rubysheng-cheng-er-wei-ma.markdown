@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "'使用Ruby生成二维码'"
+title: "使用Ruby生成二维码"
 date: 2015-03-06 15:53:15 +0800
 comments: true
 categories: 

@@ -123,7 +123,12 @@ invoke :'bundle:install'
 ```
 
 5、`run!` 这个命令是指 SSH 进主机，然后执行所有已经 queue 的命令。这个命令会在 Rake 退出前，自动调用。
-
+```ruby
+# 当 rake 退出时会调用。
+  def mina_cleanup
+    run! if commands.any?
+  end
+```
 6、`command` 包含所有已经 queue 的任务
 ```ruby
 queue "sudo restart"
@@ -135,6 +140,21 @@ end
 
 commands == ["sudo restart", "true"]
 commands(:clean) == ["rm"]
+
+
+注意了，commands 是一个方法，而不是变量
+
+# 源代码
+def commands(aspect=:default)
+  (@commands ||= begin
+    @to = :default
+    Hash.new { |h, k| h[k] = Array.new }
+  end)[aspect]
+end
+
+因此如果要清空 commands，应该是执行:
+
+@commands[:default] = []
 ```
 
 7、`isolate` 命令会开辟一个新的 block，包含 queue 的任务
@@ -152,14 +172,39 @@ end
 commands.should == ['sudo restart', 'true']
 ```
 
-8、已被 invoke 的 task, 再次被 invoke 时，是不会再次被执行的。
+8、已被 invoke 的 task, 再次被 invoke 时，是不会再次被执行的，除非：
+```ruby
+# 该参数表明再次invoke时会继续执行一次。
+invoke :setup, {reenable: true} 
+
+# 注意，任务是否已经被 invoke 过，并不是通过 commands 内的值来判断的，因此就算 commands 清空了，task 还是会被标记成已 invoke 过的。
+```
+
+9、
+```ruby
+task :hello do
+  set :deploy_to, 'hellooooooooo'
+end
+
+task :world do
+  p deploy_to
+end
+
+$-> mina hello world 
+
+===>  'hellooooooooo'
+
+说明 mina task1 task2 是可以串行执行的，并且任务1的环境会跟任务2相连。（同个执行环境）
+通常用在设置不同的 stage
+```
 
 ##三、多机部署
 
+
+### 一、将同一项目部署到多个服务器
 ```ruby
 
 set :domains, %w[192.168.0.12 192.168.0.13]
-
 
 desc "multi deploy"
 task :multi_deploy do
@@ -195,7 +240,7 @@ end
 
 如果我的 domains  是
 ```ruby
-set :domains, %w[192.168.0.12 192.168.0.13]
+set :domains, %w[192.168.0.12 192.168.0.13 192.168.0.14]
 ```
 那么效果会是：
 ```ruby
@@ -211,13 +256,13 @@ set :domains, %w[192.168.0.12 192.168.0.13]
 
  finish to deploy server 192.168.0.13
  
- begin to deploy server 192.168.0.13
+ begin to deploy server 192.168.0.14
 
     deploying.....
 
- finish to deploy server 192.168.0.13
+ finish to deploy server 192.168.0.14
  
-    deploying......  ( server 192.168.0.13 )
+    deploying......  ( server 192.168.0.14 )
 ```
 发觉最终总是会多部署最后一个server
 
@@ -239,8 +284,13 @@ task :deploy_primary do
   p commands
 end
 ```
-
-发觉这样子也会重复部署两次，看来这是跟` invoke :deploy `这个特殊 task 有关了。
+###原因
+在 rake 退出前会自动调用 `run!` 这个方法，因此到最后是会多执行一次 commands 内的命令的。
+```ruby
+def mina_cleanup!
+  run! if commands.any?
+end
+```
 
 ###解决方法
 
@@ -251,34 +301,108 @@ set :domains, %w[192.168.0.12 192.168.0.13]
 
 desc "multi deploy"
 task :multi_deploy do
-   isolate do   # =>  开辟一个新的 block ( 不过为何能解决我还没弄懂）
+   isolate do   # =>  开辟一个新的 block (这样isolate外面的commands为[]）
     domains.each_with_index do |domain, index|
       p "begin to deploy#{domain}"
       set :domain, domain
+      # 这里其实只 invoke 了一次，之所以执行了三次，是因为有三次 run!
+      # 而 domain 参数并不是写进 commands 的，而是在 run! 的时候进行处理
+      # 因此这里可以成功的分别部署到三台机器
       invoke :deploy
-      run!    => # 注意这里一定要加上 run! ，才会立即运行命令
+      run!
       p "finish to deploy"
+    end
+  end
+  # rake 任务退出时执行 run!, 但此时 commands 为 []
+end
+```
+
+
+###二、将同一项目部署到同一机器的两个目录
+因为该项目需要做全站国际化，因此我将它分别部署为两套 server.
+
+```ruby
+task :deploy_all do
+  isolate do
+    2.times do |sequence|
+      p "begin to deploy #{sequence}"
+      if sequence == 0
+        set :deploy_to, '/home/deploy/xshare_en'
+      else
+        set :deploy_to, '/home/deploy/xshare_zh'
+      end
+      invoke :deploy
+      run!
+      p "end to deploy #{sequence}"
     end
   end
 end
 ```
 
-##总结点
-第一次 invoke :deploy 的时候， mina 会去处理很多东西，第二次的时候就不会去处理了。因此如果这样子做：
+这么做的后果是：部署了两次到 `/home/deploy/xshare_en`去了。
+
+###原因
+1、 `deploy_to` 的值是直接写进 `commands` 内的
 ```ruby
-task :deploy_primary do
+[...Setting up /home/deploy/xshare_zh\" && (\n  mkdir -p \"/home/deploy/xshare_zh\" &&\n  chown -R `whoami` \"/home/deploy/xshare_zh\" &&\n  chmod g+rx,u+rwx \"/home/deploy/xshare_zh\" &&\....]
+```
+
+2、这里 `:deploy` 只 `invoke` 了一次，因此 commands 内的值是没有变化的，所以相当于执行了两次一样的第一次`commands`
+
+###尝试1
+```ruby
+task :deploy_all do
   isolate do
-    set :domain, primary_domain
-    invoke :deploy
+    2.times do |sequence|
+      p "begin to deploy #{sequence}"
+      if sequence == 0
+        set :deploy_to, '/home/deploy/xshare_en'
+      else
+        set :deploy_to, '/home/deploy/xshare_zh'
+      end
+      # 重复 invoke
+      invoke :deploy, reenable: true
+      run!
+      # 清空 commands
+      @commands[:default] = []
+      p "end to deploy #{sequence}"
+    end
   end
-  
-  isolate do
-    set :domain, other_domain
-    invoke :deploy
-   end
 end
 ```
-第二个 :deploy 是不会生效的，会出毛病。因此如果要连续 invoke :deploy 的话，必须要放在同一个 isolate 下才行。
+结果还是没达到预料中的结果。
+
+因为`task deploy` 中还 `invoke` 了其他的 `task`,比如`git:clone`，因此其他的`task`只算invoke了一次，就算我手动将`deploy`所引用的`task`全部都加`reenable`参数，还是不行，因为难保其他task没invoke另外的task
+
+###尝试2
+```ruby
+task :deploy_all do
+  2.times do |sequence|
+  # 尝试将两者区分开block
+    isolate do
+      p "begin to deploy #{sequence}"
+      if sequence == 0
+        set :deploy_to, '/home/deploy/xshare_en'
+      else
+        set :deploy_to, '/home/deploy/xshare_zh'
+      end
+      # 重复 invoke
+      invoke :deploy
+      run!
+      # 清空 commands
+      @commands[:default] = []
+      p "end to deploy #{sequence}"
+    end
+  end
+end
+```
+
+但还是失败，:deploy 是否被 invoke,跟 isolate 无关，因为 isolate 控制的只是 commands 而已。
+
+###解决
+
+`没找到好办法，暂时分开task执行，不过这种使用场景也比较少。`
+
 
 ##单独执行命令
 
@@ -323,4 +447,4 @@ end
 
 这样子的话，当第二次循环时，会执行 `one` 和 `two` 两个 queue, 因为第一次循环时， `one` 已经 queued 了，进入了 commands，因此第二次循环时，会执行这个命令 （  执行所有 commands)
 
-这是个难点。我还没找到解决方法。只能说分开来执行
+这是个难点。我还没找到解决方法。只能说分开来执行,或者写脚本根据不同服务器执行不同命令

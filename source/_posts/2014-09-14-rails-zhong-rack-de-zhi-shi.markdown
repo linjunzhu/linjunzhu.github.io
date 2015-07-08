@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Rails 中 Rake 的知识"
+title: "Rails 中 Rack 的知识"
 date: 2014-09-14 00:39:14 +0800
 comments: true
 categories: 

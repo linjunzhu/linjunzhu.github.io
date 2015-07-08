@@ -127,7 +127,8 @@ end
 `config/production.rb`
 ```ruby
 set :branch, 'master'
-server '192.168.0.13', user: 'deploy', roles: %w{web}
+# roles 的存在是方便我们针对某个 role 来执行相应的 task
+server '192.168.0.13', user: 'deploy', roles: %w{app, web}
 set :rails_env, :production
 ```
 

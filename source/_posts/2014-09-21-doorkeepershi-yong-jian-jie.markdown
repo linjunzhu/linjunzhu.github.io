@@ -121,7 +121,17 @@ http://localhost:12345/auth/demo/callback
 
 ![](http://user-image.logdown.io/user/2580/blog/2567/post/145023/YZa3unuQgSf2kUkoSMDF_oauth2-token-request-zh.png)
 
+### 8、撤销授权
+
+```ruby
+curl -F token=53cff8f4a549beb1c38704158b0f6608a2382f094b6947ecc35c2eed4146a17c \
+ -H "Authorization: Bearer 53cff8f4a549beb1c38704158b0f6608a2382f094b6947ecc35c2eed4146a17c" \
+ -X POST localhost:3000/oauth/revoke
+ ```
 
 
+### Tips
 
-未完待续。。。。。。写得还不够完整。
+1. refresh_token 一旦使用就会变化。
+2. 后台验证token是否有效（doorkeeper_authorize! 会自动验证是否有效。）
+3. 1.x的时候 /oauth/revoke 是无效的， 2.x 才有效 （就是手动撤销对用户的授权 )
