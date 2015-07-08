@@ -139,6 +139,7 @@ A---B---C---F &hellip;">
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
+<span class='line-number'>16</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">两条分支：</span> <span class="n">dev</span> <span class="err">和</span> <span class="n">master</span><span class="err">，此时</span> <span class="n">dev</span> <span class="err">需要合并回</span> <span class="n">master</span>
 </span><span class='line'>
 </span><span class='line'><span class="c1"># rebase 方式</span>
@@ -150,9 +151,10 @@ A---B---C---F &hellip;">
 </span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">master</span><span class="p">)</span> <span class="n">git</span> <span class="n">merge</span> <span class="n">dev</span>
 </span><span class='line'>
 </span><span class='line'><span class="c1"># rebase 方式，此时dev和master的指针都是同时指向最新的commit点</span>
-</span><span class='line'><span class="c1"># 但是返回 dev 时，如果要继续使用 dev, 需要先 pull 一下</span>
+</span><span class='line'><span class="c1"># 但是 origin/dev 指针头消失了。因此</span>
+</span><span class='line'><span class="c1"># 如果要继续使用 dev, 需要先 pull 一下，跟 远端仓库的 dev 最新 commit 点进行一次 merge ( 当然结果是一个空 commit,此时可以 push --force)</span>
 </span><span class='line'><span class="c1"># 此时 dev 分支的 nerwork 图是：</span>
-</span><span class='line'><span class="c1"># * b6fa04b (HEAD, master, dev) dev01 ( 10 seconds ago )</span>
+</span><span class='line'><span class="c1"># * b6fa04b (HEAD, master, dev, origin/master) dev01 ( 10 seconds ago )</span>
 </span><span class='line'><span class="c1"># 原因见下面</span>
 </span></code></pre></td></tr></table></div></figure>
 

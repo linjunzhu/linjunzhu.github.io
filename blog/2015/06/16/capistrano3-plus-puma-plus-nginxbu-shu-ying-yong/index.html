@@ -1,0 +1,474 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Capistrano3+Puma+Nginx部署应用 - LinJunzhu&#8217;s Blog</title>
+	<meta name="author" content="林俊柱">
+
+	
+	<meta name="description" content="前言 Puma 是支持 Ruby 的一个 Web 应用服务器，基于多线程。 使用环境 Capistrano 3.x
+Rails4.2
+Ruby2.2
+RVM
+Puma
+Nginx 安装 在gemfile中添加支持的 gem 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+group : &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="LinJunzhu's Blog" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script async="true" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+</head>
+
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">LinJunzhu&#8217;s Blog</a></h1>
+<nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</nav>
+<nav id="mobile-nav">
+	<div class="alignleft menu">
+		<a class="button">Menu</a>
+		<div class="container"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</div>
+	</div>
+	<div class="alignright search">
+		<a class="button"></a>
+		<div class="container">
+			<form action="https://www.google.com/search" method="get">
+				<input type="text" name="q" results="0">
+				<input type="hidden" name="q" value="site:github.com/linjunzhu/linjunzhu.github.io.git">
+			</form>
+		</div>
+	</div>
+</nav>
+<nav id="sub-nav" class="alignright">
+	<div class="social">
+		
+		
+		
+		
+    
+		
+		
+		
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+    
+	</div>
+	<form class="search" action="https://www.google.com/search" method="get">
+		<input class="alignright" type="text" name="q" results="0">
+		<input type="hidden" name="q" value="site:github.com/linjunzhu/linjunzhu.github.io.git">
+	</form>
+</nav>
+
+</header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h2 class="title">Capistrano3+Puma+Nginx部署应用</h2>
+	<div class="entry-content"><h2>前言</h2>
+
+<p>Puma 是支持 Ruby 的一个 Web 应用服务器，基于多线程。</p>
+
+<h2>使用环境</h2>
+
+<ol>
+<li>Capistrano 3.x</li>
+<li>Rails4.2</li>
+<li>Ruby2.2</li>
+<li>RVM</li>
+<li>Puma</li>
+<li>Nginx</li>
+</ol>
+
+
+<h2>安装</h2>
+
+<p>在<code>gemfile</code>中添加支持的 gem</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">group</span> <span class="ss">:development</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;capistrano&#39;</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;capistrano-bundler&#39;</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;capistrano-rails&#39;</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;capistrano-rvm&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">group</span> <span class="ss">:production</span> <span class="k">do</span>
+</span><span class='line'>  <span class="c1"># puma 是一个 Gem,服务器不需要安装其他的</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="err">&#39;</span><span class="n">puma</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>初始化</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cap</span> <span class="n">install</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>配置</h2>
+
+<p><code>capfile</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/setup&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/deploy&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rvm&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/bundler&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/puma&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rails/assets&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rails/migrations&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">Dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;lib/capistrano/tasks/*.rake&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">r</span><span class="o">|</span> <span class="n">import</span> <span class="n">r</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>deploy.rb</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># config valid only for current version of Capistrano</span>
+</span><span class='line'><span class="n">lock</span> <span class="s1">&#39;3.4.0&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">set</span> <span class="ss">:application</span><span class="p">,</span> <span class="s1">&#39;xgroup&#39;</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:repo_url</span><span class="p">,</span> <span class="s1">&#39;git@github.com:linjunzhugg/xx.git&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">set</span> <span class="ss">:deploy_to</span><span class="p">,</span> <span class="s1">&#39;/mnt/xgroup&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">set</span> <span class="ss">:scm</span><span class="p">,</span> <span class="ss">:git</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Default value for :linked_files is []</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:linked_files</span><span class="p">,</span> <span class="sx">%w{config/database.yml config/oauth2.yml config/redis.yml config/secrets.yml}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Default value for linked_dirs is []</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:linked_dirs</span><span class="p">,</span> <span class="sx">%w{bin log tmp/pids tmp/cache tmp/sockets vendor/bundle}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">set</span> <span class="ss">:keep_releases</span><span class="p">,</span> <span class="mi">5</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">namespace</span> <span class="ss">:deploy</span> <span class="k">do</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">after</span> <span class="ss">:restart</span><span class="p">,</span> <span class="ss">:clear_cache</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">on</span> <span class="n">roles</span><span class="p">(</span><span class="ss">:web</span><span class="p">),</span> <span class="k">in</span><span class="p">:</span> <span class="ss">:groups</span><span class="p">,</span> <span class="ss">limit</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="ss">wait</span><span class="p">:</span> <span class="mi">10</span> <span class="k">do</span>
+</span><span class='line'>      <span class="c1"># Here we can do anything such as:</span>
+</span><span class='line'>      <span class="c1"># within release_path do</span>
+</span><span class='line'>      <span class="c1">#   execute :rake, &#39;cache:clear&#39;</span>
+</span><span class='line'>      <span class="c1"># end</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">after</span> <span class="ss">:finishing</span><span class="p">,</span> <span class="s1">&#39;deploy:cleanup&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>production.rb</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># Simple Role Syntax</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">set</span> <span class="ss">:rvm_type</span><span class="p">,</span> <span class="ss">:user</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:rvm_ruby_string</span><span class="p">,</span> <span class="s1">&#39;ruby-2.2.1&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">set</span> <span class="ss">:branch</span><span class="p">,</span> <span class="s2">&quot;master&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">server</span> <span class="s1">&#39;0.0.0.0&#39;</span><span class="p">,</span> <span class="ss">user</span><span class="p">:</span> <span class="s1">&#39;deployer&#39;</span><span class="p">,</span> <span class="ss">roles</span><span class="p">:</span> <span class="sx">%w{app}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 针对 puma 的配置</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:puma_rackup</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="no">File</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_path</span><span class="p">,</span> <span class="s1">&#39;config.ru&#39;</span><span class="p">)</span> <span class="p">}</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:puma_state</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="n">shared_path</span><span class="si">}</span><span class="s2">/tmp/pids/puma.state&quot;</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:puma_pid</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="n">shared_path</span><span class="si">}</span><span class="s2">/tmp/pids/puma.pid&quot;</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:puma_bind</span><span class="p">,</span> <span class="s2">&quot;unix://</span><span class="si">#{</span><span class="n">shared_path</span><span class="si">}</span><span class="s2">/tmp/sockets/puma.sock&quot;</span>    <span class="c1">#accept array for multi-bind</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:puma_conf</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="n">shared_path</span><span class="si">}</span><span class="s2">/puma.rb&quot;</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:puma_access_log</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="n">shared_path</span><span class="si">}</span><span class="s2">/log/puma_error.log&quot;</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:puma_error_log</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="n">shared_path</span><span class="si">}</span><span class="s2">/log/puma_access.log&quot;</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:puma_role</span><span class="p">,</span> <span class="ss">:app</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:puma_env</span><span class="p">,</span> <span class="n">fetch</span><span class="p">(</span><span class="ss">:rack_env</span><span class="p">,</span> <span class="n">fetch</span><span class="p">(</span><span class="ss">:rails_env</span><span class="p">,</span> <span class="s1">&#39;production&#39;</span><span class="p">))</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:puma_threads</span><span class="p">,</span> <span class="o">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">120</span><span class="o">]</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:puma_workers</span><span class="p">,</span> <span class="mi">0</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:puma_worker_timeout</span><span class="p">,</span> <span class="kp">nil</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:puma_init_active_record</span><span class="p">,</span> <span class="kp">false</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:puma_preload_app</span><span class="p">,</span> <span class="kp">true</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 最终会创建 shared/puma.rb，将配置写进去，然后调用</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>envrioments/production.rb</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># Disable serving static files from the `/public` folder by default sinc</span>
+</span><span class='line'><span class="c1"># Apache or NGINX already handles this.</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">serve_static_files</span> <span class="o">=</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;RAILS_SERVE_STATIC_FILES&#39;</span><span class="o">].</span><span class="n">present</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># important!!!</span>
+</span><span class='line'><span class="c1"># 在 production.rb 有这么个配置，决定服务器是否伺服静态文件，默认服务器没设这个变量，因此为 false, 默认不伺服静态文件</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>服务器配置</h2>
+
+<p><code>xgroup.conf</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">upstream</span> <span class="n">xgroup</span> <span class="p">{</span>
+</span><span class='line'>   <span class="n">server</span> <span class="ss">unix</span><span class="p">:</span><span class="sr">/mnt/x</span><span class="n">group</span><span class="o">/</span><span class="n">shared</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">sockets</span><span class="o">/</span><span class="n">puma</span><span class="o">.</span><span class="n">sock</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">server</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">listen</span> <span class="mi">80</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">server_name</span> <span class="n">xx</span>
+</span><span class='line'>  <span class="n">root</span> <span class="sr">/mnt/x</span><span class="n">group</span><span class="o">/</span><span class="n">current</span><span class="o">/</span><span class="kp">public</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># 由于服务器不伺服静态文件，所以自己需要手动配置</span>
+</span><span class='line'>  <span class="n">location</span> <span class="o">~*</span> <span class="sr">/assets/</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">gzip_static</span> <span class="n">on</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">expires</span> <span class="n">max</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">add_header</span> <span class="no">Cache</span><span class="o">-</span><span class="no">Control</span> <span class="kp">public</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">location</span> <span class="o">/</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="no">Forwarded</span><span class="o">-</span><span class="no">For</span> <span class="vg">$proxy_add_x_forwarded_for</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_set_header</span> <span class="no">Host</span> <span class="vg">$http_host</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_redirect</span> <span class="n">off</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_pass</span> <span class="ss">http</span><span class="p">:</span><span class="sr">//x</span><span class="n">group</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 也可以这么做：</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">upstream</span> <span class="n">xgroup</span> <span class="p">{</span>
+</span><span class='line'>   <span class="n">server</span> <span class="ss">unix</span><span class="p">:</span><span class="sr">/mnt/x</span><span class="n">group</span><span class="o">/</span><span class="n">shared</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">sockets</span><span class="o">/</span><span class="n">puma</span><span class="o">.</span><span class="n">sock</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">server</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">listen</span> <span class="mi">80</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">server_name</span> <span class="n">xx</span>
+</span><span class='line'>  <span class="n">root</span> <span class="sr">/mnt/x</span><span class="n">group</span><span class="o">/</span><span class="n">current</span><span class="o">/</span><span class="kp">public</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># 先去访问机器上对应的路径文件，访问不了再去 @xgroup</span>
+</span><span class='line'>  <span class="c1"># 如果不加这句，会访问不了静态文件  </span>
+</span><span class='line'>  <span class="n">try_files</span> <span class="vg">$uri</span><span class="o">/</span><span class="n">index</span><span class="o">.</span><span class="n">html</span> <span class="vg">$uri</span> <span class="vi">@xgroup</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">location</span> <span class="vi">@xgroup</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="no">Forwarded</span><span class="o">-</span><span class="no">For</span> <span class="vg">$proxy_add_x_forwarded_for</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_set_header</span> <span class="no">Host</span> <span class="vg">$http_host</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_redirect</span> <span class="n">off</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_pass</span> <span class="ss">http</span><span class="p">:</span><span class="sr">//x</span><span class="n">group</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Over~</p>
+</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-06-16T13:28:45+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+		
+		
+		<a class="addthis_button_tweet"></a>
+		
+		
+		
+	</div>
+	
+</div>
+
+
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2015
+
+    林俊柱
+
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+
+
+
+</body>
+</html>

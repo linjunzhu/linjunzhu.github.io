@@ -7,8 +7,36 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="使用 Capistrano 部署应用 前言 由于 Mina 一直以简单好用为著称，因此一直都是用 Mina 来部署应用。但是 Mina 也有局限性，之前的多机部署就遇到了难题，于是学习下如何用 Capistrano 来部署 Rails 应用 使用环境 Capistrano 3.x
-Rails4. &hellip;">
+	<meta name="description" content="说下 Mina 一、基本使用 1
+2
+3
+gem &#39;ruby&#39; mina init =&gt; 生成 config/deploy.rb 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27 &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -75,6 +103,811 @@ Rails4. &hellip;">
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/12/26/mina-jian-jie-shi-yong/">
+		
+			Mina 简介使用</a>
+	</h2>
+	<div class="entry-content">
+		<h1>说下 Mina</h1>
+
+<h2>一、基本使用</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s1">&#39;ruby&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">mina</span> <span class="n">init</span>    <span class="o">=&gt;</span>  <span class="err">生成</span> <span class="n">config</span><span class="o">/</span><span class="n">deploy</span><span class="o">.</span><span class="n">rb</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># config/deploy.rb</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:user</span><span class="p">,</span> <span class="s1">&#39;username&#39;</span>  <span class="c1"># 部署用户</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:domain</span><span class="p">,</span> <span class="s1">&#39;your.server.com&#39;</span>   <span class="c1"># 域名</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:deploy_to</span><span class="p">,</span> <span class="s1">&#39;/var/www/flipstack.com&#39;</span> <span class="c1"># 部署路径</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:repository</span><span class="p">,</span> <span class="s1">&#39;git@github.......xxx&#39;</span> <span class="c1">#git 仓库</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:branch</span><span class="p">,</span> <span class="s1">&#39;master&#39;</span> <span class="c1">#分支</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:shared_paths</span><span class="p">,</span> <span class="o">[</span><span class="s1">&#39;config/database.yml&#39;</span><span class="p">,</span> <span class="s1">&#39;public/system&#39;</span> <span class="o">.</span><span class="n">.</span><span class="o">.]</span> <span class="c1">#共享文件夹</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">然后：</span>
+</span><span class='line'>
+</span><span class='line'><span class="mi">1</span><span class="o">.</span>
+</span><span class='line'><span class="ss">task</span><span class="p">:</span> <span class="n">environment</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">invoke</span> <span class="ss">:&#39;rvm:use[ruby-2.0.0@rails4.0.4]&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="mi">2</span><span class="o">.</span>
+</span><span class='line'><span class="c1"># 主要为 deploy 做准备，创建各个文件夹</span>
+</span><span class='line'><span class="n">task</span> <span class="ss">:setup</span> <span class="o">=&gt;</span> <span class="ss">:environment</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">queue!</span> <span class="sx">%[mkdir -p &quot;</span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="sx">/shared/log&quot;]</span>
+</span><span class='line'>  <span class="n">queue!</span> <span class="sx">%[chmod g+rx,u+rwx &quot;</span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="sx">/shared/log&quot;]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">queue!</span> <span class="sx">%[mkdir -p &quot;</span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="sx">/shared/config&quot;]</span>
+</span><span class='line'>  <span class="n">queue!</span> <span class="sx">%[chmod g+rx,u+rwx &quot;</span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="sx">/shared/config&quot;]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">queue!</span> <span class="sx">%[mkdir -p &quot;</span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="sx">/shared/public/qrcodes&quot;]</span>
+</span><span class='line'>  <span class="n">queue!</span> <span class="sx">%[mkdir -p &quot;</span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="sx">/shared/public/qrcodesZip&quot;]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">queue!</span> <span class="sx">%[mkdir -p &quot;</span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="sx">/shared/public/uploads&quot;]</span>
+</span><span class='line'>  <span class="n">queue!</span> <span class="sx">%[mkdir -p &quot;</span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="sx">/shared/public/system&quot;]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">queue!</span> <span class="sx">%[mkdir -p &quot;</span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="sx">/shared/coupons&quot;]</span>
+</span><span class='line'>  <span class="n">queue!</span> <span class="sx">%[chmod g+rx,u+rwx &quot;</span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="sx">/shared/coupons&quot;]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">queue!</span> <span class="sx">%[mkdir -p &quot;</span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="sx">/shared/couponsZip&quot;]</span>
+</span><span class='line'>  <span class="n">queue!</span> <span class="sx">%[chmod g+rx,u+rwx &quot;</span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="sx">/shared/couponsZip&quot;]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">queue!</span> <span class="sx">%[touch &quot;</span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="sx">/shared/config/database.yml&quot;]</span>
+</span><span class='line'>  <span class="n">queue</span>  <span class="sx">%[echo &quot;-----&gt; Be sure to edit &#39;shared/config/database.yml&#39;.&quot;]</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="mi">3</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 编写部署任务</span>
+</span><span class='line'><span class="n">task</span> <span class="ss">:deploy</span> <span class="o">=&gt;</span> <span class="ss">:environment</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">deploy</span> <span class="k">do</span>
+</span><span class='line'>    <span class="c1"># Put things that will set up an empty directory into a fully set-up</span>
+</span><span class='line'>    <span class="c1"># instance of your project.</span>
+</span><span class='line'>    <span class="n">invoke</span> <span class="ss">:&#39;sidekiq:quiet&#39;</span>
+</span><span class='line'>    <span class="n">invoke</span> <span class="ss">:&#39;git:clone&#39;</span>
+</span><span class='line'>    <span class="n">invoke</span> <span class="ss">:&#39;deploy:link_shared_paths&#39;</span>
+</span><span class='line'>    <span class="n">invoke</span> <span class="ss">:&#39;bundle:install&#39;</span>
+</span><span class='line'>    <span class="n">invoke</span> <span class="ss">:&#39;rails:db_migrate&#39;</span>
+</span><span class='line'>    <span class="n">invoke</span> <span class="ss">:&#39;rails:assets_precompile&#39;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">to</span> <span class="ss">:launch</span> <span class="k">do</span>
+</span><span class='line'>      <span class="n">queue</span> <span class="s2">&quot;if [ -d </span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="s2">/current/tmp ]</span>
+</span><span class='line'><span class="s2">      then</span>
+</span><span class='line'><span class="s2">        touch </span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="s2">/current/tmp/restart.txt</span>
+</span><span class='line'><span class="s2">      else</span>
+</span><span class='line'><span class="s2">        mkdir </span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="s2">/current/tmp</span>
+</span><span class='line'><span class="s2">        touch </span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="s2">/current/tmp/restart.txt </span>
+</span><span class='line'><span class="s2">      fi&quot;</span>
+</span><span class='line'>      <span class="n">invoke</span> <span class="ss">:&#39;sidekiq:restart&#39;</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<p>终端执行</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">mina</span> <span class="n">setup</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">mina</span> <span class="n">deploy</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>二、应该要注意的 <code>point</code></h2>
+
+<p>1、我们可以自己写 task 任务</p>
+
+<p>2、queue 命令用在执行 bash 命令，如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">task</span> <span class="ss">:logs</span> <span class="k">do</span>
+</span><span class='line'>     <span class="n">queue</span> <span class="s1">&#39;echo &quot;Contents of the log file are as follows:&quot;&#39;</span>
+</span><span class='line'>     <span class="n">queue</span> <span class="s2">&quot;tail -f /var/log/apache.log&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>3、invoke 命令用在引用已经写好的 task 任务，如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">task</span> <span class="ss">:down</span> <span class="k">do</span>
+</span><span class='line'>     <span class="n">invoke</span> <span class="ss">:maintenance</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">task</span> <span class="ss">:maintenance</span> <span class="k">do</span>
+</span><span class='line'>     <span class="n">queue</span> <span class="s1">&#39;touch maintenance.txt&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>4、Mina 已经有一些已经写好的 task 任务，如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">invoke</span> <span class="ss">:&#39;git:clone&#39;</span>
+</span><span class='line'><span class="n">invoke</span> <span class="ss">:&#39;bundle:install&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">#我一开始以为这是执行 bash 命令，让我理不清 invoke 跟 queue 的关系</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>5、<code>run!</code> 这个命令是指 SSH 进主机，然后执行所有已经 queue 的命令。这个命令会在 Rake 退出前，自动调用。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 当 rake 退出时会调用。</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">mina_cleanup</span>
+</span><span class='line'>    <span class="n">run!</span> <span class="k">if</span> <span class="n">commands</span><span class="o">.</span><span class="n">any?</span>
+</span><span class='line'>  <span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>6、<code>command</code> 包含所有已经 queue 的任务</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">queue</span> <span class="s2">&quot;sudo restart&quot;</span>
+</span><span class='line'><span class="n">queue</span> <span class="s2">&quot;true&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">to</span> <span class="ss">:clean</span> <span class="k">do</span>     <span class="c1"># 这里 clean 的queue 会被放到 :clean 命名空间下</span>
+</span><span class='line'>  <span class="n">queue</span> <span class="s2">&quot;rm&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">commands</span> <span class="o">==</span> <span class="o">[</span><span class="s2">&quot;sudo restart&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span><span class="o">]</span>
+</span><span class='line'><span class="n">commands</span><span class="p">(</span><span class="ss">:clean</span><span class="p">)</span> <span class="o">==</span> <span class="o">[</span><span class="s2">&quot;rm&quot;</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="err">注意了，</span><span class="n">commands</span> <span class="err">是一个方法，而不是变量</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 源代码</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">commands</span><span class="p">(</span><span class="n">aspect</span><span class="o">=</span><span class="ss">:default</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">(</span><span class="vi">@commands</span> <span class="o">||=</span> <span class="k">begin</span>
+</span><span class='line'>    <span class="vi">@to</span> <span class="o">=</span> <span class="ss">:default</span>
+</span><span class='line'>    <span class="no">Hash</span><span class="o">.</span><span class="n">new</span> <span class="p">{</span> <span class="o">|</span><span class="n">h</span><span class="p">,</span> <span class="n">k</span><span class="o">|</span> <span class="n">h</span><span class="o">[</span><span class="n">k</span><span class="o">]</span> <span class="o">=</span> <span class="nb">Array</span><span class="o">.</span><span class="n">new</span> <span class="p">}</span>
+</span><span class='line'>  <span class="k">end</span><span class="p">)</span><span class="o">[</span><span class="n">aspect</span><span class="o">]</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">因此如果要清空</span> <span class="n">commands</span><span class="err">，应该是执行</span><span class="p">:</span>
+</span><span class='line'>
+</span><span class='line'><span class="vi">@commands</span><span class="o">[</span><span class="ss">:default</span><span class="o">]</span> <span class="o">=</span> <span class="o">[]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>7、<code>isolate</code> 命令会开辟一个新的 block，包含 queue 的任务</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">queue</span> <span class="s2">&quot;sudo restart&quot;</span>
+</span><span class='line'><span class="n">queue</span> <span class="s2">&quot;true&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">commands</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="o">[</span><span class="s1">&#39;sudo restart&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">isolate</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">queue</span> <span class="s2">&quot;reload&quot;</span>
+</span><span class='line'>  <span class="n">commands</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="o">[</span><span class="s1">&#39;reload&#39;</span><span class="o">]</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">commands</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="o">[</span><span class="s1">&#39;sudo restart&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>8、已被 invoke 的 task, 再次被 invoke 时，是不会再次被执行的，除非：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 该参数表明再次invoke时会继续执行一次。</span>
+</span><span class='line'><span class="n">invoke</span> <span class="ss">:setup</span><span class="p">,</span> <span class="p">{</span><span class="ss">reenable</span><span class="p">:</span> <span class="kp">true</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 注意，任务是否已经被 invoke 过，并不是通过 commands 内的值来判断的，因此就算 commands 清空了，task 还是会被标记成已 invoke 过的。</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>9、</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">task</span> <span class="ss">:hello</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">set</span> <span class="ss">:deploy_to</span><span class="p">,</span> <span class="s1">&#39;hellooooooooo&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">task</span> <span class="ss">:world</span> <span class="k">do</span>
+</span><span class='line'>  <span class="nb">p</span> <span class="n">deploy_to</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">$</span><span class="o">-&gt;</span> <span class="n">mina</span> <span class="n">hello</span> <span class="n">world</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">===&gt;</span>  <span class="s1">&#39;hellooooooooo&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">说明</span> <span class="n">mina</span> <span class="n">task1</span> <span class="n">task2</span> <span class="err">是可以串行执行的，并且任务</span><span class="mi">1</span><span class="err">的环境会跟任务</span><span class="mi">2</span><span class="err">相连。（同个执行环境）</span>
+</span><span class='line'><span class="err">通常用在设置不同的</span> <span class="n">stage</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>三、多机部署</h2>
+
+<h3>一、将同一项目部署到多个服务器</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">set</span> <span class="ss">:domains</span><span class="p">,</span> <span class="sx">%w[192.168.0.12 192.168.0.13]</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">desc</span> <span class="s2">&quot;multi deploy&quot;</span>
+</span><span class='line'><span class="n">task</span> <span class="ss">:multi_deploy</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">domains</span><span class="o">.</span><span class="n">each_with_index</span> <span class="k">do</span> <span class="o">|</span><span class="n">domain</span><span class="p">,</span> <span class="n">index</span><span class="o">|</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="nb">p</span> <span class="s2">&quot;begin to deploy</span><span class="si">#{</span><span class="n">domain</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>      <span class="n">set</span> <span class="ss">:domain</span><span class="p">,</span> <span class="n">domain</span>
+</span><span class='line'>      <span class="n">invoke</span> <span class="ss">:deploy</span>
+</span><span class='line'>      <span class="n">run!</span>    <span class="o">=&gt;</span> <span class="c1"># 注意这里一定要加上 run! ，才会立即运行命令</span>
+</span><span class='line'>      <span class="nb">p</span> <span class="s2">&quot;finish to deploy&quot;</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>自己写的一个 task, 这时候遇到一个难题，发现 invoke :deploy ，当第一次循环的时候正常，第二次循环的时候，会部署两次。</p>
+
+<p>效果是这样的：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'> <span class="k">begin</span> <span class="n">to</span> <span class="n">deploy</span> <span class="n">server</span> <span class="mi">192</span><span class="o">.</span><span class="mi">168</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">12</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">deploying</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'> <span class="n">finish</span> <span class="n">to</span> <span class="n">deploy</span> <span class="n">server</span> <span class="mi">192</span><span class="o">.</span><span class="mi">168</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">12</span>
+</span><span class='line'>
+</span><span class='line'> <span class="k">begin</span> <span class="n">to</span> <span class="n">deploy</span> <span class="n">server</span> <span class="mi">192</span><span class="o">.</span><span class="mi">168</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">13</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">deploying</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'> <span class="n">finish</span> <span class="n">to</span> <span class="n">deploy</span> <span class="n">server</span> <span class="mi">192</span><span class="o">.</span><span class="mi">168</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">13</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">deploying</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">.</span>  <span class="p">(</span> <span class="n">server</span> <span class="mi">192</span><span class="o">.</span><span class="mi">168</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">13</span> <span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果我的 domains  是</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">set</span> <span class="ss">:domains</span><span class="p">,</span> <span class="sx">%w[192.168.0.12 192.168.0.13 192.168.0.14]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>那么效果会是：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'> <span class="k">begin</span> <span class="n">to</span> <span class="n">deploy</span> <span class="n">server</span> <span class="mi">192</span><span class="o">.</span><span class="mi">168</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">12</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">deploying</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'> <span class="n">finish</span> <span class="n">to</span> <span class="n">deploy</span> <span class="n">server</span> <span class="mi">192</span><span class="o">.</span><span class="mi">168</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">12</span>
+</span><span class='line'>
+</span><span class='line'> <span class="k">begin</span> <span class="n">to</span> <span class="n">deploy</span> <span class="n">server</span> <span class="mi">192</span><span class="o">.</span><span class="mi">168</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">13</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">deploying</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'> <span class="n">finish</span> <span class="n">to</span> <span class="n">deploy</span> <span class="n">server</span> <span class="mi">192</span><span class="o">.</span><span class="mi">168</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">13</span>
+</span><span class='line'>
+</span><span class='line'> <span class="k">begin</span> <span class="n">to</span> <span class="n">deploy</span> <span class="n">server</span> <span class="mi">192</span><span class="o">.</span><span class="mi">168</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">14</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">deploying</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'> <span class="n">finish</span> <span class="n">to</span> <span class="n">deploy</span> <span class="n">server</span> <span class="mi">192</span><span class="o">.</span><span class="mi">168</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">14</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">deploying</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">.</span>  <span class="p">(</span> <span class="n">server</span> <span class="mi">192</span><span class="o">.</span><span class="mi">168</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">14</span> <span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>发觉最终总是会多部署最后一个server</p>
+
+<p>于是我用</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">p</span> <span class="s2">&quot;命令集合：</span><span class="si">#{</span><span class="n">commands</span><span class="p">(</span><span class="ss">:default</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>来查看，也没有什么异常。</p>
+
+<p>然后我又做了下实验：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">task</span> <span class="ss">:deploy_primary</span> <span class="k">do</span>
+</span><span class='line'>  <span class="nb">p</span> <span class="s2">&quot;begin to deploy primary </span><span class="si">#{</span><span class="n">primary_domain</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="n">set</span> <span class="ss">:domain</span><span class="p">,</span> <span class="n">primary_domain</span>
+</span><span class='line'>  <span class="n">invoke</span> <span class="ss">:deploy</span>
+</span><span class='line'>  <span class="n">invoke</span> <span class="ss">:mysql_sync</span>
+</span><span class='line'>  <span class="n">run!</span>
+</span><span class='line'>  <span class="nb">p</span> <span class="s2">&quot;finish to deploy primary </span><span class="si">#{</span><span class="n">primary_domain</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="nb">p</span> <span class="n">commands</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>原因</h3>
+
+<p>在 rake 退出前会自动调用 <code>run!</code> 这个方法，因此到最后是会多执行一次 commands 内的命令的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">mina_cleanup!</span>
+</span><span class='line'>  <span class="n">run!</span> <span class="k">if</span> <span class="n">commands</span><span class="o">.</span><span class="n">any?</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>解决方法</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">set</span> <span class="ss">:domains</span><span class="p">,</span> <span class="sx">%w[192.168.0.12 192.168.0.13]</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">desc</span> <span class="s2">&quot;multi deploy&quot;</span>
+</span><span class='line'><span class="n">task</span> <span class="ss">:multi_deploy</span> <span class="k">do</span>
+</span><span class='line'>   <span class="n">isolate</span> <span class="k">do</span>   <span class="c1"># =&gt;  开辟一个新的 block (这样isolate外面的commands为[]）</span>
+</span><span class='line'>    <span class="n">domains</span><span class="o">.</span><span class="n">each_with_index</span> <span class="k">do</span> <span class="o">|</span><span class="n">domain</span><span class="p">,</span> <span class="n">index</span><span class="o">|</span>
+</span><span class='line'>      <span class="nb">p</span> <span class="s2">&quot;begin to deploy</span><span class="si">#{</span><span class="n">domain</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>      <span class="n">set</span> <span class="ss">:domain</span><span class="p">,</span> <span class="n">domain</span>
+</span><span class='line'>      <span class="c1"># 这里其实只 invoke 了一次，之所以执行了三次，是因为有三次 run!</span>
+</span><span class='line'>      <span class="c1"># 而 domain 参数并不是写进 commands 的，而是在 run! 的时候进行处理</span>
+</span><span class='line'>      <span class="c1"># 因此这里可以成功的分别部署到三台机器</span>
+</span><span class='line'>      <span class="n">invoke</span> <span class="ss">:deploy</span>
+</span><span class='line'>      <span class="n">run!</span>
+</span><span class='line'>      <span class="nb">p</span> <span class="s2">&quot;finish to deploy&quot;</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>  <span class="c1"># rake 任务退出时执行 run!, 但此时 commands 为 []</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>二、将同一项目部署到同一机器的两个目录</h3>
+
+<p>因为该项目需要做全站国际化，因此我将它分别部署为两套 server.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">task</span> <span class="ss">:deploy_all</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">isolate</span> <span class="k">do</span>
+</span><span class='line'>    <span class="mi">2</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">sequence</span><span class="o">|</span>
+</span><span class='line'>      <span class="nb">p</span> <span class="s2">&quot;begin to deploy </span><span class="si">#{</span><span class="n">sequence</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>      <span class="k">if</span> <span class="n">sequence</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span class='line'>        <span class="n">set</span> <span class="ss">:deploy_to</span><span class="p">,</span> <span class="s1">&#39;/home/deploy/xshare_en&#39;</span>
+</span><span class='line'>      <span class="k">else</span>
+</span><span class='line'>        <span class="n">set</span> <span class="ss">:deploy_to</span><span class="p">,</span> <span class="s1">&#39;/home/deploy/xshare_zh&#39;</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>      <span class="n">invoke</span> <span class="ss">:deploy</span>
+</span><span class='line'>      <span class="n">run!</span>
+</span><span class='line'>      <span class="nb">p</span> <span class="s2">&quot;end to deploy </span><span class="si">#{</span><span class="n">sequence</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这么做的后果是：部署了两次到 <code>/home/deploy/xshare_en</code>去了。</p>
+
+<h3>原因</h3>
+
+<p>1、 <code>deploy_to</code> 的值是直接写进 <code>commands</code> 内的</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">[.</span><span class="n">.</span><span class="o">.</span><span class="n">Setting</span> <span class="n">up</span> <span class="sr">/home/</span><span class="n">deploy</span><span class="o">/</span><span class="n">xshare_zh</span><span class="p">\</span><span class="s2">&quot; &amp;&amp; (</span><span class="se">\n</span><span class="s2">  mkdir -p </span><span class="se">\&quot;</span><span class="s2">/home/deploy/xshare_zh</span><span class="se">\&quot;</span><span class="s2"> &amp;&amp;</span><span class="se">\n</span><span class="s2">  chown -R `whoami` </span><span class="se">\&quot;</span><span class="s2">/home/deploy/xshare_zh</span><span class="se">\&quot;</span><span class="s2"> &amp;&amp;</span><span class="se">\n</span><span class="s2">  chmod g+rx,u+rwx </span><span class="se">\&quot;</span><span class="s2">/home/deploy/xshare_zh</span><span class="se">\&quot;</span><span class="s2"> &amp;&amp;\....]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>2、这里 <code>:deploy</code> 只 <code>invoke</code> 了一次，因此 commands 内的值是没有变化的，所以相当于执行了两次一样的第一次<code>commands</code></p>
+
+<h3>尝试1</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">task</span> <span class="ss">:deploy_all</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">isolate</span> <span class="k">do</span>
+</span><span class='line'>    <span class="mi">2</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">sequence</span><span class="o">|</span>
+</span><span class='line'>      <span class="nb">p</span> <span class="s2">&quot;begin to deploy </span><span class="si">#{</span><span class="n">sequence</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>      <span class="k">if</span> <span class="n">sequence</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span class='line'>        <span class="n">set</span> <span class="ss">:deploy_to</span><span class="p">,</span> <span class="s1">&#39;/home/deploy/xshare_en&#39;</span>
+</span><span class='line'>      <span class="k">else</span>
+</span><span class='line'>        <span class="n">set</span> <span class="ss">:deploy_to</span><span class="p">,</span> <span class="s1">&#39;/home/deploy/xshare_zh&#39;</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>      <span class="c1"># 重复 invoke</span>
+</span><span class='line'>      <span class="n">invoke</span> <span class="ss">:deploy</span><span class="p">,</span> <span class="ss">reenable</span><span class="p">:</span> <span class="kp">true</span>
+</span><span class='line'>      <span class="n">run!</span>
+</span><span class='line'>      <span class="c1"># 清空 commands</span>
+</span><span class='line'>      <span class="vi">@commands</span><span class="o">[</span><span class="ss">:default</span><span class="o">]</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>      <span class="nb">p</span> <span class="s2">&quot;end to deploy </span><span class="si">#{</span><span class="n">sequence</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>结果还是没达到预料中的结果。</p>
+
+<p>因为<code>task deploy</code> 中还 <code>invoke</code> 了其他的 <code>task</code>,比如<code>git:clone</code>，因此其他的<code>task</code>只算invoke了一次，就算我手动将<code>deploy</code>所引用的<code>task</code>全部都加<code>reenable</code>参数，还是不行，因为难保其他task没invoke另外的task</p>
+
+<h3>尝试2</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">task</span> <span class="ss">:deploy_all</span> <span class="k">do</span>
+</span><span class='line'>  <span class="mi">2</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">sequence</span><span class="o">|</span>
+</span><span class='line'>  <span class="c1"># 尝试将两者区分开block</span>
+</span><span class='line'>    <span class="n">isolate</span> <span class="k">do</span>
+</span><span class='line'>      <span class="nb">p</span> <span class="s2">&quot;begin to deploy </span><span class="si">#{</span><span class="n">sequence</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>      <span class="k">if</span> <span class="n">sequence</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span class='line'>        <span class="n">set</span> <span class="ss">:deploy_to</span><span class="p">,</span> <span class="s1">&#39;/home/deploy/xshare_en&#39;</span>
+</span><span class='line'>      <span class="k">else</span>
+</span><span class='line'>        <span class="n">set</span> <span class="ss">:deploy_to</span><span class="p">,</span> <span class="s1">&#39;/home/deploy/xshare_zh&#39;</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>      <span class="c1"># 重复 invoke</span>
+</span><span class='line'>      <span class="n">invoke</span> <span class="ss">:deploy</span>
+</span><span class='line'>      <span class="n">run!</span>
+</span><span class='line'>      <span class="c1"># 清空 commands</span>
+</span><span class='line'>      <span class="vi">@commands</span><span class="o">[</span><span class="ss">:default</span><span class="o">]</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>      <span class="nb">p</span> <span class="s2">&quot;end to deploy </span><span class="si">#{</span><span class="n">sequence</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>但还是失败，:deploy 是否被 invoke,跟 isolate 无关，因为 isolate 控制的只是 commands 而已。</p>
+
+<h3>解决</h3>
+
+<p><code>没找到好办法，暂时分开task执行，不过这种使用场景也比较少。</code></p>
+
+<h2>单独执行命令</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">task</span> <span class="ss">:mysql_sync</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">queue</span> <span class="sx">%[cd </span><span class="si">#{</span><span class="n">deploy_to!</span><span class="si">}</span><span class="sx">/current &amp;&amp; whenever -i &#39;mysql_sync&#39;]</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当初单独执行这个 task  的时候，一直提示找不到 whenever 这个命令，令人纳闷，最终发现需要加上环境。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">task</span> <span class="ss">:mysql_sync</span> <span class="o">=&gt;</span> <span class="ss">:environment</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">queue</span> <span class="sx">%[cd </span><span class="si">#{</span><span class="n">deploy_to!</span><span class="si">}</span><span class="sx">/current &amp;&amp; whenever -i &#39;mysql_sync&#39;]</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>重复的 queue</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">set</span> <span class="ss">:domains</span><span class="p">,</span> <span class="sx">%w[192.168.0.12 192.168.0.13]</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">desc</span> <span class="s2">&quot;multi deploy&quot;</span>
+</span><span class='line'><span class="n">task</span> <span class="ss">:multi_deploy</span> <span class="k">do</span>
+</span><span class='line'>   <span class="n">isolate</span> <span class="k">do</span>   <span class="c1"># =&gt;  开辟一个新的 block ( 不过为何能解决我还没弄懂）</span>
+</span><span class='line'>    <span class="n">domains</span><span class="o">.</span><span class="n">each_with_index</span> <span class="k">do</span> <span class="o">|</span><span class="n">domain</span><span class="p">,</span> <span class="n">index</span><span class="o">|</span>
+</span><span class='line'>      <span class="nb">p</span> <span class="s2">&quot;begin to deploy</span><span class="si">#{</span><span class="n">domain</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>      <span class="n">set</span> <span class="ss">:domain</span><span class="p">,</span> <span class="n">domain</span>
+</span><span class='line'>      <span class="n">invoke</span> <span class="ss">:deploy</span>
+</span><span class='line'>      <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">1</span>
+</span><span class='line'>         <span class="n">queue</span> <span class="s1">&#39;do something one&#39;</span>
+</span><span class='line'>      <span class="k">else</span>
+</span><span class='line'>         <span class="n">queue</span> <span class="s1">&#39;do something two&#39;</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>      <span class="n">run!</span>    <span class="o">=&gt;</span> <span class="c1"># 注意这里一定要加上 run! ，才会立即运行命令</span>
+</span><span class='line'>      <span class="nb">p</span> <span class="s2">&quot;finish to deploy&quot;</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样子的话，当第二次循环时，会执行 <code>one</code> 和 <code>two</code> 两个 queue, 因为第一次循环时， <code>one</code> 已经 queued 了，进入了 commands，因此第二次循环时，会执行这个命令 （  执行所有 commands)</p>
+
+<p>这是个难点。我还没找到解决方法。只能说分开来执行,或者写脚本根据不同服务器执行不同命令</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-12-26T15:00:12+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -305,8 +1138,10 @@ Rails4. &hellip;">
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
+<span class='line-number'>4</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">set</span> <span class="ss">:branch</span><span class="p">,</span> <span class="s1">&#39;master&#39;</span>
-</span><span class='line'><span class="n">server</span> <span class="s1">&#39;192.168.0.13&#39;</span><span class="p">,</span> <span class="ss">user</span><span class="p">:</span> <span class="s1">&#39;deploy&#39;</span><span class="p">,</span> <span class="ss">roles</span><span class="p">:</span> <span class="sx">%w{web}</span>
+</span><span class='line'><span class="c1"># roles 的存在是方便我们针对某个 role 来执行相应的 task</span>
+</span><span class='line'><span class="n">server</span> <span class="s1">&#39;192.168.0.13&#39;</span><span class="p">,</span> <span class="ss">user</span><span class="p">:</span> <span class="s1">&#39;deploy&#39;</span><span class="p">,</span> <span class="ss">roles</span><span class="p">:</span> <span class="sx">%w{app, web}</span>
 </span><span class='line'><span class="n">set</span> <span class="ss">:rails_env</span><span class="p">,</span> <span class="ss">:production</span>
 </span></code></pre></td></tr></table></div></figure>
 
@@ -1433,6 +2268,7 @@ Rails4. &hellip;">
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
+<span class='line-number'>16</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">两条分支：</span> <span class="n">dev</span> <span class="err">和</span> <span class="n">master</span><span class="err">，此时</span> <span class="n">dev</span> <span class="err">需要合并回</span> <span class="n">master</span>
 </span><span class='line'>
 </span><span class='line'><span class="c1"># rebase 方式</span>
@@ -1444,9 +2280,10 @@ Rails4. &hellip;">
 </span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">master</span><span class="p">)</span> <span class="n">git</span> <span class="n">merge</span> <span class="n">dev</span>
 </span><span class='line'>
 </span><span class='line'><span class="c1"># rebase 方式，此时dev和master的指针都是同时指向最新的commit点</span>
-</span><span class='line'><span class="c1"># 但是返回 dev 时，如果要继续使用 dev, 需要先 pull 一下</span>
+</span><span class='line'><span class="c1"># 但是 origin/dev 指针头消失了。因此</span>
+</span><span class='line'><span class="c1"># 如果要继续使用 dev, 需要先 pull 一下，跟 远端仓库的 dev 最新 commit 点进行一次 merge ( 当然结果是一个空 commit,此时可以 push --force)</span>
 </span><span class='line'><span class="c1"># 此时 dev 分支的 nerwork 图是：</span>
-</span><span class='line'><span class="c1"># * b6fa04b (HEAD, master, dev) dev01 ( 10 seconds ago )</span>
+</span><span class='line'><span class="c1"># * b6fa04b (HEAD, master, dev, origin/master) dev01 ( 10 seconds ago )</span>
 </span><span class='line'><span class="c1"># 原因见下面</span>
 </span></code></pre></td></tr></table></div></figure>
 
@@ -2228,142 +3065,6 @@ Rails4. &hellip;">
 
 
 <time datetime="2014-10-07T21:59:06+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/07/ubuntuxia-xiu-gai-mysql5-dot-5zhong-wen-bian-ma/">
-		
-			Ubuntu下修改Mysql5.5中文编码</a>
-	</h2>
-	<div class="entry-content">
-		<h2>前言</h2>
-
-<p>由于之前在 Ubuntu 下安装 Mysql时，忘记选择编码，于是全部都是 Latin 编码，折腾了一阵子搞定了</p>
-
-<h2>Begin</h2>
-
-<p>在网上搜了一阵教程，明白 Mysql 安装后的一系列目录：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="sr">/etc/ini</span><span class="n">t</span><span class="o">.</span><span class="n">d</span><span class="o">/</span><span class="n">mysql</span>  <span class="p">(</span> <span class="err">启动脚本）</span>
-</span><span class='line'><span class="sr">/etc/m</span><span class="n">ysql</span><span class="o">/</span><span class="n">my</span><span class="o">.</span><span class="n">cnf</span> <span class="p">(</span> <span class="no">MySQL</span> <span class="err">的配置文件</span> <span class="p">)</span>
-</span><span class='line'><span class="sr">/var/</span><span class="n">lib</span><span class="o">/</span><span class="n">mysql</span>   <span class="p">(</span> <span class="err">数据库文件存放路径）</span>
-</span><span class='line'><span class="sr">/usr/</span><span class="n">lib</span><span class="o">/</span><span class="n">mysql</span>  <span class="err">（</span><span class="no">Mysql</span> <span class="err">安装路径</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">命令：</span><span class="n">service</span> <span class="n">mysql</span> <span class="n">start</span> <span class="o">/</span> <span class="n">stop</span> <span class="o">/</span> <span class="n">restart</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Mysql 版本： 5.5以上</p>
-
-<h2>Doing</h2>
-
-<p>按照网上教程，打开 <code>my.cnf</code>，在[client] [mysqld] 下加上
-<code>default-character-set=utf8</code></p>
-
-<p>结果启动mysql报错，于是我查看了<code>/var/log/mysql/error.log</code>的日志，这里用<code>cat</code>命令load不出东西，要直接vim进去才行，奇怪。</p>
-
-<p>报错原因：<code>unknown variable 'default-set-server=utf8'</code></p>
-
-<p>最终解决：
-Mysql 版本5.5 以上，需要这么做：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">在</span><span class="o">[</span><span class="n">client</span><span class="o">]</span><span class="err">下添加：</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">default</span><span class="o">-</span><span class="n">character</span><span class="o">-</span><span class="n">set</span><span class="o">=</span><span class="n">utf8</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">在</span><span class="o">[</span><span class="n">mysqld</span><span class="o">]</span> <span class="err">下添加：</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">character</span><span class="o">-</span><span class="n">set</span><span class="o">-</span><span class="n">server</span><span class="o">=</span><span class="n">utf8</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">在</span><span class="o">[</span><span class="n">mysql</span><span class="o">]</span> <span class="err">下添加</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">default</span><span class="o">-</span><span class="n">character</span><span class="o">-</span><span class="n">set</span><span class="o">=</span><span class="n">utf8</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>然后重启mysql</p>
-
-<p><code>sudo service mysql restart</code></p>
-
-<p>进入mysql终端</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">show</span> <span class="n">variables</span> <span class="n">like</span> <span class="s1">&#39;%character%&#39;</span><span class="p">;</span>
-</span><span class='line'><span class="c1">#会有如下显示：</span>
-</span><span class='line'><span class="o">+--------------------------+----------------------------+</span>
-</span><span class='line'><span class="o">|</span> <span class="no">Variable_name</span>            <span class="o">|</span> <span class="no">Value</span>                      <span class="o">|</span>
-</span><span class='line'><span class="o">+--------------------------+----------------------------+</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_set_client</span>     <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_set_connection</span> <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_set_database</span>   <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_set_filesystem</span> <span class="o">|</span> <span class="n">binary</span>                     <span class="o">|</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_set_results</span>    <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_set_server</span>     <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_set_system</span>     <span class="o">|</span> <span class="n">utf8</span>                       <span class="o">|</span>
-</span><span class='line'><span class="o">|</span> <span class="n">character_sets_dir</span>       <span class="o">|/</span><span class="n">usr</span><span class="o">/</span><span class="n">share</span><span class="o">/</span><span class="n">mysql</span><span class="o">/</span><span class="n">charsets</span><span class="o">/</span> <span class="o">|</span>
-</span><span class='line'><span class="o">+--------------------------+----------------------------+</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-07T13:58:12+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>
