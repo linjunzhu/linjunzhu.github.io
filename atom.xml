@@ -4,7 +4,7 @@
   <title><![CDATA[LinJunzhu's Blog]]></title>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/atom.xml" rel="self"/>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/"/>
-  <updated>2015-07-08T11:09:46+08:00</updated>
+  <updated>2015-07-08T14:06:41+08:00</updated>
   <id>https://github.com/linjunzhu/linjunzhu.github.io.git/</id>
   <author>
     <name><![CDATA[林俊柱]]></name>
@@ -12,6 +12,452 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Rails中「错误信息」的实践规划]]></title>
+    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2015/07/08/railszhong-cuo-wu-xin-xi-yi-ji-i18nde-shi-jian-gui-hua/"/>
+    <updated>2015-07-08T11:15:01+08:00</updated>
+    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2015/07/08/railszhong-cuo-wu-xin-xi-yi-ji-i18nde-shi-jian-gui-hua</id>
+    <content type="html"><![CDATA[<h1>前言</h1>
+
+<p>在我还是一个 Rails 新手的时候，曾纠结过，如何更好的规划显示错误信息，以及实现 I18N。前几天整理一个实习生的代码，发现他对错误信息的规划毫无章法，所以就写下这 blog, Rails 新手可以看看。</p>
+
+<h1>基本概念</h1>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Account</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">validates_presence_of</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:message</span> <span class="o">=&gt;</span> <span class="s2">&quot;Email 不得为空&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">account</span> <span class="o">=</span> <span class="no">Account</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 此时会调用 account.valid?，该 valid? 会调用所有validate，通过则 true,否则为 false</span>
+</span><span class='line'><span class="n">account</span><span class="o">.</span><span class="n">save</span>   <span class="o">=&gt;</span> <span class="kp">false</span>
+</span><span class='line'><span class="n">account</span><span class="o">.</span><span class="n">valid?</span> <span class="o">=&gt;</span> <span class="kp">false</span>
+</span><span class='line'><span class="n">account</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">empty?</span>  <span class="o">=&gt;</span> <span class="kp">false</span>
+</span><span class='line'><span class="n">account</span><span class="o">.</span><span class="n">email</span> <span class="o">=</span> <span class="s1">&#39;linjunzhugg@gmail.com&#39;</span>
+</span><span class='line'><span class="n">account</span><span class="o">.</span><span class="n">valid?</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+</span><span class='line'><span class="n">account</span><span class="o">.</span><span class="n">save</span>   <span class="o">=&gt;</span> <span class="kp">true</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>来看下源码</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># File activemodel/lib/active_model/validations.rb, line 331</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">valid?</span><span class="p">(</span><span class="n">context</span> <span class="o">=</span> <span class="kp">nil</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">current_context</span><span class="p">,</span> <span class="nb">self</span><span class="o">.</span><span class="n">validation_context</span> <span class="o">=</span> <span class="n">validation_context</span><span class="p">,</span> <span class="n">context</span>
+</span><span class='line'>  <span class="n">errors</span><span class="o">.</span><span class="n">clear</span>
+</span><span class='line'>  <span class="n">run_validations!</span>
+</span><span class='line'><span class="k">ensure</span>
+</span><span class='line'>  <span class="nb">self</span><span class="o">.</span><span class="n">validation_context</span> <span class="o">=</span> <span class="n">current_context</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># File activemodel/lib/active_model/validations.rb, line 394</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">run_validations!</span>
+</span><span class='line'>  <span class="n">_run_validate_callbacks</span>
+</span><span class='line'>  <span class="n">errors</span><span class="o">.</span><span class="n">empty?</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面可以看到，valid? 会将验证结果放在对象的 errors中，如果对象的 errors 没东西，那么会返回 true，验证通过，返回 false，则验证不通过，save 会失败。</p>
+
+<h1>开始实践</h1>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># user.rb</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Account</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="c1"># 不要在这里手动写 message，应该在 locals 中的 yml 文件写</span>
+</span><span class='line'>  <span class="c1"># validates_presence_of :email, :message =&gt; &quot;Email 不得为空&quot;</span>
+</span><span class='line'>  <span class="n">validates_presence_of</span> <span class="ss">:email</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># users_controller.rb</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">create</span>
+</span><span class='line'>  <span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">user_params</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">if</span> <span class="vi">@user</span><span class="o">.</span><span class="n">save</span>
+</span><span class='line'>    <span class="n">render</span> <span class="ss">:index</span>
+</span><span class='line'>  <span class="k">else</span>
+</span><span class='line'>    <span class="c1"># save 失败后会将错误信息存入  @user.errors</span>
+</span><span class='line'>    <span class="c1"># 就不用自己在这里写错误信息了</span>
+</span><span class='line'>    <span class="n">render</span> <span class="ss">:new</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Rails 有默认的错误信息，我们可以根据需要自定义错误信息</p>
+
+<h1>自定义错误信息</h1>
+
+<p><code>validates_presence_of</code>的错误信息 key 是 <code>blank</code>，Active Record 会按照下面的顺序寻找<code>blank</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">activerecord</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">blank</span>
+</span><span class='line'><span class="n">activerecord</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">blank</span>
+</span><span class='line'><span class="n">activerecord</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">blank</span>
+</span><span class='line'><span class="n">errors</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">blank</span>
+</span><span class='line'><span class="n">errors</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">blank</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果有继承链，则会往继承链上找：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Admin</span> <span class="o">&lt;</span> <span class="no">User</span>
+</span><span class='line'>  <span class="n">validates</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">presence</span><span class="p">:</span> <span class="kp">true</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">activerecord</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">admin</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">blank</span>
+</span><span class='line'><span class="n">activerecord</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">admin</span><span class="o">.</span><span class="n">blank</span>
+</span><span class='line'><span class="n">activerecord</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">blank</span>
+</span><span class='line'><span class="n">activerecord</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">blank</span>
+</span><span class='line'><span class="n">activerecord</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">blank</span>
+</span><span class='line'><span class="n">errors</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">blank</span>
+</span><span class='line'><span class="n">errors</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">blank</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>那么我们可以在 locales 内的 yml 文件中做文章:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">zh</span><span class="o">-</span><span class="ss">CN</span><span class="p">:</span>
+</span><span class='line'>  <span class="ss">activerecord</span><span class="p">:</span>
+</span><span class='line'>    <span class="ss">attributes</span><span class="p">:</span>
+</span><span class='line'>      <span class="ss">user</span><span class="p">:</span>
+</span><span class='line'>        <span class="ss">email</span><span class="p">:</span> <span class="s1">&#39;Email&#39;</span>
+</span><span class='line'>        <span class="ss">password</span><span class="p">:</span> <span class="s1">&#39;密码&#39;</span>
+</span><span class='line'>      <span class="ss">work_order</span><span class="p">:</span>
+</span><span class='line'>        <span class="ss">title</span><span class="p">:</span> <span class="s1">&#39;标题&#39;</span>
+</span><span class='line'>        <span class="ss">question</span><span class="p">:</span> <span class="s1">&#39;问题&#39;</span>
+</span><span class='line'>    <span class="ss">errors</span><span class="p">:</span>
+</span><span class='line'>      <span class="c1"># 执行 errors.full_message 会按照此格式输出</span>
+</span><span class='line'>      <span class="nb">format</span><span class="p">:</span> <span class="o">!</span> <span class="s1">&#39;%{attribute}%{message}&#39;</span>
+</span><span class='line'>      <span class="c1"># 这里作为通用的错误信息</span>
+</span><span class='line'>      <span class="ss">messages</span><span class="p">:</span>
+</span><span class='line'>        <span class="ss">blank</span><span class="p">:</span> <span class="s2">&quot;%{attribute} 不能为空&quot;</span>
+</span><span class='line'>        <span class="ss">invalid</span><span class="p">:</span> <span class="s2">&quot;%{attribute} 格式不正确&quot;</span>
+</span><span class='line'>        <span class="ss">taken</span><span class="p">:</span> <span class="s2">&quot;%{attribute} 已经被使用&quot;</span>
+</span><span class='line'>      <span class="c1"># 这里作为针对性的 model 错误信息</span>
+</span><span class='line'>      <span class="ss">models</span><span class="p">:</span>
+</span><span class='line'>        <span class="ss">user</span><span class="p">:</span>
+</span><span class='line'>          <span class="ss">attributes</span><span class="p">:</span>
+</span><span class='line'>            <span class="ss">password</span><span class="p">:</span>
+</span><span class='line'>              <span class="ss">too_short</span><span class="p">:</span> <span class="s1">&#39;密码 不得小于6位&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Tips</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">zh</span><span class="o">-</span><span class="ss">CN</span><span class="p">:</span>
+</span><span class='line'>  <span class="ss">activerecord</span><span class="p">:</span>
+</span><span class='line'>    <span class="ss">attributes</span><span class="p">:</span>
+</span><span class='line'>      <span class="ss">user</span><span class="p">:</span>
+</span><span class='line'>        <span class="ss">email</span><span class="p">:</span> <span class="s1">&#39;Email&#39;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="ss">avtiverecord</span><span class="p">:</span>
+</span><span class='line'>    <span class="ss">errors</span><span class="p">:</span>
+</span><span class='line'>      <span class="ss">messages</span><span class="p">:</span>
+</span><span class='line'>        <span class="ss">blank</span><span class="p">:</span> <span class="s2">&quot;%{attribute} 不能为空&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">不要这么写，这样后面的</span> <span class="n">activerecord</span> <span class="err">会覆盖掉前面的东西，而不是作为一个</span> <span class="n">namespace</span> <span class="err">的存在。</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>显示错误信息</h1>
+
+<p>我们回到 controller 再看下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># users_controller.rb</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">create</span>
+</span><span class='line'>  <span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">user_params</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">if</span> <span class="vi">@user</span><span class="o">.</span><span class="n">save</span>
+</span><span class='line'>    <span class="n">render</span> <span class="ss">:index</span>
+</span><span class='line'>  <span class="k">else</span>
+</span><span class='line'>    <span class="c1"># 直接在 view 层去显示错误信息</span>
+</span><span class='line'>    <span class="n">render</span> <span class="ss">:new</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># users_helper.rb</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">show_error</span> <span class="n">model</span><span class="p">,</span> <span class="n">column</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s1">&#39;errors&#39;</span><span class="p">)</span><span class="o">[</span><span class="n">column</span><span class="o">][</span><span class="mi">0</span><span class="o">]</span>
+</span><span class='line'>    <span class="n">sanitize</span> <span class="s2">&quot;&lt;div class=&#39;error-msg&#39;&gt;* </span><span class="si">#{</span><span class="n">model</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s1">&#39;errors&#39;</span><span class="p">)</span><span class="o">[</span><span class="n">column</span><span class="o">][</span><span class="mi">0</span><span class="o">]</span><span class="si">}</span><span class="s2">&lt;/div&gt;&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># users/new.html.erb</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">html</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">body</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="n">oooooooooxxxxxxxxx</span>
+</span><span class='line'>  <span class="c1"># 此时这里就可以按照需求显示出我们在 yml 中自定义的错误信息了</span>
+</span><span class='line'>  <span class="n">show_error</span><span class="p">(</span><span class="vi">@user</span><span class="p">,</span> <span class="ss">:avatar</span><span class="p">)</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sr">/body&gt;</span>
+</span><span class='line'><span class="sr">&lt;/</span><span class="n">html</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>非 Active Record 操控错误信息</h1>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># users_controller.rb</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">update</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">user_pass?</span>
+</span><span class='line'>    <span class="c1"># 自己在 yml 中定义错误信息</span>
+</span><span class='line'>    <span class="n">flash</span><span class="o">[</span><span class="ss">:success</span><span class="o">]</span> <span class="o">=</span>  <span class="no">I18n</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="s2">&quot;web.messages.success&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">else</span>
+</span><span class='line'>    <span class="n">flash</span><span class="o">[</span><span class="ss">:error</span><span class="o">]</span> <span class="o">=</span>  <span class="no">I18n</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="s2">&quot;web.messages.failed&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>自定义 validate 该如何定义错误信息</h1>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">validate</span> <span class="ss">:file_size</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">private</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">file_size</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">avatar</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">size</span><span class="o">.</span><span class="n">to_f</span><span class="o">/</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">500</span>
+</span><span class='line'>      <span class="n">errors</span><span class="o">[</span><span class="ss">:avatar</span><span class="o">]</span> <span class="o">&lt;&lt;</span> <span class="no">I18n</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="s2">&quot;activerecord.errors.models.user.attribuets.avatar.too_long&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为何在这里调用 errors[:avatar]，错误信息就会放到 @user 中呢？</p>
+
+<p>因为<code>validate</code>是在<code>@user</code>进行<code>save</code>时，才会调用，可以说是实例方法</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">def</span> <span class="nf">file_size</span>
+</span><span class='line'>    <span class="nb">p</span> <span class="nb">self</span>   <span class="o">=&gt;</span> <span class="err">会发现其实是当前实例</span> <span class="vi">@user</span>
+</span><span class='line'>  <span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这种方式只是简单的将错误信息放入<code>errors</code>，而且在<code>yml</code>并不能够获取<code>%{attribute}参数</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'> <span class="n">errors</span><span class="o">[</span><span class="ss">:avatar</span><span class="o">]</span> <span class="o">&lt;&lt;</span> <span class="no">I18n</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="s2">&quot;activerecord.errors.models.user.attribuets.avatar.too_long&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们来更进一步：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">file_size</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">avatar</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">size</span><span class="o">.</span><span class="n">to_f</span><span class="o">/</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">500</span>
+</span><span class='line'>    <span class="c1"># 这样就会调用到`model`的错误信息 (:column, :event_key)</span>
+</span><span class='line'>    <span class="c1"># 也不用写那么长了</span>
+</span><span class='line'>    <span class="n">errors</span><span class="o">[</span><span class="ss">:avatar</span><span class="o">]</span> <span class="o">&lt;&lt;</span> <span class="n">errors</span><span class="o">.</span><span class="n">generate_message</span><span class="p">(</span><span class="ss">:avatar</span><span class="p">,</span> <span class="ss">:too_long</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>移除column错误产生的<code>field_with_errors</code></h1>
+
+<p>在 form 表单中，如果某个 column 有相关的 errors 信息， Rails 会自动在该<code>column</code>相关的元素父层加多一个 div</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;field_with_errors&quot;</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="n">label</span> <span class="k">for</span><span class="o">=</span><span class="s2">&quot;job_client_email&quot;</span><span class="o">&gt;</span><span class="ss">Email</span><span class="p">:</span> <span class="o">&lt;</span><span class="sr">/label&gt;</span>
+</span><span class='line'><span class="sr">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;field_with_errors&quot;</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="n">input</span> <span class="n">type</span><span class="o">=</span><span class="s2">&quot;email&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;wrong email&quot;</span> <span class="nb">name</span><span class="o">=</span><span class="s2">&quot;job[client_email]&quot;</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;job_client_email&quot;</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sr">/div&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>重写掉<code>config/application.rb</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 原先</span>
+</span><span class='line'><span class="vi">@field_error_proc</span> <span class="o">=</span> <span class="no">Proc</span><span class="o">.</span><span class="n">new</span><span class="p">{</span> <span class="o">|</span><span class="n">html_tag</span><span class="p">,</span> <span class="n">instance</span><span class="o">|</span>
+</span><span class='line'>  <span class="s2">&quot;&lt;div class=</span><span class="se">\&quot;</span><span class="s2">field_with_errors</span><span class="se">\&quot;</span><span class="s2">&gt;</span><span class="si">#{</span><span class="n">html_tag</span><span class="si">}</span><span class="s2">&lt;/div&gt;&quot;</span><span class="o">.</span><span class="n">html_safe</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 重写后(当前也可以根据需求自己改造)</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">action_view</span><span class="o">.</span><span class="n">field_error_proc</span> <span class="o">=</span> <span class="no">Proc</span><span class="o">.</span><span class="n">new</span> <span class="p">{</span> <span class="o">|</span><span class="n">html_tag</span><span class="p">,</span> <span class="n">instance</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">html_tag</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Capistrano3+Puma+Nginx部署应用]]></title>
@@ -4245,219 +4691,6 @@
 2、<code>git rm file_name</code>， 然后<code>git commit -m “xx”</code> 即可。</p>
 
 <p>因此，平常只要  git add .  （提交新增、更改后的文件），然后git commit -am “xx” （保存新增，更改后的文件，以及删除的文件），然后push即可。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Rails 中的 Assets Pipeline 机制]]></title>
-    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/07/rails-zhong-de-assets-pipeline-ji-zhi/"/>
-    <updated>2014-10-07T21:59:06+08:00</updated>
-    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/07/rails-zhong-de-assets-pipeline-ji-zhi</id>
-    <content type="html"><![CDATA[<h2>前言</h2>
-
-<p>我以前一直认为，Rails 的预编译就是把所有 css 和 js 分别整合成一个文件，并且进行压缩等操作。</p>
-
-<p>其实并不是，Rails 预编译的意思，就只是预先编译那些 scss, coffee 等文件为 css, js 的意思。</p>
-
-<p>而给文件名加上 hash 值得，整合成一个文件，压缩等等所有操作，都是Rails 中一个叫做 <code>Assets Pipeline</code> 功能实现的</p>
-
-<h2>Asset Pipeline</h2>
-
-<p><code>Asset Pipeline</code> 提供了一个框架，用于连接、压缩 JavaScript 和 CSS 文件。还允许使用其他语言和预处理器编写 JavaScript 和 CSS，例如 CoffeeScript、Sass 和 ERB。</p>
-
-<p><code>Asset Pipeline</code>在Rails4中已经从框架中提取出来成为：<code>sprockets-rails</code> gem</p>
-
-<p><code>Asset Pipeline</code>有三个主要功能：</p>
-
-<ol>
-<li>连接所有静态资源，分别成为一个js css文件</li>
-<li>压缩静态资源</li>
-<li>允许使用高级语言编写静态资源，如 sass coffee</li>
-</ol>
-
-
-<p>Rails 4 会自动把 sass-rails、coffee-rails 和 uglifier 三个 gem 加入 Gemfile。Sprockets 使用这三个 gem 压缩静态资源：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s1">&#39;sass-rails&#39;</span>
-</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;uglifier&#39;</span>
-</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;coffee-rails&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>默认情况下，在生产环境中，Rails 会把预先编译好的文件保存到 public/assets 文件夹中，网页服务器会把这些文件视为静态资源。在生产环境中，不会直接伺服 app/assets 文件夹中的文件。</p>
-
-<p>默认编译的文件包括 application.js、application.css 以及 gem 中 app/assets 文件夹中的所有非 JS/CSS 文件（会自动加载所有图片）</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">[</span> <span class="no">Proc</span><span class="o">.</span><span class="n">new</span> <span class="p">{</span> <span class="o">|</span><span class="n">path</span><span class="p">,</span> <span class="n">fn</span><span class="o">|</span> <span class="n">fn</span> <span class="o">=~</span> <span class="sr">/app\/assets/</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="sx">%w(.js .css)</span><span class="o">.</span><span class="n">include?</span><span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">extname</span><span class="p">(</span><span class="n">path</span><span class="p">))</span> <span class="p">},</span>
-</span><span class='line'><span class="sr">/application.(css|js)$/</span> <span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这个正则表达式表示最终要编译的文件</p>
-
-<p>最终会编译成： application-adfea1231s.js ,   application-sfef234df.css， xxx-sdfsdfe.png  等</p>
-
-<p>因此如果我们想要自己添加单独编译出来的文件的话：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">precompile</span> <span class="o">+=</span> <span class="o">[</span><span class="s1">&#39;admin.js&#39;</span><span class="p">,</span> <span class="s1">&#39;admin.css&#39;</span><span class="p">,</span> <span class="s1">&#39;swfObject.js&#39;</span><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意，即便想添加 Sass 或 CoffeeScript 文件，也要把希望编译的文件名设为 .js 或 .css。（ 因为 sass 最终也是要解析成 .css 的）</p>
-
-<h2>对 Bootstrap 遇到的坑</h2>
-
-<p>之前引入了 Bootstrap 后，预编译一直出现</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Sass</span><span class="o">::</span><span class="ss">SyntaxError</span><span class="p">:</span> <span class="no">Undefined</span> <span class="ss">variable</span><span class="p">:</span> <span class="s2">&quot;$alert-padding&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>之后折腾了许久，才发现我在 assets.rb 里设置了</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">precompile</span> <span class="o">+=</span> <span class="o">[*.</span><span class="n">js</span><span class="o">]</span>
-</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">precompile</span> <span class="o">+=</span> <span class="o">[*.</span><span class="n">css</span><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>因为我把所有 js css 都单独编译了，而 bootstrap 有两份 css 文件，其中一份定义了 bootstrap 的变量，如: <code>$alert-padding</code>，而这个变量在第二个 css 文件中被引用，因此，当第二个文件单独编译时，就会发现找不到这个变量了。</p>
-
-<p>解决方法：</p>
-
-<ol>
-<li><p>按需加入自己要的文件</p></li>
-<li><p>编译所有静态资源，但是去除bootstrap相关的( 这里还没去除 )</p></li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># config/application.rb</span>
-</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">precompile</span> <span class="o">&lt;&lt;</span> <span class="no">Proc</span><span class="o">.</span><span class="n">new</span> <span class="k">do</span> <span class="o">|</span><span class="n">path</span><span class="o">|</span>
-</span><span class='line'>  <span class="k">if</span> <span class="n">path</span> <span class="o">=~</span> <span class="sr">/\.(css|js)\z/</span>
-</span><span class='line'>    <span class="n">full_path</span> <span class="o">=</span> <span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">to_path</span>
-</span><span class='line'>    <span class="n">app_assets_path</span> <span class="o">=</span> <span class="no">Rails</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;app&#39;</span><span class="p">,</span> <span class="s1">&#39;assets&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_path</span>
-</span><span class='line'>    <span class="k">if</span> <span class="n">full_path</span><span class="o">.</span><span class="n">starts_with?</span> <span class="n">app_assets_path</span>
-</span><span class='line'>      <span class="nb">puts</span> <span class="s2">&quot;including asset: &quot;</span> <span class="o">+</span> <span class="n">full_path</span>
-</span><span class='line'>      <span class="kp">true</span>
-</span><span class='line'>    <span class="k">else</span>
-</span><span class='line'>      <span class="nb">puts</span> <span class="s2">&quot;excluding asset: &quot;</span> <span class="o">+</span> <span class="n">full_path</span>
-</span><span class='line'>      <span class="kp">false</span>
-</span><span class='line'>    <span class="k">end</span>
-</span><span class='line'>  <span class="k">else</span>
-</span><span class='line'>    <span class="kp">false</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>静态资源优化</h2>
-
-<h3>1. 设置过期时间</h3>
-
-<p>编译好的静态资源存放在服务器的文件系统中，直接由网页服务器伺服。默认情况下，没有为这些文件设置一个很长的过期时间。为了能充分发挥指纹的作用，需要修改服务器的设置，添加相关的报头。</p>
-
-<p>针对 Nginx</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">location</span> <span class="o">~</span> <span class="o">^/</span><span class="n">assets</span><span class="o">/</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">expires</span> <span class="mi">1</span><span class="n">y</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">add_header</span> <span class="no">Cache</span><span class="o">-</span><span class="no">Control</span> <span class="kp">public</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">add_header</span> <span class="no">ETag</span> <span class="s2">&quot;&quot;</span><span class="p">;</span>
-</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>2. 使用 gzip 压缩</h3>
-
-<p>Sprockets 预编译文件时还会创建静态资源的 gzip 版本（.gz）。网页服务器一般使用中等压缩比例，不过因为预编译只发生一次，所以 Sprockets 会使用最大的压缩比例，尽量减少传输的数据大小。网页服务器可以设置成直接从硬盘伺服压缩版文件，无需直接压缩文件本身。</p>
-
-<p>在 Nginx 中启动 gzip_static 模块后就能自动实现这一功能：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">location</span> <span class="o">~</span> <span class="o">^/</span><span class="p">(</span><span class="n">assets</span><span class="p">)</span><span class="o">/</span>  <span class="p">{</span>
-</span><span class='line'>  <span class="n">root</span> <span class="sr">/path/</span><span class="n">to</span><span class="o">/</span><span class="kp">public</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">gzip_static</span> <span class="n">on</span><span class="p">;</span> <span class="c1"># to serve pre-gzipped version</span>
-</span><span class='line'>  <span class="n">expires</span> <span class="n">max</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">add_header</span> <span class="no">Cache</span><span class="o">-</span><span class="no">Control</span> <span class="kp">public</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果编译 Nginx 时加入了 gzip_static 模块，就能使用这个指令。Nginx 针对 Ubuntu/Debian 的安装包，以及 nginx-light 都会编译这个模块。否则就要手动编译：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">.</span><span class="n">/configure</span> <span class="o">--</span><span class="n">with</span><span class="o">-</span><span class="n">http_gzip_static_module</span> <span class="p">(</span> <span class="err">还没试过）</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>本地预编译</h2>
-
-<p>为什么要在本地预编译静态文件呢？原因如下：</p>
-
-<ol>
-<li>可能无权限访问生产环境服务器的文件系统；</li>
-<li>可能要部署到多个服务器，避免重复编译；</li>
-<li>可能会经常部署，但静态资源很少改动；</li>
-</ol>
-
-
-<p>不过有两点要注意：</p>
-
-<ol>
-<li>一定不能运行 Capistrano 部署任务来预编译静态资源；</li>
-<li>必须修改下面这个设置；</li>
-</ol>
-
-
-<p>在 config/environments/development.rb 中加入下面这行代码：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;/dev-assets&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>修改 prefix 后，在开发环境中 Sprockets 会使用其他的 URL 伺服静态资源，把请求都交给 Sprockets 处理。但在生产环境中 prefix 仍是 /assets。如果没作上述修改，在生产环境中还是会从 /assets 伺服静态资源，但是除非再次编译，否则看不到文件的变化。</p>
-
-<p>但为什么部署的时候不会再次编译呢？明明文件内容都发生变化了，奇怪？</p>
-
-<p>之前预编译后，public下有/assets文件夹（production环境），但是请求的静态资源却全部都是 development 下的请求方式，（不带hash值的文件名)，奇怪- - 以后有空好好研究下。</p>
 ]]></content>
   </entry>
   
