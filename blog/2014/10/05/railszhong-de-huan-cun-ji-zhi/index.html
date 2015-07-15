@@ -3,11 +3,11 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>Rails中的缓存机制 - LinJunzhu&#8217;s Blog</title>
+	<title>Web 缓存 以及 Rails 缓存实践 - LinJunzhu&#8217;s Blog</title>
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="1、前言 之前一直对缓存处于模模糊糊的概念，昨天下定决心好好恶补一下，因此写下這篇文章做下总结，只有简单的知识点，木有高深内容: ) 2、前端缓存 我们平常所使用的浏览器，是有带缓存区的。 图不太好画啊，泪流满面。 图中的“文字太长，下面解释”： 1
+	<meta name="description" content="1、前言 之前一直对缓存处于模模糊糊的概念，经过大量的实践以及搜索后，总结了下 Web 缓存以及在 Rails 中常用的缓存 2、前端缓存 我们平常所使用的浏览器，是有带缓存区的。 图中的“文字太长，下面解释”： 1
 2
 3
 4
@@ -15,7 +15,10 @@
 6
 7
 8
-浏览器会附带`If &hellip;">
+9
+10
+11
+浏览器会附带`If-None- &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -82,18 +85,16 @@
 		
 	
 	<div id="content" class="inner"><article class="post">
-	<h2 class="title">Rails中的缓存机制</h2>
+	<h2 class="title">Web 缓存 以及 Rails 缓存实践</h2>
 	<div class="entry-content"><h2>1、前言</h2>
 
-<p>之前一直对缓存处于模模糊糊的概念，昨天下定决心好好恶补一下，因此写下這篇文章做下总结，只有简单的知识点，木有高深内容:  )</p>
+<p>之前一直对缓存处于模模糊糊的概念，经过大量的实践以及搜索后，总结了下 Web  缓存以及在 Rails 中常用的缓存</p>
 
 <h2>2、前端缓存</h2>
 
 <p>我们平常所使用的浏览器，是有带缓存区的。</p>
 
 <p><img src="http://data-storage.qiniudn.com/%E5%89%8D%E7%AB%AF%E7%BC%93%E5%AD%98%E5%9B%BE.png" alt="" /></p>
-
-<p>图不太好画啊，泪流满面。</p>
 
 <p>图中的“文字太长，下面解释”：</p>
 
@@ -105,6 +106,9 @@
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
 <span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>浏览器会附带`If-None-Match`属性（内容id ) 或 `If-Modified-Since`（修改内容时间戳）
 </span><span class='line'>
 </span><span class='line'>服务器的响应头会附带：
@@ -112,12 +116,48 @@
 </span><span class='line'>1. ETag ： 对应请求的 `If-None-Match`属性
 </span><span class='line'>2. Last-modified：对应请求的`If-modified-Since`属性
 </span><span class='line'>
-</span><span class='line'>两者有一个相同就返回 `304`</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>ETag 指响应内容的 MD5 值
+</span><span class='line'>Last-modified 指响应内容的最后修改时间
+</span><span class='line'>
+</span><span class='line'>为何有两者的存在呢？因为后者有可能会不准确，因此用 ETag 来保证。</span></code></pre></td></tr></table></div></figure>
 
 
 <h3>2.1、静态文件请求</h3>
 
-<p>当使用 WEB 服务器时，如： Nginx，是会自动处理静态文件的缓存的，而不会通过服务器。当然，也是根据 <code>ETag</code> 和 <code>Last-modified</code> 来判断</p>
+<p>当使用 WEB 服务器时，如： Nginx，是可以接管处理静态文件的，而不会通过服务器。</p>
+
+<h4>2.1.1 Expires 与 Cache-store</h4>
+
+<ol>
+<li>Expires 用来表明该内容什么时候过期， HTTP/1.0 推出</li>
+<li>Cache-control 是 HTTP/1.1  推出的,有更多的参数可以选择</li>
+</ol>
+
+
+<p>两者功能差不多，但后者可供选择的参数更多，两者若同时存在，会被 cache-control 所覆盖</p>
+
+<p>该功能一般用于静态文件的请求，因为动态请求基本每次都会变化，所以没必要设置动态请求，因此我们会对静态文件的请求设置:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">location</span> <span class="o">~*</span> <span class="sr">/assets/</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">gzip_static</span> <span class="n">on</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">expires</span> <span class="n">max</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">add_header</span> <span class="no">Cache_Control</span> <span class="kp">public</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>PS：为了兼容，Nginx 如果设置了<code>expires max</code> 会自动往 cache-store 中塞<code>max-age</code></p>
+
+<h4>2.1.2 使用场景</h4>
+
+<p>在浏览器中，如果单纯的点击页面，页面中的跳转，或者在原窗口单击Enter, max-age 就有效，会从缓存拿页面，如果按「刷新」按钮，则会重新发送请求到服务器，这时候 Etag 才派上用场！</p>
+
+<p>依据 <code>ETag</code> 和 <code>Last-modified</code> 来判断是否要返回<code>200</code>or<code>304</code></p>
 
 <h3>2.2、动态文件请求(这里其实不算前端范畴了）</h3>
 
@@ -127,19 +167,27 @@
 
 <p>之前有个疑惑：</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>为什么要等到生成完整 response 再加上 ETag 进行判断呢？我的想法是：因为判断
-</span><span class='line'>资源是否有变化，所以需要判断`response内的某些资源`是否有变化，因此迟早都要生成response，
-</span><span class='line'>所以是否等到生成完整response再加上ETag是无所谓的</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">为什么要等到生成完整</span> <span class="n">response</span> <span class="err">再加上</span> <span class="no">ETag</span> <span class="err">进行判断呢？我的想法是：因为判断</span>
+</span><span class='line'><span class="err">资源是否有变化，所以需要判断</span><span class="sb">`response内的某些资源`</span><span class="err">是否有变化，因此迟早都要生成</span><span class="n">response</span><span class="err">，</span>
+</span><span class='line'><span class="err">所以是否等到生成完整</span><span class="n">response</span><span class="err">再加上</span><span class="no">ETag</span><span class="err">是无所谓的</span>
+</span></code></pre></td></tr></table></div></figure>
 
+
+<p>这里有个坑：</p>
+
+<p>Nginx 1.7.3 以前如果开启了 <code>gzip on</code>，Nginx 会将 Rails响应中的 ETag 头去掉。</p>
+
+<p>Nginx 1.7.3 后开始支持 <code>Weak_ETag</code>，会将 Rails响应中的 ETag 转换为 <code>Weak_ETag</code>,不过 Rack::ETag在1.6.0 也默认生成 <code>Weak ETag</code>了</p>
 
 <p>补充几点 :</p>
 
 <ol>
 <li>发送「条件GET请求」是需要服务器的支持的。</li>
 <li>HTTP在传输的时候是先给状态再给内容</li>
+<li>Nginx 默认就会给静态文件打上 ETag 和 Last-Modified</li>
 </ol>
 
 
@@ -149,7 +197,7 @@
 
 <p>通常情况下，缓存是否有效取决于最后一次修改时间，而浏览器是根据返回报头中的 Last-Mofidied 属性来获取到这个时间，浏览器则会在请求报头中加入 If-Modified-Since 属性到服务端。
 <img src="http://data-storage.qiniudn.com/%E6%9D%A1%E4%BB%B6get%E8%AF%B7%E6%B1%82.png" alt="" />
-如果时间点一致，则直接303，跳过响应的内容体。</p>
+如果时间点一致，则直接304，跳过响应的内容体。</p>
 
 <h2>3、Rails的缓存机制</h2>
 
