@@ -7,20 +7,9 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="前言 在我还是一个 Rails 新手的时候，曾纠结过，如何更好的规划显示错误信息，以及实现 I18N。前几天整理一个实习生的代码，发现他对错误信息的规划毫无章法，所以就写下这 blog, Rails 新手可以看看。 基本概念 1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-class &hellip;">
+	<meta name="description" content="前言 前阵子服务器上的 puma 偶尔会挂掉，puma 不像 unicorn 有 master 进程保护着。因此就需要用 monit 来监控进程，当 puma 挂掉时自动重启 安装 Ubuntu: 1
+aptitude install monit 其他系统的安装方式：
+官网 Wiki 介绍 &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -87,6 +76,336 @@ class &hellip;">
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2015/08/14/ru-he-shi-yong-monitjian-kong-jin-cheng/">
+		
+			如何使用monit监控进程</a>
+	</h2>
+	<div class="entry-content">
+		<h2>前言</h2>
+
+<p>前阵子服务器上的 puma 偶尔会挂掉，puma 不像 unicorn 有 master 进程保护着。因此就需要用 monit 来监控进程，当 puma 挂掉时自动重启</p>
+
+<h2>安装</h2>
+
+<p>Ubuntu:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">aptitude</span> <span class="n">install</span> <span class="n">monit</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其他系统的安装方式：
+<a href="https://mmonit.com/wiki/Monit/Installation">官网 Wiki</a></p>
+
+<h2>介绍</h2>
+
+<p>配置文件位于：<code>/etc/monit/monitrc</code></p>
+
+<p>打开 Web 服务，查看监控情况</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'> <span class="n">set</span> <span class="n">httpd</span> <span class="n">port</span> <span class="mi">2812</span> <span class="ow">and</span>
+</span><span class='line'>    <span class="n">use</span> <span class="n">address</span> <span class="mi">172</span><span class="o">.</span><span class="mi">16</span><span class="o">.</span><span class="mi">10</span><span class="o">.</span><span class="mi">6</span>
+</span><span class='line'>    <span class="n">allow</span> <span class="n">localhost</span>   <span class="c1"># 允许本地访问</span>
+</span><span class='line'>    <span class="n">allow</span> <span class="mi">172</span><span class="o">.</span><span class="mi">16</span><span class="o">.</span><span class="mi">20</span><span class="o">.</span><span class="mi">0</span><span class="o">/</span><span class="mi">255</span><span class="o">.</span><span class="mi">255</span><span class="o">.</span><span class="mi">255</span><span class="o">.</span><span class="mi">0</span> <span class="c1">#允许本 IP 段访问</span>
+</span><span class='line'>    <span class="n">allow</span> <span class="ss">admin</span><span class="p">:</span><span class="n">monit</span>      <span class="c1"># require user &#39;admin&#39; with password &#39;monit&#39;</span>
+</span><span class='line'>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>说下配置文件默认配置</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;!--</span> <span class="err">检查周期，单位为秒</span><span class="o">--&gt;</span>
+</span><span class='line'><span class="n">set</span> <span class="n">daemon</span> <span class="mi">120</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;!--</span> <span class="err">日志文件位置</span> <span class="o">--&gt;</span>
+</span><span class='line'><span class="n">set</span> <span class="n">logfile</span> <span class="sr">/var/</span><span class="n">log</span><span class="o">/</span><span class="n">monit</span><span class="o">.</span><span class="n">log</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;!--</span> <span class="err">存储</span> <span class="n">monit</span> <span class="err">实例的唯一</span> <span class="no">ID</span><span class="o">--&gt;</span>
+</span><span class='line'><span class="n">set</span> <span class="n">idfile</span> <span class="sr">/var/</span><span class="n">lib</span><span class="o">/</span><span class="n">monit</span><span class="o">/</span><span class="nb">id</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;!--</span> <span class="err">存放监控进程的情况</span> <span class="o">--&gt;</span>
+</span><span class='line'><span class="n">set</span> <span class="n">statefile</span> <span class="sr">/var/</span><span class="n">lib</span><span class="o">/</span><span class="n">monit</span><span class="o">/</span><span class="n">state</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;!--</span> <span class="err">设置邮件</span><span class="o">--&gt;</span>
+</span><span class='line'><span class="c1"># set mailserver mail.bar.baz,               # primary mailserver</span>
+</span><span class='line'><span class="c1">#                backup.bar.baz port 10025,  # backup mailserver on port 10025</span>
+</span><span class='line'><span class="c1">#                localhost                   # fallback relay</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 如果没配置 email, 会自动丢弃 alert</span>
+</span><span class='line'><span class="c1"># 该设置可以保存 aler</span>
+</span><span class='line'><span class="n">set</span> <span class="n">eventqueue</span>
+</span><span class='line'>      <span class="n">basedir</span> <span class="sr">/var/</span><span class="n">lib</span><span class="o">/</span><span class="n">monit</span><span class="o">/</span><span class="n">events</span>
+</span><span class='line'>      <span class="n">slots</span> <span class="mi">100</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;!--</span> <span class="no">Email</span> <span class="err">格式</span> <span class="o">--&gt;</span>
+</span><span class='line'><span class="c1">## set mail-format {</span>
+</span><span class='line'><span class="c1">##      from: monit@$HOST</span>
+</span><span class='line'><span class="c1">##   subject: monit alert --  $EVENT $SERVICE</span>
+</span><span class='line'><span class="c1">##   message: $EVENT Service $SERVICE</span>
+</span><span class='line'><span class="c1">##                 Date:        $DATE</span>
+</span><span class='line'><span class="c1">##                 Action:      $ACTION</span>
+</span><span class='line'><span class="c1">##                 Host:        $HOST</span>
+</span><span class='line'><span class="c1">##                 Description: $DESCRIPTION</span>
+</span><span class='line'><span class="c1">##</span>
+</span><span class='line'><span class="c1">##            Your faithful employee,</span>
+</span><span class='line'><span class="c1">##            Monit</span>
+</span><span class='line'><span class="c1">## }</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;!--</span> <span class="no">Email</span> <span class="err">发件人</span> <span class="o">--&gt;</span>
+</span><span class='line'><span class="c1"># set mail-format { from: monit@foo.bar }</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;!--</span> <span class="no">Email</span> <span class="err">接收人</span><span class="o">--&gt;</span>
+</span><span class='line'><span class="c1"># set alert sysadm@foo.bar                       # receive all alerts</span>
+</span><span class='line'><span class="c1"># set alert manager@foo.bar only on { timeout }  # receive just service-</span>
+</span><span class='line'><span class="c1">#                                                # timeout alert</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;!--</span> <span class="err">开启</span> <span class="n">http</span> <span class="err">服务，查看监控情况</span><span class="o">--&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">set</span> <span class="n">httpd</span> <span class="n">port</span> <span class="mi">2812</span> <span class="ow">and</span>
+</span><span class='line'>    <span class="n">use</span> <span class="n">address</span> <span class="mi">172</span><span class="o">.</span><span class="mi">16</span><span class="o">.</span><span class="mi">10</span><span class="o">.</span><span class="mi">6</span>  <span class="c1"># only accept connection from localhost</span>
+</span><span class='line'>    <span class="c1">#allow localhost</span>
+</span><span class='line'>    <span class="c1">#allow 172.16.20.0/255.255.255.0</span>
+</span><span class='line'>    <span class="c1">#allow 10.0.0.0        # allow localhost to connect to the server and</span>
+</span><span class='line'>    <span class="n">allow</span> <span class="ss">admin</span><span class="p">:</span><span class="n">monit</span>      <span class="c1"># require user &#39;admin&#39; with password &#39;monit&#39;</span>
+</span><span class='line'>   <span class="c1"># allow @monit           # allow users of group &#39;monit&#39; to connect (rw)</span>
+</span><span class='line'>   <span class="c1"># allow @users readonly  # allow users of group &#39;users&#39; to connect readonly</span>
+</span><span class='line'>
+</span><span class='line'><span class="kp">include</span> <span class="sr">/etc/moni</span><span class="n">t</span><span class="o">/</span><span class="n">conf</span><span class="o">.</span><span class="n">d</span><span class="o">/*</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们会在在<code>monitrc</code> 文件中的末尾看到这句</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 包含该文件夹下的配置</span>
+</span><span class='line'><span class="kp">include</span> <span class="sr">/etc/moni</span><span class="n">t</span><span class="o">/</span><span class="n">conf</span><span class="o">.</span><span class="n">d</span><span class="o">/*</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>因此我们可以给每个要监控的进程写个<code>conf</code>配置文件。</p>
+
+<h2>监控 Nginx</h2>
+
+<p>在<code>/etc/monit/conf.d</code>下新建文件<code>nginx.conf</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">check</span> <span class="n">process</span> <span class="n">nginx</span> <span class="n">with</span> <span class="n">pidfile</span> <span class="sr">/opt/n</span><span class="n">ginx</span><span class="o">/</span><span class="n">logs</span><span class="o">/</span><span class="n">nginx</span><span class="o">.</span><span class="n">pid</span>
+</span><span class='line'>  <span class="n">start</span> <span class="n">program</span> <span class="o">=</span> <span class="s2">&quot;/etc/init.d/nginx start&quot;</span>
+</span><span class='line'>  <span class="n">stop</span> <span class="n">program</span>  <span class="o">=</span> <span class="s2">&quot;/etc/init.d/nginx stop&quot;</span>
+</span><span class='line'>  <span class="n">group</span> <span class="n">www</span><span class="o">-</span><span class="n">data</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>监控 Puma</h2>
+
+<p>在<code>/etc/monit/conf.d</code>下新建文件<code>puma.conf</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">check</span> <span class="n">process</span> <span class="n">puma_glassx</span>
+</span><span class='line'>  <span class="n">with</span> <span class="n">pidfile</span> <span class="s2">&quot;/mnt/glassx/shared/tmp/pids/puma.pid&quot;</span>
+</span><span class='line'>  <span class="n">start</span> <span class="n">program</span> <span class="o">=</span> <span class="s2">&quot;/usr/bin/sudo -u deployer /bin/bash -c &#39;cd /mnt/glassx/current &amp;&amp; ~/.rvm/bin/rvm ruby-2.1.2 do bundle exec puma -C /mnt/glassx/shared/puma.rb --daemon&#39;&quot;</span>
+</span><span class='line'>  <span class="n">stop</span> <span class="n">program</span> <span class="o">=</span> <span class="s2">&quot;/usr/bin/sudo -u deployer /bin/bash -c &#39;cd /mnt/glassx/current &amp;&amp; ~/.rvm/bin/rvm ruby-2.1.2 do bundle exec pumactl -S /mnt/glassx/shared/tmp/pids/puma.state stop&#39;&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当我们手动 kill 掉进程，过一会就会发现进程又自动启动了~</p>
+
+<h2>搭配 Capistrano</h2>
+
+<p>打开<code>capfile</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># Load DSL and Setup Up Stages</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/setup&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/deploy&#39;</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rvm&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/bundler&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rails/assets&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/rails/migrations&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/sidekiq&#39;</span>
+</span><span class='line'><span class="c1"># 打开 monit 的监控 tasks</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/sidekiq/monit&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/puma&#39;</span>
+</span><span class='line'><span class="c1"># 打开 monit 的监控 tasks</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano/puma/monit&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Loads custom tasks from `lib/capistrano/tasks&#39; if you have any defined.</span>
+</span><span class='line'><span class="no">Dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;lib/capistrano/tasks/*.rake&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">r</span><span class="o">|</span> <span class="n">import</span> <span class="n">r</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>由于<code>sidekiq</code>会在跑<code>deploy</code>的时候就执行 monit 相关任务，并且需要<code>sudo</code>权限，很麻烦，所以我们可以手动关掉，等到部署完成后再执行任务上传 monit 脚本</p>
+
+<p>打开<code>deploy.rb</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">set</span> <span class="ss">:sidekiq_default_hooks</span><span class="p">,</span> <span class="kp">false</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>跑完<code>deploy</code>后，执行以下两条命令</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 将 monit 的监控配置上传到服务器</span>
+</span><span class='line'><span class="n">cap</span> <span class="n">production</span> <span class="ss">puma</span><span class="p">:</span><span class="ss">monit</span><span class="p">:</span><span class="n">config</span>
+</span><span class='line'><span class="n">cap</span> <span class="n">production</span> <span class="ss">sidekiq</span><span class="p">:</span><span class="ss">monit</span><span class="p">:</span><span class="n">config</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这两条命令在执行时需要<code>sudo</code>权限，原因是调用了</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">sudo</span> <span class="n">mv</span> <span class="sr">/tmp/moni</span><span class="n">t</span><span class="o">.</span><span class="n">conf</span> <span class="sr">/etc/moni</span><span class="n">t</span><span class="o">/</span><span class="n">conf</span><span class="o">.</span><span class="n">d</span><span class="o">/</span><span class="n">puma_glassx</span><span class="o">.</span><span class="n">conf</span>
+</span><span class='line'><span class="n">sudo</span> <span class="n">mv</span> <span class="sr">/tmp/moni</span><span class="n">t</span><span class="o">.</span><span class="n">conf</span> <span class="sr">/etc/moni</span><span class="n">t</span><span class="o">/</span><span class="n">conf</span><span class="o">.</span><span class="n">d</span><span class="o">/</span><span class="n">sidekiq_glassx</span><span class="o">.</span><span class="n">conf</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>因此我们在执行失败后，进入服务器手动输入这两条命令，即可完成。</p>
+
+<p>（想要正式的使用，就得另外创建多一个有 sudo 权限的用户，当 cap 在执行时，如果需要 sudo 权限，便会切换到有 sudo 权限的用户来执行命令)</p>
+
+<h2>详细资料</h2>
+
+<p>官网 WIKI：</p>
+
+<p><a href="https://mmonit.com/wiki/Monit/ConfigurationExamples#NginX">https://mmonit.com/wiki/Monit/ConfigurationExamples#NginX</a></p>
+
+<p><a href="https://mmonit.com/monit/documentation/monit.html#CONFIGURATION-EXAMPLES">https://mmonit.com/monit/documentation/monit.html#CONFIGURATION-EXAMPLES</a></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-08-14T12:27:29+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -2345,108 +2664,6 @@ class &hellip;">
 
 
 <time datetime="2015-01-30T16:04:25+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/12/26/zai-ruby-zhong-yong-ssh-lai-gen-fu-wu-qi-jin-xing-tong-xin/">
-		
-			在 Ruby 中用 SSH 来跟服务器进行通信</a>
-	</h2>
-	<div class="entry-content">
-		<h1>在Ruby中用SSH跟服务器进行交流</h1>
-
-<h2>前言</h2>
-
-<p>Net::SSH和Net::SCP是两个Ruby操作SSH的gem包。</p>
-
-<p>Net::SSH相当于cmd，专门用于执行命令；</p>
-
-<p>Net::SCP专门用于传输文件。</p>
-
-<p>它们俩结合，可以做任何SSH client能做的事情。</p>
-
-<h2>所需 Gem</h2>
-
-<ol>
-<li>gem &lsquo;net-ssh&rsquo;</li>
-<li>gem &lsquo;net-scp&rsquo;</li>
-</ol>
-
-
-<h2>Begin</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Net</span><span class="o">::</span><span class="no">SSH</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">sequence</span><span class="si">}</span><span class="s2">_server_ip&quot;</span><span class="o">]</span><span class="p">,</span> <span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">sequence</span><span class="si">}</span><span class="s2">_server_user&quot;</span><span class="o">]</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">ssh</span><span class="o">|</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="c1"># 创建文件夹</span>
-</span><span class='line'>        <span class="n">ssh</span><span class="o">.</span><span class="n">exec!</span><span class="p">(</span>
-</span><span class='line'>          <span class="s2">&quot;if [ ! -d </span><span class="si">#{</span><span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s1">&#39;endpoint_backup_path&#39;</span><span class="o">]</span><span class="si">}</span><span class="s2"> ]; then</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="p">\</span>
-</span><span class='line'>          <span class="s2">&quot;mkdir </span><span class="si">#{</span><span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s1">&#39;endpoint_backup_path&#39;</span><span class="o">]</span><span class="si">}</span><span class="s2">;&quot;</span> <span class="p">\</span>
-</span><span class='line'>          <span class="s2">&quot;fi&quot;</span>
-</span><span class='line'>        <span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="c1"># 开始上传</span>
-</span><span class='line'>        <span class="n">ssh</span><span class="o">.</span><span class="n">scp</span><span class="o">.</span><span class="n">upload!</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">backup_sql_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s1">&#39;endpoint_backup_path&#39;</span><span class="o">]</span><span class="si">}</span><span class="s2">/</span><span class="si">#{</span><span class="n">backup_sql_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="c1"># 客户端开始还原</span>
-</span><span class='line'>        <span class="n">ssh</span><span class="o">.</span><span class="n">exec!</span><span class="p">(</span><span class="s2">&quot;mysql -u&quot;</span> <span class="o">+</span> <span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">sequence</span><span class="si">}</span><span class="s2">_server_mysql_user&quot;</span><span class="o">]</span> <span class="o">+</span>
-</span><span class='line'>                  <span class="s2">&quot; -p&quot;</span> <span class="o">+</span> <span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">sequence</span><span class="si">}</span><span class="s2">_server_mysql_pwd&quot;</span><span class="o">]</span> <span class="o">+</span>
-</span><span class='line'>                  <span class="s2">&quot; red_mansions &lt; </span><span class="si">#{</span><span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s1">&#39;endpoint_backup_path&#39;</span><span class="o">]</span><span class="si">}</span><span class="s2">/</span><span class="si">#{</span><span class="n">backup_sql_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span class='line'>      <span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>引用</h2>
-
-<p><a href="http://rubyer.me/blog/1133/">http://rubyer.me/blog/1133/</a></p>
-
-<p><a href="http://www.infoq.com/cn/articles/ruby-file-upload-ssh-intro">http://www.infoq.com/cn/articles/ruby-file-upload-ssh-intro</a></p>
-
-<p><a href="https://gist.github.com/lajunta/7305741">https://gist.github.com/lajunta/7305741</a></p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-12-26T15:01:21+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>

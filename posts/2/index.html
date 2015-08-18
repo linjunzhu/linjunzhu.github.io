@@ -7,26 +7,7 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="使用rsync 1. 服务器端 /etc/rsyncd.conf 1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-uid = deploy
-gid = deploy
-use chroot = no
-max connections = 4
-pid file = /var/ &hellip;">
+	<meta name="description" content="在Ruby中用SSH跟服务器进行交流 前言 Net::SSH和Net::SCP是两个Ruby操作SSH的gem包。 Net::SSH相当于cmd，专门用于执行命令； Net::SCP专门用于传输文件。 它们俩结合，可以做任何SSH client能做的事情。 所需 Gem gem &lsquo; &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -93,6 +74,108 @@ pid file = /var/ &hellip;">
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/12/26/zai-ruby-zhong-yong-ssh-lai-gen-fu-wu-qi-jin-xing-tong-xin/">
+		
+			在 Ruby 中用 SSH 来跟服务器进行通信</a>
+	</h2>
+	<div class="entry-content">
+		<h1>在Ruby中用SSH跟服务器进行交流</h1>
+
+<h2>前言</h2>
+
+<p>Net::SSH和Net::SCP是两个Ruby操作SSH的gem包。</p>
+
+<p>Net::SSH相当于cmd，专门用于执行命令；</p>
+
+<p>Net::SCP专门用于传输文件。</p>
+
+<p>它们俩结合，可以做任何SSH client能做的事情。</p>
+
+<h2>所需 Gem</h2>
+
+<ol>
+<li>gem &lsquo;net-ssh&rsquo;</li>
+<li>gem &lsquo;net-scp&rsquo;</li>
+</ol>
+
+
+<h2>Begin</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Net</span><span class="o">::</span><span class="no">SSH</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">sequence</span><span class="si">}</span><span class="s2">_server_ip&quot;</span><span class="o">]</span><span class="p">,</span> <span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">sequence</span><span class="si">}</span><span class="s2">_server_user&quot;</span><span class="o">]</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">ssh</span><span class="o">|</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1"># 创建文件夹</span>
+</span><span class='line'>        <span class="n">ssh</span><span class="o">.</span><span class="n">exec!</span><span class="p">(</span>
+</span><span class='line'>          <span class="s2">&quot;if [ ! -d </span><span class="si">#{</span><span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s1">&#39;endpoint_backup_path&#39;</span><span class="o">]</span><span class="si">}</span><span class="s2"> ]; then</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="p">\</span>
+</span><span class='line'>          <span class="s2">&quot;mkdir </span><span class="si">#{</span><span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s1">&#39;endpoint_backup_path&#39;</span><span class="o">]</span><span class="si">}</span><span class="s2">;&quot;</span> <span class="p">\</span>
+</span><span class='line'>          <span class="s2">&quot;fi&quot;</span>
+</span><span class='line'>        <span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1"># 开始上传</span>
+</span><span class='line'>        <span class="n">ssh</span><span class="o">.</span><span class="n">scp</span><span class="o">.</span><span class="n">upload!</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">backup_sql_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s1">&#39;endpoint_backup_path&#39;</span><span class="o">]</span><span class="si">}</span><span class="s2">/</span><span class="si">#{</span><span class="n">backup_sql_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1"># 客户端开始还原</span>
+</span><span class='line'>        <span class="n">ssh</span><span class="o">.</span><span class="n">exec!</span><span class="p">(</span><span class="s2">&quot;mysql -u&quot;</span> <span class="o">+</span> <span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">sequence</span><span class="si">}</span><span class="s2">_server_mysql_user&quot;</span><span class="o">]</span> <span class="o">+</span>
+</span><span class='line'>                  <span class="s2">&quot; -p&quot;</span> <span class="o">+</span> <span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">sequence</span><span class="si">}</span><span class="s2">_server_mysql_pwd&quot;</span><span class="o">]</span> <span class="o">+</span>
+</span><span class='line'>                  <span class="s2">&quot; red_mansions &lt; </span><span class="si">#{</span><span class="no">MYSQL_SYNC_CONFIG</span><span class="o">[</span><span class="s1">&#39;endpoint_backup_path&#39;</span><span class="o">]</span><span class="si">}</span><span class="s2">/</span><span class="si">#{</span><span class="n">backup_sql_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span class='line'>      <span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>引用</h2>
+
+<p><a href="http://rubyer.me/blog/1133/">http://rubyer.me/blog/1133/</a></p>
+
+<p><a href="http://www.infoq.com/cn/articles/ruby-file-upload-ssh-intro">http://www.infoq.com/cn/articles/ruby-file-upload-ssh-intro</a></p>
+
+<p><a href="https://gist.github.com/lajunta/7305741">https://gist.github.com/lajunta/7305741</a></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-12-26T15:01:21+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -2814,154 +2897,6 @@ pid file = /var/ &hellip;">
 
 
 <time datetime="2014-10-24T21:12:33+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/24/git-base/">
-		
-			Git &#8211; 基础篇</a>
-	</h2>
-	<div class="entry-content">
-		<h2>Git 和 SVN 的区别</h2>
-
-<p>Git 和  SVN 最大的区别概念在于：Git 是分布式，而 SVN 是集中式管理。</p>
-
-<h3>一、SVN</h3>
-
-<p>所谓集中式版本控制工具，总有一个中心服务器，提供一个项目仓库，大家的代码的提交都是统一提交到这个中心服务器上的</p>
-
-<p>SVN 的模式：</p>
-
-<ol>
-<li>写代码。</li>
-<li>从服务器拉回服务器的当前版本库，并解决服务器版本库与本地代码的冲突。</li>
-<li>将本地代码提交到服务器。</li>
-</ol>
-
-
-<p>每个人的 commit 都是直接提交到服务器。容易造成与其他人的冲突</p>
-
-<h3>二、Git</h3>
-
-<p>分布式版本控制工具类似Git，可以有多个代码仓库，比如可以在本地。同时它可以方便的进行代码仓库合并</p>
-
-<p>Git 的模式：</p>
-
-<ol>
-<li>写代码。</li>
-<li>提交到本地版本库。</li>
-<li>从服务器拉回服务器的当前版本库，并解决服务器版本库与本地代码的冲突。</li>
-<li>将远程库与本地代码合并结果提交到本地版本库。</li>
-<li>将本地版本库推到服务器。</li>
-</ol>
-
-
-<h3>三、总结</h3>
-
-<p>虽然  Git 和 SVN 看起来很像，都有一个服务器库，但其实 Git 是没有中心服务器这个概念的，尽管每个人平时都是先将代码统一提交到中央服务器再统一 pull 其他人的代码，但实际情况是我们可以先 pull 张三的库，再 push 给李四等等操作，只要知道对方的IP地址仓库地址即可( 不过很少这么做)</p>
-
-<p>在 Github 上，你可以任意 fork 别人的仓库，按照自己的需求进行改造，或者提出 pull request 请原作者 merge 你所修改的代码。这里面没有‘中心’这个概念。</p>
-
-<p>每一次的 commit，SVN 都需要网络，而 Git 则不用，因为有本地仓库的概念，这样的好处是，即使你短时间断网都无所谓，还是可以不断的 commit，来追踪版本。</p>
-
-<p>分布式版本控制系统通常也有一台充当“中央服务器”的电脑，但这个服务器的作用仅仅是用来方便“交换”大家的修改，没有它大家也一样干活，只是交换修改不方便而已。</p>
-
-<h2>Git 基础知识</h2>
-
-<h3>Git 的对象模型</h3>
-
-<p><a href="https://ruby-china.org/topics/20723">https://ruby-china.org/topics/20723</a>
-这帖子讲得很好。
-总共分为：</p>
-
-<ol>
-<li>commit</li>
-<li>tree</li>
-<li>blog</li>
-</ol>
-
-
-<p>commit ： 提交信息</p>
-
-<p>tree ：指向其他的 tree / blog</p>
-
-<p>blog：文件的内容</p>
-
-<h3>Git 的结构</h3>
-
-<p><img src="http://data-storage.qiniudn.com/git_struct.png" alt="" />
-分为工作区，暂存区，以及本地仓库</p>
-
-<h3>基本操作</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 将文件加入暂存区</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">add</span> <span class="o">.</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 将文件提交到本地仓库（HEAD)</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">am</span> <span class="s1">&#39;First commit&#39;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">$</span> <span class="err">将改动推送到远程仓库</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>关于 -am 的解释</h3>
-
-<p><code>git commit -am 'message'</code>: git add（只针对已知的文件) 和 git commit同时执行，并且会自动移除掉不在工作区的文件</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 看下 commit 命令带 -a 参数的文档</span>
-</span><span class='line'><span class="n">by</span> <span class="n">using</span> <span class="n">the</span> <span class="o">-</span><span class="n">a</span> <span class="n">switch</span> <span class="n">with</span> <span class="n">the</span> <span class="n">commit</span> <span class="n">command</span> <span class="n">to</span> <span class="n">automatically</span> <span class="s2">&quot;add&quot;</span> <span class="n">changes</span> <span class="n">from</span> <span class="n">all</span> <span class="n">known</span> <span class="n">files</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="n">all</span> <span class="n">files</span> <span class="n">that</span> <span class="n">are</span>
-</span><span class='line'> <span class="n">already</span> <span class="n">listed</span> <span class="k">in</span> <span class="n">the</span> <span class="n">index</span><span class="p">)</span> <span class="ow">and</span> <span class="n">to</span> <span class="n">automatically</span> <span class="s2">&quot;rm&quot;</span> <span class="n">files</span> <span class="k">in</span> <span class="n">the</span> <span class="n">index</span> <span class="n">that</span>
-</span><span class='line'>  <span class="n">have</span> <span class="n">been</span> <span class="n">removed</span> <span class="n">from</span> <span class="n">the</span> <span class="n">working</span> <span class="n">tree</span><span class="p">,</span> <span class="ow">and</span> <span class="k">then</span> <span class="n">perform</span> <span class="n">the</span> <span class="n">actual</span> <span class="n">commit</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>删除文件有两种操作</p>
-
-<p>1、手动 rm，但此时文件还存在于 Git 控制下，需要<code>git commit -am'msg'</code>
-2、<code>git rm file_name</code>， 然后<code>git commit -m “xx”</code> 即可。</p>
-
-<p>因此，平常只要  git add .  （提交新增、更改后的文件），然后git commit -am “xx” （保存新增，更改后的文件，以及删除的文件），然后push即可。</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-24T20:12:33+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>
