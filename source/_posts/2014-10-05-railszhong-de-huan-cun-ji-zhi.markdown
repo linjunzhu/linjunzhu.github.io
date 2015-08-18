@@ -1,19 +1,18 @@
 ---
 layout: post
-title: "Rails中的缓存机制"
+title: "Web 缓存 以及 Rails 缓存实践"
 date: 2014-10-05 11:43:10 +0800
 comments: true
 categories: 
 ---
 ##1、前言
-之前一直对缓存处于模模糊糊的概念，昨天下定决心好好恶补一下，因此写下這篇文章做下总结，只有简单的知识点，木有高深内容:  )
+之前一直对缓存处于模模糊糊的概念，经过大量的实践以及搜索后，总结了下 Web  缓存以及在 Rails 中常用的缓存
 
 ##2、前端缓存
 我们平常所使用的浏览器，是有带缓存区的。
 
 ![](http://data-storage.qiniudn.com/%E5%89%8D%E7%AB%AF%E7%BC%93%E5%AD%98%E5%9B%BE.png)
 
-图不太好画啊，泪流满面。
 
 图中的“文字太长，下面解释”：
 
@@ -25,11 +24,37 @@ categories:
 1. ETag ： 对应请求的 `If-None-Match`属性
 2. Last-modified：对应请求的`If-modified-Since`属性
 
-两者有一个相同就返回 `304`
+ETag 指响应内容的 MD5 值
+Last-modified 指响应内容的最后修改时间
+
+为何有两者的存在呢？因为后者有可能会不准确，因此用 ETag 来保证。
 ```
 
 ###2.1、静态文件请求
-当使用 WEB 服务器时，如： Nginx，是会自动处理静态文件的缓存的，而不会通过服务器。当然，也是根据 `ETag` 和 `Last-modified` 来判断
+当使用 WEB 服务器时，如： Nginx，是可以接管处理静态文件的，而不会通过服务器。
+####2.1.1 Expires 与 Cache-store
+
+1. Expires 用来表明该内容什么时候过期， HTTP/1.0 推出
+2. Cache-control 是 HTTP/1.1  推出的,有更多的参数可以选择
+
+两者功能差不多，但后者可供选择的参数更多，两者若同时存在，会被 cache-control 所覆盖
+
+该功能一般用于静态文件的请求，因为动态请求基本每次都会变化，所以没必要设置动态请求，因此我们会对静态文件的请求设置:
+```ruby
+location ~* /assets/ {
+    gzip_static on;
+    expires max;
+    add_header Cache_Control public;
+}
+```
+
+PS：为了兼容，Nginx 如果设置了`expires max` 会自动往 cache-store 中塞`max-age`
+
+####2.1.2 使用场景
+在浏览器中，如果单纯的点击页面，页面中的跳转，或者在原窗口单击Enter, max-age 就有效，会从缓存拿页面，如果按「刷新」按钮，则会重新发送请求到服务器，这时候 Etag 才派上用场！
+
+依据 `ETag` 和 `Last-modified` 来判断是否要返回`200`or`304`
+
 
 ###2.2、动态文件请求(这里其实不算前端范畴了）
 当请求动态文件时，就需要通过服务器来处理了，在 Rails 中默认使用`Rack::ETag middleware`中间件，它会自动给无 ETag 的 response 加上 ETag，再根据 ETag 来判断资源是否更改，从而返回 200 / 304。
@@ -43,11 +68,17 @@ categories:
 所以是否等到生成完整response再加上ETag是无所谓的
 ```
 
+这里有个坑：
+
+Nginx 1.7.3 以前如果开启了 `gzip on`，Nginx 会将 Rails响应中的 ETag 头去掉。
+
+Nginx 1.7.3 后开始支持 `Weak_ETag`，会将 Rails响应中的 ETag 转换为 `Weak_ETag`,不过 Rack::ETag在1.6.0 也默认生成 `Weak ETag`了
 
 补充几点 :
 
 1. 发送「条件GET请求」是需要服务器的支持的。
 2. HTTP在传输的时候是先给状态再给内容
+3. Nginx 默认就会给静态文件打上 ETag 和 Last-Modified
 
 
 ###2.3、条件GET请求简介
@@ -55,7 +86,8 @@ categories:
 
 通常情况下，缓存是否有效取决于最后一次修改时间，而浏览器是根据返回报头中的 Last-Mofidied 属性来获取到这个时间，浏览器则会在请求报头中加入 If-Modified-Since 属性到服务端。 
 ![](http://data-storage.qiniudn.com/%E6%9D%A1%E4%BB%B6get%E8%AF%B7%E6%B1%82.png)
-如果时间点一致，则直接303，跳过响应的内容体。
+如果时间点一致，则直接304，跳过响应的内容体。
+
 
 ##3、Rails的缓存机制
 
