@@ -4,7 +4,7 @@
   <title><![CDATA[LinJunzhu's Blog]]></title>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/atom.xml" rel="self"/>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/"/>
-  <updated>2015-08-18T16:19:55+08:00</updated>
+  <updated>2015-08-18T17:22:39+08:00</updated>
   <id>https://github.com/linjunzhu/linjunzhu.github.io.git/</id>
   <author>
     <name><![CDATA[林俊柱]]></name>
@@ -301,9 +301,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>因此我们在执行失败后，进入服务器手动输入这两条命令，即可完成。</p>
-
-<p>（想要正式的使用，就得另外创建多一个有 sudo 权限的用户，当 cap 在执行时，如果需要 sudo 权限，便会切换到有 sudo 权限的用户来执行命令)</p>
+<p>因为我们只是上传有关 monit 的配置脚本而已，只需执行一次，因此我们在执行失败后，进入服务器手动输入这两条命令，即可完成。</p>
 
 <h2>详细资料</h2>
 
