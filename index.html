@@ -527,6 +527,10 @@ aptitude install monit 其他系统的安装方式：
 
 <p>Rails 有默认的错误信息，我们可以根据需要自定义错误信息</p>
 
+<h1>对应错误信息 Key</h1>
+
+<p>观看 Wiki: <a href="http://guides.ruby-china.org/i18n.html">http://guides.ruby-china.org/i18n.html</a></p>
+
 <h1>自定义错误信息</h1>
 
 <p><code>validates_presence_of</code>的错误信息 key 是 <code>blank</code>，Active Record 会按照下面的顺序寻找<code>blank</code>:</p>
@@ -1326,7 +1330,15 @@ aptitude install monit 其他系统的安装方式：
 </ol>
 
 
-<p>还有一种方式，直接在 URL 尾部添加 <code>.json</code>，这种方式需要服务端的支持，告诉服务端，我需要<code>json</code>的响应</p>
+<h2>要求服务器返回响应的格式</h2>
+
+<h3>一、</h3>
+
+<p>平常客户端设置该 Accept 参数，即可要求服务端返回响应类型的数据。</p>
+
+<h3>二、</h3>
+
+<p>直接在 URL 尾部添加 <code>.json</code>，这种方式需要服务端的支持，告诉服务端，我需要<code>json</code>的响应</p>
 
 <p>在 Rails 中，如果附带<code>.json</code>，会自动解析成一个参数 params[:format] = &lsquo;json&#8217;，之后便能通过代码针对不同解析返回不同数据</p>
 
@@ -1342,6 +1354,21 @@ aptitude install monit 其他系统的安装方式：
 </span><span class='line'><span class="k">end</span>
 </span></code></pre></td></tr></table></div></figure>
 
+
+<h3>三、</h3>
+
+<p>在 Rails 中设置默认 format</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">resources</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">defaults</span><span class="p">:</span> <span class="p">{</span><span class="nb">format</span><span class="p">:</span> <span class="ss">:json</span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样服务器就会默认有 format 为 json 的参数</p>
+
+<p>那我同时设置了<code>Accept</code>以及<code>format</code>怎么办？</p>
+
+<p>在 Rails 中，<code>format</code>的优先级高于<code>Accept</code></p>
 
 <h2>同事遇到的问题</h2>
 

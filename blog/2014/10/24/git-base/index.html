@@ -174,11 +174,9 @@
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 看下 commit 命令带 -a 参数的文档</span>
-</span><span class='line'><span class="n">by</span> <span class="n">using</span> <span class="n">the</span> <span class="o">-</span><span class="n">a</span> <span class="n">switch</span> <span class="n">with</span> <span class="n">the</span> <span class="n">commit</span> <span class="n">command</span> <span class="n">to</span> <span class="n">automatically</span> <span class="s2">&quot;add&quot;</span> <span class="n">changes</span> <span class="n">from</span> <span class="n">all</span> <span class="n">known</span> <span class="n">files</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="n">all</span> <span class="n">files</span> <span class="n">that</span> <span class="n">are</span>
-</span><span class='line'> <span class="n">already</span> <span class="n">listed</span> <span class="k">in</span> <span class="n">the</span> <span class="n">index</span><span class="p">)</span> <span class="ow">and</span> <span class="n">to</span> <span class="n">automatically</span> <span class="s2">&quot;rm&quot;</span> <span class="n">files</span> <span class="k">in</span> <span class="n">the</span> <span class="n">index</span> <span class="n">that</span>
-</span><span class='line'>  <span class="n">have</span> <span class="n">been</span> <span class="n">removed</span> <span class="n">from</span> <span class="n">the</span> <span class="n">working</span> <span class="n">tree</span><span class="p">,</span> <span class="ow">and</span> <span class="k">then</span> <span class="n">perform</span> <span class="n">the</span> <span class="n">actual</span> <span class="n">commit</span><span class="p">;</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># Git 文档</span>
+</span><span class='line'><span class="o">-</span><span class="n">a</span><span class="p">,</span> <span class="o">--</span><span class="n">all</span>
+</span><span class='line'><span class="no">Tell</span> <span class="n">the</span> <span class="n">command</span> <span class="n">to</span> <span class="n">automatically</span> <span class="n">stage</span> <span class="n">files</span> <span class="n">that</span> <span class="n">have</span> <span class="n">been</span> <span class="n">modified</span> <span class="ow">and</span> <span class="n">deleted</span><span class="p">,</span> <span class="n">but</span> <span class="kp">new</span> <span class="n">files</span> <span class="n">you</span> <span class="n">have</span> <span class="ow">not</span> <span class="n">told</span> <span class="no">Git</span> <span class="n">about</span> <span class="n">are</span> <span class="ow">not</span> <span class="n">affected</span><span class="o">.</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -187,7 +185,27 @@
 <p>1、手动 rm，但此时文件还存在于 Git 控制下，需要<code>git commit -am'msg'</code>
 2、<code>git rm file_name</code>， 然后<code>git commit -m “xx”</code> 即可。</p>
 
-<p>因此，平常只要  git add .  （提交新增、更改后的文件），然后git commit -am “xx” （保存新增，更改后的文件，以及删除的文件），然后push即可。</p>
+<p>提交文件我一般喜欢这么干：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">add</span> <span class="o">.</span>     <span class="c1">#提交新增、更改后的文件</span>
+</span><span class='line'><span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">am</span> <span class="s1">&#39;Hello&#39;</span> <span class="c1"># commit 并且保存更改后的文件以及删除的文件</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>也有人喜欢</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">add</span> <span class="o">-</span><span class="n">A</span> <span class="p">(</span><span class="err">保存所有改动，包括新增删除文件</span><span class="p">)</span>
+</span><span class='line'><span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">m</span> <span class="s1">&#39;Hello&#39;</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
 </div>
 
 
