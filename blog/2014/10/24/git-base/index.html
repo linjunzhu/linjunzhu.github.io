@@ -156,7 +156,7 @@
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
 <span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 将文件加入暂存区</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 将文件加入暂存区(注意并不包括被删除文件)</span>
 </span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">add</span> <span class="o">.</span>
 </span><span class='line'>
 </span><span class='line'><span class="c1"># 将文件提交到本地仓库（HEAD)</span>
@@ -169,7 +169,7 @@
 
 <h3>关于 -am 的解释</h3>
 
-<p><code>git commit -am 'message'</code>: git add（只针对已知的文件) 和 git commit同时执行，并且会自动移除掉不在工作区的文件</p>
+<p><code>git commit -am 'message'</code>: git add 和 git commit同时执行，并且会自动移除掉不在工作区的文件</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -182,8 +182,9 @@
 
 <p>删除文件有两种操作</p>
 
-<p>1、手动 rm，但此时文件还存在于 Git 控制下，需要<code>git commit -am'msg'</code>
-2、<code>git rm file_name</code>， 然后<code>git commit -m “xx”</code> 即可。</p>
+<p>1、手动 rm，但此时文件还存在于 Git 控制下，需要<code>git commit -am'msg'</code></p>
+
+<p>2、<code>git rm file_name</code>， 然后<code>git commit -m “xx”</code> 即可。</p>
 
 <p>提交文件我一般喜欢这么干：</p>
 
@@ -203,6 +204,44 @@
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">add</span> <span class="o">-</span><span class="n">A</span> <span class="p">(</span><span class="err">保存所有改动，包括新增删除文件</span><span class="p">)</span>
 </span><span class='line'><span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">m</span> <span class="s1">&#39;Hello&#39;</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>更新</h1>
+
+<hr />
+
+<p>Git 2.0 后对<code>add</code>做了些修改。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Files</span> <span class="n">to</span> <span class="n">add</span> <span class="n">content</span> <span class="n">from</span><span class="o">.</span> <span class="no">Fileglobs</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span>  <span class="o">*.</span><span class="n">c</span><span class="p">)</span> <span class="n">can</span> <span class="n">be</span> <span class="n">given</span> <span class="n">to</span> <span class="n">add</span> <span class="n">all</span> <span class="n">matching</span> <span class="n">files</span><span class="o">.</span> <span class="no">Also</span> <span class="n">a</span> <span class="n">leading</span> <span class="n">directory</span>
+</span><span class='line'><span class="nb">name</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span>  <span class="n">dir</span> <span class="n">to</span> <span class="n">add</span> <span class="n">dir</span><span class="o">/</span><span class="n">file1</span> <span class="ow">and</span> <span class="n">dir</span><span class="o">/</span><span class="n">file2</span><span class="p">)</span> <span class="n">can</span> <span class="n">be</span> <span class="n">given</span> <span class="n">to</span> <span class="n">update</span> <span class="n">the</span> <span class="n">index</span> <span class="n">to</span> <span class="n">match</span> <span class="n">the</span> <span class="n">current</span> <span class="n">state</span> <span class="n">of</span> <span class="n">the</span>
+</span><span class='line'><span class="n">directory</span> <span class="n">as</span> <span class="n">a</span> <span class="n">whole</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">specifying</span> <span class="n">dir</span> <span class="n">will</span> <span class="n">record</span> <span class="ow">not</span> <span class="n">just</span> <span class="n">a</span> <span class="n">file</span> <span class="n">dir</span><span class="o">/</span><span class="n">file1</span> <span class="n">modified</span> <span class="k">in</span> <span class="n">the</span> <span class="n">working</span> <span class="n">tree</span><span class="p">,</span> <span class="n">a</span>
+</span><span class='line'><span class="n">file</span> <span class="n">dir</span><span class="o">/</span><span class="n">file2</span> <span class="n">added</span> <span class="n">to</span> <span class="n">the</span> <span class="n">working</span> <span class="n">tree</span><span class="p">,</span> <span class="n">but</span> <span class="n">also</span> <span class="n">a</span> <span class="n">file</span> <span class="n">dir</span><span class="o">/</span><span class="n">file3</span> <span class="n">removed</span> <span class="n">from</span> <span class="n">the</span> <span class="n">working</span> <span class="n">tree</span><span class="o">.</span> <span class="no">Note</span> <span class="n">that</span> <span class="n">older</span>
+</span><span class='line'><span class="n">versions</span> <span class="n">of</span> <span class="no">Git</span> <span class="n">used</span> <span class="n">to</span> <span class="n">ignore</span> <span class="n">removed</span> <span class="n">files</span><span class="p">;</span> <span class="n">use</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">all</span> <span class="n">option</span> <span class="k">if</span> <span class="n">you</span> <span class="n">want</span> <span class="n">to</span> <span class="n">add</span> <span class="n">modified</span> <span class="ow">or</span> <span class="kp">new</span> <span class="n">files</span> <span class="n">but</span>
+</span><span class='line'><span class="n">ignore</span> <span class="n">removed</span> <span class="n">ones</span><span class="o">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>git add .</code> 命令现在是有包含被删除文件的，因此现在只需要这么做：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 将所有文件加入暂存区</span>
+</span><span class='line'><span class="n">git</span> <span class="n">add</span> <span class="o">.</span>
+</span><span class='line'><span class="c1"># 提交</span>
+</span><span class='line'><span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">m</span> <span class="s1">&#39;Hello&#39;</span>
+</span><span class='line'><span class="c1"># push</span>
 </span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span>
 </span></code></pre></td></tr></table></div></figure>
 
