@@ -7,8 +7,12 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="Git 和 SVN 的区别 Git 和 SVN 最大的区别概念在于：Git 是分布式，而 SVN 是集中式管理。 一、SVN 所谓集中式版本控制工具，总有一个中心服务器，提供一个项目仓库，大家的代码的提交都是统一提交到这个中心服务器上的 SVN 的模式： 写代码。
-从服务器拉回服务器的当前版本库 &hellip;">
+	<meta name="description" content="git push 将本地仓库的更新推送到远程仓库 remote git push [remote-name] [branch-name] git push origin master 1
+2
+3
+4
+5
+# 如果当前分支跟远程分支有 tracking 关系， &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -75,6 +79,242 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/24/git-push-pull/">
+		
+			Git &#8211; Push 和 Pull 篇</a>
+	</h2>
+	<div class="entry-content">
+		<h2>git push</h2>
+
+<h4>将本地仓库的更新推送到远程仓库 remote</h4>
+
+<p><code>git push [remote-name] [branch-name]</code></p>
+
+<p><code>git push origin master</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 如果当前分支跟远程分支有 tracking 关系，那么将会自动推送当前分支到对应的远程分支</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 如果主机名只有一个 origin，那么连 origin 都可以省略</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>查看 tracking 关系：</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cat</span> <span class="o">.</span><span class="n">/</span><span class="o">.</span><span class="n">git</span><span class="o">/</span><span class="n">config</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 此时没有 tracking 关系</span>
+</span><span class='line'><span class="o">==&gt;</span>
+</span><span class='line'><span class="o">[</span><span class="n">core</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">repositoryformatversion</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>  <span class="n">filemode</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">bare</span> <span class="o">=</span> <span class="kp">false</span>
+</span><span class='line'>  <span class="n">logallrefupdates</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">ignorecase</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">precomposeunicode</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'><span class="o">[</span><span class="n">remote</span> <span class="s2">&quot;origin&quot;</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">url</span> <span class="o">=</span> <span class="n">git</span><span class="vi">@github</span><span class="o">.</span><span class="n">com</span><span class="ss">:linjunzhu</span><span class="o">/</span><span class="n">test_branch</span><span class="o">.</span><span class="n">git</span>
+</span><span class='line'>  <span class="n">fetch</span> <span class="o">=</span> <span class="o">+</span><span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/*</span><span class="ss">:refs</span><span class="o">/</span><span class="n">remotes</span><span class="o">/</span><span class="n">origin</span><span class="o">/*</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>添加 tracking 关系</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="o">-</span><span class="n">u</span> <span class="n">origin</span> <span class="n">dev</span>  <span class="p">(</span><span class="err">这句同时指定了</span> <span class="n">origin</span> <span class="err">为默认主机</span><span class="p">)</span>
+</span><span class='line'><span class="err">或者</span>
+</span><span class='line'><span class="n">git</span> <span class="n">branch</span> <span class="o">-</span><span class="n">u</span> <span class="n">dev</span> <span class="n">origin</span><span class="o">/</span><span class="n">dev</span>
+</span><span class='line'><span class="err">或者</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="o">--</span><span class="n">set</span><span class="o">-</span><span class="n">upstream</span> <span class="n">origin</span> <span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>查看 tracking 关系</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cat</span> <span class="o">.</span><span class="n">/</span><span class="o">.</span><span class="n">git</span><span class="o">/</span><span class="n">config</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 此时有 tracking 关系</span>
+</span><span class='line'><span class="o">==&gt;</span>
+</span><span class='line'><span class="o">[</span><span class="n">core</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">repositoryformatversion</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>  <span class="n">filemode</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">bare</span> <span class="o">=</span> <span class="kp">false</span>
+</span><span class='line'>  <span class="n">logallrefupdates</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">ignorecase</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">precomposeunicode</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'><span class="o">[</span><span class="n">remote</span> <span class="s2">&quot;origin&quot;</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">url</span> <span class="o">=</span> <span class="n">git</span><span class="vi">@github</span><span class="o">.</span><span class="n">com</span><span class="ss">:linjunzhu</span><span class="o">/</span><span class="n">test_branch</span><span class="o">.</span><span class="n">git</span>
+</span><span class='line'>  <span class="n">fetch</span> <span class="o">=</span> <span class="o">+</span><span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/*</span><span class="ss">:refs</span><span class="o">/</span><span class="n">remotes</span><span class="o">/</span><span class="n">origin</span><span class="o">/*</span>
+</span><span class='line'><span class="o">[</span><span class="n">branch</span> <span class="s2">&quot;master&quot;</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">remote</span> <span class="o">=</span> <span class="n">origin</span>
+</span><span class='line'>  <span class="n">merge</span> <span class="o">=</span> <span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/</span><span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>git pull</h2>
+
+<h3>拉取更新</h3>
+
+<p>将远程仓库的更新拉取到本地的「远程仓库」并且进行「merge」操作</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">pull</span> <span class="n">origin</span> <span class="n">master</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 相当于两步操作</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">fetch</span> <span class="n">origin</span> <span class="n">master</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">merge</span> <span class="n">origin</span><span class="o">/</span><span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Tips</h3>
+
+<p>如果当前分支跟远程分支是没有 tracking 关系的，那么执行<code>git pull</code>后，会 download 远程仓库的所有分支代码到本地的 origin/分支上，但是不会合并，相当于 <code>git fetch</code> 命令一样。</p>
+
+<h2>git pull 和 git fetch 的使用区别</h2>
+
+<ol>
+<li><p><code>git pull origin master</code>: 意思是从远程端下载最新版本到当前分支，并且自动合并</p></li>
+<li><p><code>git fetch origin master</code>: 意思是从远程端下载最新版本到当前分支，但是并不合并。因此如果是git fetch 的话，就需要做两步操作。</p></li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">fetch</span> <span class="n">origin</span> <span class="n">master</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">git</span> <span class="n">log</span> <span class="o">-</span><span class="nb">p</span> <span class="n">master</span> <span class="n">origin</span><span class="o">/</span><span class="n">master</span>   <span class="p">(</span><span class="err">查看修改内容</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">git</span>  <span class="n">merge</span> <span class="n">orgin</span><span class="o">/</span><span class="n">master</span>    <span class="p">(</span><span class="err">合并分支</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">或者进行</span> <span class="n">rebase</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">下章讲解</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Tips</h2>
+
+<h4>一、<code>不带任何参数的 git push</code>有两种模式</h4>
+
+<ol>
+<li><code>matching</code>模式，会推送所有<code>对应远程分支</code>的<code>本地分支</code>。</li>
+<li><code>simple</code>模式，只推送当前分支 (如果有 tracking 关系的话)</li>
+</ol>
+
+
+<p>默认没有设置，需要打下命令</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">config</span> <span class="o">--</span><span class="n">global</span> <span class="n">push</span><span class="o">.</span><span class="n">default</span> <span class="n">simple</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>二、关于<code>push</code>and<code>pull</code></h4>
+
+<p>一般如果没把握，最好写全。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">dev</span>
+</span><span class='line'><span class="n">git</span> <span class="n">pull</span> <span class="n">origin</span> <span class="n">dev</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>三、切换远程分支</h4>
+
+<p>当小伙伴的新建分支 push 到远程分支，我们也想要拉取这条分支</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 如果当前分支没有tracking关系，那么git fetch 默认拉取所有分支</span>
+</span><span class='line'><span class="n">git</span> <span class="n">fetch</span> <span class="n">origin</span> <span class="n">test_branch</span>
+</span><span class='line'><span class="n">git</span> <span class="n">checkout</span> <span class="n">test_branch</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-24T21:12:33+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -1933,214 +2173,6 @@ end         ils&gt;
 
 
 <time datetime="2014-06-12T17:29:25+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/06/12/li-yong-octopresszai-githubshang-da-jian-bo-ke/">
-		
-			利用OCtopress在github上搭建博客</a>
-	</h2>
-	<div class="entry-content">
-		<h3>目录</h3>
-
-<ol>
-<li>安装ruby</li>
-<li>安装Octpress</li>
-<li>配置Octopress</li>
-<li>部署Octopress</li>
-<li>开始写博客</li>
-<li>更换主题</li>
-<li>绑定域名</li>
-<li>回顾</li>
-</ol>
-
-
-<h4>1、安装Ruby</h4>
-
-<p>Octopress需要Ruby环境，那么就来装下Ruby环境。</p>
-
-<p>首先安装RVM，RVM是用来负责安装和管理Ruby的环境</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>curl -L https://get.rvm.io | bash -s stable --ruby</span></code></pre></td></tr></table></div></figure>
-
-
-<p>接着安装Ruby</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sed -i -e 's/ftp\.ruby-lang\.org\/pub\/ruby/ruby\.taobao\.org\/mirrors\/ruby/g' ~/.rvm/config/db (切换rvm 的安装源，天朝的GFW，你懂的。)
-</span><span class='line'>rvm install 2.1.0
-</span><span class='line'>rvm use 2.1.0 --default
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>参考：<a href="http://rvm.io/rvm/install">http://rvm.io/rvm/install</a></p>
-
-<h4>2、安装Octopress</h4>
-
-<p>首先，请确认你的机子已经安装了git。
-git 安装之后，利用git命令将octopress从github上clone到本机。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git clone git://github.com/imathis/octopress.git blogName
-</span><span class='line'>cd blogName  
-</span><span class='line'>gem install bundler (如无bundler,则需要install, 一般rails开发人员都已安装)
-</span><span class='line'>bundle install
-</span><span class='line'>
-</span><span class='line'>rake install （安装Octopress）</span></code></pre></td></tr></table></div></figure>
-
-
-<p>参考：<a href="http://octopress.org/docs/setup/">http://octopress.org/docs/setup/</a></p>
-
-<h4>3、 部署Octopress</h4>
-
-<p>我们可以在github上托管我们的blog。
-具体做法：</p>
-
-<ol>
-<li>在github创建仓库，按照username.github.io 命名即可（之前是username.github.com,不过由于一系列原因改成了.io），随后十分钟左右即可在浏览器中访问username.github.io。</li>
-</ol>
-
-
-<p>配置好仓库后，我们需要利用Octopress的一个配置rake任务，来自动配置blog。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ rake setup_github.pages</span></code></pre></td></tr></table></div></figure>
-
-
-<p>上面的命令会做一系列操作</p>
-
-<ol>
-<li>会创建<code>_deploy</code>目录（该目录在 master 下)，该目录用来存放部署到master分支的内容（username.github.io 的内容是在master分支下的）。</li>
-<li>并且source/_post/ 目录是存放你所写的文章源码。</li>
-<li>期间会要求输入远程仓库的url。</li>
-<li>会自动切换到 source 分支，以后就直接在这分支上干活。</li>
-<li>注意，master 分支不要动，完全可以忽视它了。</li>
-</ol>
-
-
-<p>初次部署项目</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ rake generate (根据配置等生成所需要的静态文件，如：文章)
-</span><span class='line'>$ rake deploy (将_deploy目录部署到远程master分支)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>源码需要单独提交到git</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>
-</span><span class='line'>$ git add .
-</span><span class='line'>$ git commit -am 'first commit'
-</span><span class='line'>$ git push origin source
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>4、配置Octopress</h4>
-
-<p>大多数只需要配置<em>config.yml 和 Rakefile文件即可，不过Rakefile文件跟博客部署有关，一般不会去动。
-</em>config.yml是博客很重要的一个文件，根据需求开启第三方组件等等。另外，其中的URL需要填写github上的远程仓库地址。</p>
-
-<h4>5、开始写博客</h4>
-
-<p>新建一篇文章</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$rake new_post\['标题'\]</span></code></pre></td></tr></table></div></figure>
-
-
-<p>该操作会在_post目录下生成一个markdown文件，编辑该md文件写文章。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ rake generate (每次修改文章都需要执行)
-</span><span class='line'>$ rake preview  (在本地预览所写的内容 &lt;localhost:4000&gt;)
-</span><span class='line'>$ rake deploy   (部署)
-</span><span class='line'>
-</span><span class='line'>随后把源码push到 source 分支</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>6、更换主题</h4>
-
-<p>到网上搜索主题，比如我现在使用的主题<a href="http://zespia.tw/Octopress-Theme-Slash/index_tw.html">Slash</a>。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd blogname
-</span><span class='line'>$ git clone git://github.com/tommy351/Octopress-Theme-Slash.git .themes/slash
-</span><span class='line'>$ rake install\['slash'\]
-</span><span class='line'>$ rake generate</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>7、绑定域名</h4>
-
-<p>比如我有一个 <code>linjunzhu.me</code>这个域名，那要如何做才能当我访问<code>linjunzhu.github.io</code>会自动跳转到<code>linjunzhu.me</code>进行访问呢？</p>
-
-<ol>
-<li>在 Github 中的博客仓库中，添加一个 <code>CNAME</code> 文件，里面写明我们所跳转的域名 <code>linjunzhu.me</code></li>
-<li>使用 DNS 解析服务，将我们的域名指向该地址。</li>
-</ol>
-
-
-<p>不过，由于 <code>rake generate</code> 和 <code>rake deploy</code>每次都会重新生成整个<code>master</code>分支，建议第一步不要直接在 Github 上操作。</p>
-
-<p>而是在 Source 分支下的 source 目录添加<code>CNAME</code>文件。</p>
-
-<p>这样当运行<code>rake generate</code>时会将<code>source</code>目录整个复制到<code>public</code>目录，运行<code>rake deploy</code>则会将<code>public</code>目录整个复制到<code>_deploy</code>目录。</p>
-
-<h4>8、回顾</h4>
-
-<p>当成功后，我们访问<code>linjunzhu.github.io</code>时，会自动跳往<code>linjunzhu.me</code>，这时 Chrome 会自动缓存起来，以后访问<code>linjunzhu.github.io</code>都会自动跳往后者（无论有无 CANME）。</p>
-
-<p>因此，当时我<code>CNAME</code>文件丢失后，访问<code>linjunzhu.github.io</code>总会自动跳往后者并且显示<code>404</code>，搞了许久以为是博客搞乱了，其实是 Chrome 的原因。</p>
-
-<p>有人会问，为什么我还需要在分支上创建<code>CNAME</code>文件，而不能直接用 DNS 解析服务，将域名指向<code>linjunzhu.github.io</code>不就完事了吗？</p>
-
-<p>因为 Github 做了处理，只有域名是<code>linjunzhu.github.io</code>才会跳往至博客页面，而访问<code>linjunzhu.me</code>，域名不符，是不会的，因此才需要第一步创建<code>CNAME</code></p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-12T14:13:44+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>

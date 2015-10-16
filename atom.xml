@@ -4,7 +4,7 @@
   <title><![CDATA[LinJunzhu's Blog]]></title>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/atom.xml" rel="self"/>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/"/>
-  <updated>2015-09-08T11:11:07+08:00</updated>
+  <updated>2015-10-16T16:01:11+08:00</updated>
   <id>https://github.com/linjunzhu/linjunzhu.github.io.git/</id>
   <author>
     <name><![CDATA[林俊柱]]></name>
@@ -12,6 +12,493 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Rails's association]]></title>
+    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2015/10/16/railss-association/"/>
+    <updated>2015-10-16T13:42:12+08:00</updated>
+    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2015/10/16/railss-association</id>
+    <content type="html"><![CDATA[<h1>Rails 中的关联</h1>
+
+<h2>前言</h2>
+
+<p>這篇文章是好久好久好久之前所做的笔记，Po 上来吧</p>
+
+<h2>多对多</h2>
+
+<p>1、使用 <code>has_and_belongs_to_many</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Teacher</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>    <span class="n">has_and_belongs_to_many</span> <span class="ss">:students</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Student</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>    <span class="n">has_and_belongs_to_many</span> <span class="ss">:Teacher</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 手动创中间表(migration，注意该表没有主键)</span>
+</span><span class='line'><span class="n">create</span> <span class="n">table</span> <span class="ss">:teachers_students</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="kp">false</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+</span><span class='line'>    <span class="n">t</span><span class="o">.</span><span class="n">integer</span> <span class="ss">:teacher_id</span>
+</span><span class='line'>    <span class="n">t</span><span class="o">.</span><span class="n">integer</span> <span class="ss">:student_id</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这种方式是最简单的，不依靠第三个 model 来进行关联。但也仅仅局限于此，其他复杂的关联的都干不了，所以一般不会去用这关联</p>
+
+<p>2、使用 <code>has_many  :through</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 用户</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:comments</span>
+</span><span class='line'>  <span class="c1"># 如果用户不需要找到帖子, 那么可以不用写关联</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:posts</span><span class="p">,</span> <span class="ss">through</span><span class="p">:</span> <span class="ss">:comments</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 帖子</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Post</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:comments</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">through</span><span class="p">:</span> <span class="ss">:comments</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 评论</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Comment</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:posts</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:users</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在这里，用户与帖子就是<code>多对多</code>的关系，通过<code>comment</code>这 model 来进行关联。</p>
+
+<p>总结：
+当需要做<code>数据验证``回调``关联模型需要用到其他属性``关联需要作为一个独立实体</code>则要用<code>has_many :through</code>。</p>
+
+<p>但 <code>has_and_belongs_to_many</code>已经不建议使用了，因此直接用<code>has_many :through</code>便是。</p>
+
+<h2>一对一</h2>
+
+<p>1、<code>has_one :through</code> 是个挺好用的特性。</p>
+
+<p>Example: 每个供应商有一个账号，每个账号有一个历史账号</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 供应商</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Supplier</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">has_one</span> <span class="ss">:account</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 账号</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Account</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:supplier</span>
+</span><span class='line'>  <span class="n">has_one</span> <span class="ss">:account_history</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 历史账号</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">AccountHistory</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:account</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果是这么写的话，只能这么操作：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 供应商通过账号来查找历史账号</span>
+</span><span class='line'><span class="n">supplier</span><span class="o">.</span><span class="n">account</span><span class="o">.</span><span class="n">account_history</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>加上 <code>through</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 供应商</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Supplier</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">has_one</span> <span class="ss">:account</span>
+</span><span class='line'>  <span class="n">has_one</span> <span class="ss">:account_history</span><span class="p">,</span> <span class="ss">through</span><span class="p">:</span> <span class="n">account</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 账号</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Account</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:supplier</span>
+</span><span class='line'>  <span class="n">has_one</span> <span class="ss">:account_history</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 历史账号</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">AccountHistory</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:account</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样供应商直接找到历史账号：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">supplier</span><span class="o">.</span><span class="n">account_history</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>多态关联</h2>
+
+<p>有时我们会有这样的需求：帖子需要图片的关联，评论需要图片的关联</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Picture</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:imageable</span><span class="p">,</span> <span class="ss">polymorphic</span><span class="p">:</span> <span class="kp">true</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Post</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:pictures</span><span class="p">,</span> <span class="ss">as</span><span class="p">:</span> <span class="ss">:imageable</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Comment</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:pictures</span><span class="p">,</span> <span class="ss">as</span><span class="p">:</span> <span class="ss">:imageable</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样图片这个model就可以同时属于<code>Post</code>以及<code>Comment</code>了。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 获取子对象</span>
+</span><span class='line'><span class="n">post</span><span class="o">.</span><span class="n">pictures</span>
+</span><span class='line'><span class="n">comment</span><span class="o">.</span><span class="n">pictures</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 获取父对象</span>
+</span><span class='line'><span class="n">picture</span><span class="o">.</span><span class="n">post</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Migration 如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">CreatePictures</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">change</span>
+</span><span class='line'>    <span class="n">create_table</span> <span class="ss">:pictures</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+</span><span class='line'>      <span class="n">t</span><span class="o">.</span><span class="n">string</span>  <span class="ss">:name</span>
+</span><span class='line'>      <span class="c1"># 外键id</span>
+</span><span class='line'>      <span class="n">t</span><span class="o">.</span><span class="n">integer</span> <span class="ss">:imageable_id</span>
+</span><span class='line'>      <span class="c1"># 具体是属于哪个父对象</span>
+</span><span class='line'>      <span class="n">t</span><span class="o">.</span><span class="n">string</span>  <span class="ss">:imageable_type</span>
+</span><span class='line'>      <span class="n">t</span><span class="o">.</span><span class="n">timestamps</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>别名</h2>
+
+<h4>1、has_many :through</h4>
+
+<p>有时我们关联的 model 名会跟想要使用的名称不一样，比如： Genre、 App 与关联类 GenreRecommend  （分类，应用，分类下的推荐应用)。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Genre</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:genre_recommends</span>
+</span><span class='line'>  <span class="c1"># 找到该分类下的推荐 apps</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:apps</span><span class="p">,</span> <span class="ss">through</span><span class="p">:</span> <span class="ss">:genre_recommend</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">App</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:genre_recommends</span>
+</span><span class='line'>  <span class="c1"># 这里并不需要找到 genre, 因此可以不写</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:genres</span><span class="p">,</span> <span class="ss">through</span><span class="p">:</span> <span class="ss">:genre_recommend</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">GenreRecommend</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:genre</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:app</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 一般使用（但 apps 有可能会跟其他冲突, 比如找出该分类下的所有 apps）</span>
+</span><span class='line'><span class="vi">@genre</span><span class="o">.</span><span class="n">apps</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 实际上这么使用会更友好</span>
+</span><span class='line'><span class="vi">@genre</span><span class="o">.</span><span class="n">recommends</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>修改后：( 通过 <code>source</code> )</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Genre</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:genre_recommends</span>
+</span><span class='line'>  <span class="c1"># 找到该分类下的推荐 apps</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:recommends</span><span class="p">,</span> <span class="ss">source</span><span class="p">:</span> <span class="ss">:app</span><span class="p">,</span> <span class="ss">through</span><span class="p">:</span> <span class="ss">:genre_recommend</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">App</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:genre_recommends</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">GenreRecommend</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:genres</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:app</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>2、<code>belongs_to``has_one``has_many</code></h4>
+
+<p>这三者都是通过<code>:class_name</code>来实现别名的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Customer</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:orders</span><span class="p">,</span> <span class="ss">class_name</span><span class="p">:</span> <span class="s2">&quot;Transaction&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我猜是因为<code>source</code>主要是跟<code>through</code>的第三个 model 中<code>belongs_to</code>对应</p>
+
+<p>而<code>class_name</code>就仅仅只是指定类名了。</p>
+
+<h2>关联删除</h2>
+
+<p><code>一对多</code>关系中，往往删除主对象，我们还需要顺便删除所有子对象的需求。</p>
+
+<p>Example: 一个人拥有几个联系方式</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Person</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="c1"># 这样删除一个 person 时，还会删除名下的所有 contacts</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:contacts</span><span class="p">,</span> <span class="ss">dependent</span><span class="p">:</span> <span class="ss">:destroy</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Contact</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:person</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>自动保存对象</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Person</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:contacts</span><span class="p">,</span> <span class="ss">dependent</span><span class="p">:</span> <span class="ss">:destroy</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Contact</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:person</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="vi">@person</span> <span class="o">=</span> <span class="no">Person</span><span class="o">.</span><span class="n">first</span>
+</span><span class='line'><span class="n">c1</span> <span class="o">=</span> <span class="no">Contact</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'><span class="n">c2</span> <span class="o">=</span> <span class="no">Contact</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 此时会自动保存 c1 c2，官方说因为 c1 c2 要更新外键 ( 这点不太明 )</span>
+</span><span class='line'><span class="vi">@person</span><span class="o">.</span><span class="n">contacts</span> <span class="o">&lt;&lt;</span> <span class="n">c1</span>
+</span><span class='line'><span class="vi">@person</span><span class="o">.</span><span class="n">contacts</span> <span class="o">&lt;&lt;</span> <span class="n">c2</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>将对象赋给<code>has_many``has_one</code>的主对象都会被自动保存。</p>
+
+<p>当然，主对象必须是有保存过的才行。（存在于数据库)</p>
+
+<h2>counter_cache</h2>
+
+<p>Example:</p>
+
+<p>帖子下有多个评论，显示时经常需要显示评论的个数。评论的个数经常会变动，如果直接<code>post.comments.size</code>难免效率会低。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Post</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:comments</span>
+</span><span class='line'>  <span class="c1"># 只读，否则被串改就不好了。</span>
+</span><span class='line'>  <span class="n">attr_readonly</span> <span class="ss">:comments_count</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Comment</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:post</span><span class="p">,</span> <span class="ss">counter_cache</span><span class="p">:</span> <span class="kp">true</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>创建字段</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">change</span>
+</span><span class='line'>  <span class="n">add_column</span> <span class="ss">:posts</span><span class="p">,</span> <span class="ss">:comments_count</span><span class="p">,</span> <span class="ss">:integer</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样声明后，Rails 会及时更新缓存，调用 size 方法时，会返回缓存中的值 ( 官方 guide 是说缓存，不过我认为仅仅只是将值放在该 model 的字段中，并无缓存 )</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="vi">@post</span><span class="o">.</span><span class="n">comments</span><span class="o">.</span><span class="n">size</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>点击数、阅读数</h2>
+
+<p>文章的<code>阅读数``点击数</code>也是经常变化，有无更好的方法呢？例如存入缓存？</p>
+
+<p>可以使用我自己写的一个 GEM</p>
+
+<p><a href="https://github.com/linjunzhu/counter-cache-credis">https://github.com/linjunzhu/counter-cache-credis</a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[如何使用monit监控进程]]></title>
@@ -4690,214 +5177,6 @@
 <h3>Tips</h3>
 
 <p>1、这功能的使用场景是 commit 还没有 push 到远程分支，一旦 push 到远程分支就不要用了。( 虽然可以用 &ndash;force 强制 push，视情况而定 )</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Git -- Push 和 Pull 篇]]></title>
-    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/24/git-push-pull/"/>
-    <updated>2014-10-24T21:12:33+08:00</updated>
-    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/24/git-push-pull</id>
-    <content type="html"><![CDATA[<h2>git push</h2>
-
-<h4>将本地仓库的更新推送到远程仓库 remote</h4>
-
-<p><code>git push [remote-name] [branch-name]</code></p>
-
-<p><code>git push origin master</code></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 如果当前分支跟远程分支有 tracking 关系，那么将会自动推送当前分支到对应的远程分支</span>
-</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 如果主机名只有一个 origin，那么连 origin 都可以省略</span>
-</span><span class='line'><span class="n">git</span> <span class="n">push</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>查看 tracking 关系：</h4>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cat</span> <span class="o">.</span><span class="n">/</span><span class="o">.</span><span class="n">git</span><span class="o">/</span><span class="n">config</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 此时没有 tracking 关系</span>
-</span><span class='line'><span class="o">==&gt;</span>
-</span><span class='line'><span class="o">[</span><span class="n">core</span><span class="o">]</span>
-</span><span class='line'>  <span class="n">repositoryformatversion</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span class='line'>  <span class="n">filemode</span> <span class="o">=</span> <span class="kp">true</span>
-</span><span class='line'>  <span class="n">bare</span> <span class="o">=</span> <span class="kp">false</span>
-</span><span class='line'>  <span class="n">logallrefupdates</span> <span class="o">=</span> <span class="kp">true</span>
-</span><span class='line'>  <span class="n">ignorecase</span> <span class="o">=</span> <span class="kp">true</span>
-</span><span class='line'>  <span class="n">precomposeunicode</span> <span class="o">=</span> <span class="kp">true</span>
-</span><span class='line'><span class="o">[</span><span class="n">remote</span> <span class="s2">&quot;origin&quot;</span><span class="o">]</span>
-</span><span class='line'>  <span class="n">url</span> <span class="o">=</span> <span class="n">git</span><span class="vi">@github</span><span class="o">.</span><span class="n">com</span><span class="ss">:linjunzhu</span><span class="o">/</span><span class="n">test_branch</span><span class="o">.</span><span class="n">git</span>
-</span><span class='line'>  <span class="n">fetch</span> <span class="o">=</span> <span class="o">+</span><span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/*</span><span class="ss">:refs</span><span class="o">/</span><span class="n">remotes</span><span class="o">/</span><span class="n">origin</span><span class="o">/*</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>添加 tracking 关系</h4>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="o">-</span><span class="n">u</span> <span class="n">origin</span> <span class="n">dev</span>  <span class="p">(</span><span class="err">这句同时指定了</span> <span class="n">origin</span> <span class="err">为默认主机</span><span class="p">)</span>
-</span><span class='line'><span class="err">或者</span>
-</span><span class='line'><span class="n">git</span> <span class="n">branch</span> <span class="o">-</span><span class="n">u</span> <span class="n">dev</span> <span class="n">origin</span><span class="o">/</span><span class="n">dev</span>
-</span><span class='line'><span class="err">或者</span>
-</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="o">--</span><span class="n">set</span><span class="o">-</span><span class="n">upstream</span> <span class="n">origin</span> <span class="n">master</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>查看 tracking 关系</h4>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">cat</span> <span class="o">.</span><span class="n">/</span><span class="o">.</span><span class="n">git</span><span class="o">/</span><span class="n">config</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 此时有 tracking 关系</span>
-</span><span class='line'><span class="o">==&gt;</span>
-</span><span class='line'><span class="o">[</span><span class="n">core</span><span class="o">]</span>
-</span><span class='line'>  <span class="n">repositoryformatversion</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span class='line'>  <span class="n">filemode</span> <span class="o">=</span> <span class="kp">true</span>
-</span><span class='line'>  <span class="n">bare</span> <span class="o">=</span> <span class="kp">false</span>
-</span><span class='line'>  <span class="n">logallrefupdates</span> <span class="o">=</span> <span class="kp">true</span>
-</span><span class='line'>  <span class="n">ignorecase</span> <span class="o">=</span> <span class="kp">true</span>
-</span><span class='line'>  <span class="n">precomposeunicode</span> <span class="o">=</span> <span class="kp">true</span>
-</span><span class='line'><span class="o">[</span><span class="n">remote</span> <span class="s2">&quot;origin&quot;</span><span class="o">]</span>
-</span><span class='line'>  <span class="n">url</span> <span class="o">=</span> <span class="n">git</span><span class="vi">@github</span><span class="o">.</span><span class="n">com</span><span class="ss">:linjunzhu</span><span class="o">/</span><span class="n">test_branch</span><span class="o">.</span><span class="n">git</span>
-</span><span class='line'>  <span class="n">fetch</span> <span class="o">=</span> <span class="o">+</span><span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/*</span><span class="ss">:refs</span><span class="o">/</span><span class="n">remotes</span><span class="o">/</span><span class="n">origin</span><span class="o">/*</span>
-</span><span class='line'><span class="o">[</span><span class="n">branch</span> <span class="s2">&quot;master&quot;</span><span class="o">]</span>
-</span><span class='line'>  <span class="n">remote</span> <span class="o">=</span> <span class="n">origin</span>
-</span><span class='line'>  <span class="n">merge</span> <span class="o">=</span> <span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/</span><span class="n">master</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>git pull</h2>
-
-<h3>拉取更新</h3>
-
-<p>将远程仓库的更新拉取到本地的「远程仓库」并且进行「merge」操作</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">pull</span> <span class="n">origin</span> <span class="n">master</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 相当于两步操作</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">fetch</span> <span class="n">origin</span> <span class="n">master</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">merge</span> <span class="n">origin</span><span class="o">/</span><span class="n">master</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Tips</h3>
-
-<p>如果当前分支跟远程分支是没有 tracking 关系的，那么执行<code>git pull</code>后，会 download 远程仓库的所有分支代码到本地的 origin/分支上，但是不会合并，相当于 <code>git fetch</code> 命令一样。</p>
-
-<h2>git pull 和 git fetch 的使用区别</h2>
-
-<ol>
-<li><p><code>git pull origin master</code>: 意思是从远程端下载最新版本到当前分支，并且自动合并</p></li>
-<li><p><code>git fetch origin master</code>: 意思是从远程端下载最新版本到当前分支，但是并不合并。因此如果是git fetch 的话，就需要做两步操作。</p></li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">fetch</span> <span class="n">origin</span> <span class="n">master</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">git</span> <span class="n">log</span> <span class="o">-</span><span class="nb">p</span> <span class="n">master</span> <span class="n">origin</span><span class="o">/</span><span class="n">master</span>   <span class="p">(</span><span class="err">查看修改内容</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">git</span>  <span class="n">merge</span> <span class="n">orgin</span><span class="o">/</span><span class="n">master</span>    <span class="p">(</span><span class="err">合并分支</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">或者进行</span> <span class="n">rebase</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">下章讲解</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Tips</h2>
-
-<h4>一、<code>不带任何参数的 git push</code>有两种模式</h4>
-
-<ol>
-<li><code>matching</code>模式，会推送所有<code>对应远程分支</code>的<code>本地分支</code>。</li>
-<li><code>simple</code>模式，只推送当前分支 (如果有 tracking 关系的话)</li>
-</ol>
-
-
-<p>默认没有设置，需要打下命令</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">config</span> <span class="o">--</span><span class="n">global</span> <span class="n">push</span><span class="o">.</span><span class="n">default</span> <span class="n">simple</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>二、关于<code>push</code>and<code>pull</code></h4>
-
-<p>一般如果没把握，最好写全。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">dev</span>
-</span><span class='line'><span class="n">git</span> <span class="n">pull</span> <span class="n">origin</span> <span class="n">dev</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>三、切换远程分支</h4>
-
-<p>当小伙伴的新建分支 push 到远程分支，我们也想要拉取这条分支</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 如果当前分支没有tracking关系，那么git fetch 默认拉取所有分支</span>
-</span><span class='line'><span class="n">git</span> <span class="n">fetch</span> <span class="n">origin</span> <span class="n">test_branch</span>
-</span><span class='line'><span class="n">git</span> <span class="n">checkout</span> <span class="n">test_branch</span>
-</span></code></pre></td></tr></table></div></figure>
-
 ]]></content>
   </entry>
   
