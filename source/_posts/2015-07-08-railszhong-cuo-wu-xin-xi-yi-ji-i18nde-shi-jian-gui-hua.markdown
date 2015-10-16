@@ -67,6 +67,9 @@ end
 ```
 Rails 有默认的错误信息，我们可以根据需要自定义错误信息
 
+#对应错误信息 Key
+观看 Wiki: [http://guides.ruby-china.org/i18n.html](http://guides.ruby-china.org/i18n.html)
+
 #自定义错误信息
 
 `validates_presence_of`的错误信息 key 是 `blank`，Active Record 会按照下面的顺序寻找`blank`:

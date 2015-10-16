@@ -65,7 +65,7 @@ blog：文件的内容
 
 ###基本操作
 ```ruby
-# 将文件加入暂存区
+# 将文件加入暂存区(注意并不包括被删除文件)
 $ git add .
 
 # 将文件提交到本地仓库（HEAD)
@@ -77,18 +77,55 @@ $ git push origin master
 
 ### 关于 -am 的解释
 
-`git commit -am 'message'`: git add（只针对已知的文件) 和 git commit同时执行，并且会自动移除掉不在工作区的文件
+`git commit -am 'message'`: git add 和 git commit同时执行，并且会自动移除掉不在工作区的文件
 
 ```ruby
-# 看下 commit 命令带 -a 参数的文档
-by using the -a switch with the commit command to automatically "add" changes from all known files (i.e. all files that are
- already listed in the index) and to automatically "rm" files in the index that
-  have been removed from the working tree, and then perform the actual commit;
+# Git 文档
+-a, --all
+Tell the command to automatically stage files that have been modified and deleted, but new files you have not told Git about are not affected.
 ```
 
 删除文件有两种操作
 
 1、手动 rm，但此时文件还存在于 Git 控制下，需要`git commit -am'msg'`
+
 2、`git rm file_name`， 然后`git commit -m “xx”` 即可。
 
-因此，平常只要  git add .  （提交新增、更改后的文件），然后git commit -am “xx” （保存新增，更改后的文件，以及删除的文件），然后push即可。
+提交文件我一般喜欢这么干：
+```ruby
+git add .     #提交新增、更改后的文件
+git commit -am 'Hello' # commit 并且保存更改后的文件以及删除的文件
+git push origin master
+```
+
+也有人喜欢 
+```ruby
+git add -A (保存所有改动，包括新增删除文件)
+git commit -m 'Hello'
+git push origin master
+```
+
+
+
+#更新
+-----------
+
+Git 2.0 后对`add`做了些修改。
+```ruby
+Files to add content from. Fileglobs (e.g.  *.c) can be given to add all matching files. Also a leading directory
+name (e.g.  dir to add dir/file1 and dir/file2) can be given to update the index to match the current state of the
+directory as a whole (e.g. specifying dir will record not just a file dir/file1 modified in the working tree, a
+file dir/file2 added to the working tree, but also a file dir/file3 removed from the working tree. Note that older
+versions of Git used to ignore removed files; use --no-all option if you want to add modified or new files but
+ignore removed ones.
+```
+
+`git add .` 命令现在是有包含被删除文件的，因此现在只需要这么做：
+```ruby
+# 将所有文件加入暂存区
+git add .
+# 提交
+git commit -m 'Hello'
+# push
+git push origin master
+```

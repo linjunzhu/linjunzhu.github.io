@@ -61,7 +61,14 @@ PNG ... content of chrome.png ...
 1. Accept : application/json
 2. Accept : text/html
 
-还有一种方式，直接在 URL 尾部添加 `.json`，这种方式需要服务端的支持，告诉服务端，我需要`json`的响应
+
+##要求服务器返回响应的格式
+
+###一、
+平常客户端设置该 Accept 参数，即可要求服务端返回响应类型的数据。
+
+###二、
+直接在 URL 尾部添加 `.json`，这种方式需要服务端的支持，告诉服务端，我需要`json`的响应
 
 在 Rails 中，如果附带`.json`，会自动解析成一个参数 params[:format] = 'json'，之后便能通过代码针对不同解析返回不同数据
 ```ruby
@@ -71,6 +78,18 @@ respond_to do |format|
   format.json
 end
 ```
+
+###三、
+在 Rails 中设置默认 format
+```ruby
+resources :users, defaults: {format: :json}
+```
+
+这样服务器就会默认有 format 为 json 的参数
+
+那我同时设置了`Accept`以及`format`怎么办？
+
+在 Rails 中，`format`的优先级高于`Accept`
 
 ##同事遇到的问题
 1、调用接口时，反应接口返回了`500`，看了下，发现是服务器接收到的请求头为：content-type: application/json，但是请求体却是以`application/x-www-form-urlencoded`的形式进行编码的，因此两者不对称，解析出错。
