@@ -295,7 +295,17 @@ end
 这样子当修改@project时，也会修改子级的 cache_key
 
 ##6、注意
-当请求过来时，还是会经过controller,进行lazy select,再经过erb,再进行真正的 cache_key 计算，当然，此时 controller 中查询的那些还没有真正的查询，因为是 lazy select
+当请求过来时，还是会经过controller,进行lazy select,再经过erb,再进行真正的 `cache_key` 计算，当然，此时 controller 中查询的那些还没有真正的查询，就仅仅只是计算了 `cache_key`, 比如：
+```ruby
+<%= cache @articles.maximum(:updated_at) do %>
+    .....
+<% end %>
+```
+因为是 lazy select，所以这时候连 @articles 都没真正查询出来，直接变成了查询最大 `updated_at` 的语句。
+
+ (有些在 controller 中对那些查询对象进行了操作，就不是 lazy select了）
+
+
 
 分割好粒度，否则会得不偿失
 
