@@ -131,8 +131,8 @@ git 安装之后，利用git命令将octopress从github上clone到本机。</p>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git clone git://github.com/imathis/octopress.git blogName
-</span><span class='line'>cd blogName  
+</pre></td><td class='code'><pre><code class=''><span class='line'>git clone git://github.com/imathis/octopress.git $yourBlogName
+</span><span class='line'>cd $yourBlogName  
 </span><span class='line'>gem install bundler (如无bundler,则需要install, 一般rails开发人员都已安装)
 </span><span class='line'>bundle install
 </span><span class='line'>
@@ -148,7 +148,7 @@ git 安装之后，利用git命令将octopress从github上clone到本机。</p>
 <p>具体做法：</p>
 
 <ol>
-<li><p>在github创建仓库，按照username.github.io 命名即可（之前是username.github.com,不过由于 Github 一系列原因改成了.io)(注意，这里 username 一定要为你的 github 用户名)</p></li>
+<li><p>在github创建仓库，按照 username.github.io 命名即可（之前是username.github.com,不过由于 Github 一系列原因改成了.io)(注意，这里 username 一定要为你的 github 用户名)</p></li>
 <li><p>配置好仓库后，我们需要利用Octopress的一个配置rake任务，来自动配置blog。</p></li>
 </ol>
 
@@ -263,6 +263,24 @@ git 安装之后，利用git命令将octopress从github上clone到本机。</p>
 <p>有人会问，为什么我还需要在分支上创建<code>CNAME</code>文件，而不能直接用 DNS 解析服务，将域名指向<code>linjunzhu.github.io</code>不就完事了吗？</p>
 
 <p>因为 Github 做了处理，只有域名是<code>linjunzhu.github.io</code>才会跳往至博客页面，而访问<code>linjunzhu.me</code>，域名不符，是不会的，因此才需要第一步创建<code>CNAME</code></p>
+
+<h4>9、Tips</h4>
+
+<p>此时你本地的博客仓库会有两个分支</p>
+
+<p>master / source</p>
+
+<p>远程仓库也有两个分支</p>
+
+<p>master / source</p>
+
+<p>注意 master 分支 本地与远程两者并不是对应的。</p>
+
+<ol>
+<li>远程的 master 分支对应的是 本地的 <code>_deploy</code> 文件夹 (无关 master/source,  _deploy 可以说是一个新的仓库了)</li>
+<li>远程的 source 分支对应的是 本地 source 分支 ( 会 ignore 掉 _deploy 文件夹等)</li>
+</ol>
+
 </div>
 
 
