@@ -44,8 +44,8 @@ Octopress需要Ruby环境，那么就来装下Ruby环境。
 git 安装之后，利用git命令将octopress从github上clone到本机。
 
 ```
-	git clone git://github.com/imathis/octopress.git blogName
-	cd blogName  
+	git clone git://github.com/imathis/octopress.git $yourBlogName
+	cd $yourBlogName  
 	gem install bundler (如无bundler,则需要install, 一般rails开发人员都已安装)
 	bundle install
 
@@ -58,7 +58,7 @@ git 安装之后，利用git命令将octopress从github上clone到本机。
 #####3.1、在github上托管我们的blog
 具体做法：
 
-1. 在github创建仓库，按照username.github.io 命名即可（之前是username.github.com,不过由于 Github 一系列原因改成了.io)(注意，这里 username 一定要为你的 github 用户名)
+1. 在github创建仓库，按照 username.github.io 命名即可（之前是username.github.com,不过由于 Github 一系列原因改成了.io)(注意，这里 username 一定要为你的 github 用户名)
  
 2. 配置好仓库后，我们需要利用Octopress的一个配置rake任务，来自动配置blog。
 
@@ -152,3 +152,19 @@ _config.yml是博客很重要的一个文件，根据需求开启第三方组件
 有人会问，为什么我还需要在分支上创建`CNAME`文件，而不能直接用 DNS 解析服务，将域名指向`linjunzhu.github.io`不就完事了吗？
 
 因为 Github 做了处理，只有域名是`linjunzhu.github.io`才会跳往至博客页面，而访问`linjunzhu.me`，域名不符，是不会的，因此才需要第一步创建`CNAME`
+
+####9、Tips
+
+此时你本地的博客仓库会有两个分支
+
+master / source
+
+远程仓库也有两个分支
+
+master / source 
+
+注意 master 分支 本地与远程两者并不是对应的。
+
+1. 远程的 master 分支对应的是 本地的 `_deploy` 文件夹 (无关 master/source,  _deploy 可以说是一个新的仓库了)
+2. 远程的 source 分支对应的是 本地 source 分支 ( 会 ignore 掉 _deploy 文件夹等)
+
