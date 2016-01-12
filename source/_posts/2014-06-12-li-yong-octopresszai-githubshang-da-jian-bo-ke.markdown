@@ -55,32 +55,39 @@ git 安装之后，利用git命令将octopress从github上clone到本机。
 
 ####3、 部署Octopress
 
-我们可以在github上托管我们的blog。
+#####3.1、在github上托管我们的blog
 具体做法：
 
-1. 在github创建仓库，按照username.github.io 命名即可（之前是username.github.com,不过由于一系列原因改成了.io），随后十分钟左右即可在浏览器中访问username.github.io。
-
-配置好仓库后，我们需要利用Octopress的一个配置rake任务，来自动配置blog。
+1. 在github创建仓库，按照username.github.io 命名即可（之前是username.github.com,不过由于 Github 一系列原因改成了.io)(注意，这里 username 一定要为你的 github 用户名)
+ 
+2. 配置好仓库后，我们需要利用Octopress的一个配置rake任务，来自动配置blog。
 
 ```
-	$ rake setup_github.pages
+	$ rake setup_github_pages
 ```
 
 上面的命令会做一系列操作
 
 1. 会创建`_deploy`目录（该目录在 master 下)，该目录用来存放部署到master分支的内容（username.github.io 的内容是在master分支下的）。
 2. 并且source/_post/ 目录是存放你所写的文章源码。
-3. 期间会要求输入远程仓库的url。
+3. `期间会要求输入远程仓库的url。`
 4. 会自动切换到 source 分支，以后就直接在这分支上干活。
 5. 注意，master 分支不要动，完全可以忽视它了。
 
 
-初次部署项目
+#####3.2、初次部署项目
 
 ```
 	$ rake generate (根据配置等生成所需要的静态文件，如：文章)
 	$ rake deploy (将_deploy目录部署到远程master分支)
 ```
+
+访问属于你的 blog:
+
+```
+比如: linjunzhu.github.io
+```
+此时应该能够访问到你的 blog 了  :)
 
 源码需要单独提交到git
 
