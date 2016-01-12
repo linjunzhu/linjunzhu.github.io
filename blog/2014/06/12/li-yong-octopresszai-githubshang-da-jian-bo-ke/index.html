@@ -143,18 +143,18 @@ git 安装之后，利用git命令将octopress从github上clone到本机。</p>
 
 <h4>3、 部署Octopress</h4>
 
-<p>我们可以在github上托管我们的blog。
-具体做法：</p>
+<h5>3.1、在github上托管我们的blog</h5>
+
+<p>具体做法：</p>
 
 <ol>
-<li>在github创建仓库，按照username.github.io 命名即可（之前是username.github.com,不过由于一系列原因改成了.io），随后十分钟左右即可在浏览器中访问username.github.io。</li>
+<li><p>在github创建仓库，按照username.github.io 命名即可（之前是username.github.com,不过由于 Github 一系列原因改成了.io)(注意，这里 username 一定要为你的 github 用户名)</p></li>
+<li><p>配置好仓库后，我们需要利用Octopress的一个配置rake任务，来自动配置blog。</p></li>
 </ol>
 
 
-<p>配置好仓库后，我们需要利用Octopress的一个配置rake任务，来自动配置blog。</p>
-
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ rake setup_github.pages</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rake setup_github_pages</span></code></pre></td></tr></table></div></figure>
 
 
 <p>上面的命令会做一系列操作</p>
@@ -162,19 +162,27 @@ git 安装之后，利用git命令将octopress从github上clone到本机。</p>
 <ol>
 <li>会创建<code>_deploy</code>目录（该目录在 master 下)，该目录用来存放部署到master分支的内容（username.github.io 的内容是在master分支下的）。</li>
 <li>并且source/_post/ 目录是存放你所写的文章源码。</li>
-<li>期间会要求输入远程仓库的url。</li>
+<li><code>期间会要求输入远程仓库的url。</code></li>
 <li>会自动切换到 source 分支，以后就直接在这分支上干活。</li>
 <li>注意，master 分支不要动，完全可以忽视它了。</li>
 </ol>
 
 
-<p>初次部署项目</p>
+<h5>3.2、初次部署项目</h5>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ rake generate (根据配置等生成所需要的静态文件，如：文章)
 </span><span class='line'>$ rake deploy (将_deploy目录部署到远程master分支)</span></code></pre></td></tr></table></div></figure>
 
+
+<p>访问属于你的 blog:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>比如: linjunzhu.github.io</span></code></pre></td></tr></table></div></figure>
+
+
+<p>此时应该能够访问到你的 blog 了  :)</p>
 
 <p>源码需要单独提交到git</p>
 
@@ -293,7 +301,7 @@ git 安装之后，利用git命令将octopress从github上clone到本机。</p>
 
 
 </div>
-	<footer id="footer" class="inner">Copyright &copy; 2015
+	<footer id="footer" class="inner">Copyright &copy; 2016
 
     林俊柱
 

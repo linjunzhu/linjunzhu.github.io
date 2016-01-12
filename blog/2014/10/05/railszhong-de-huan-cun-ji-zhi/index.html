@@ -523,7 +523,20 @@
 
 <h2>6、注意</h2>
 
-<p>当请求过来时，还是会经过controller,进行lazy select,再经过erb,再进行真正的 cache_key 计算，当然，此时 controller 中查询的那些还没有真正的查询，因为是 lazy select</p>
+<p>当请求过来时，还是会经过controller,进行lazy select,再经过erb,再进行真正的 <code>cache_key</code> 计算，当然，此时 controller 中查询的那些还没有真正的查询，就仅仅只是计算了 <code>cache_key</code>, 比如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;%=</span> <span class="n">cache</span> <span class="vi">@articles</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="ss">:updated_at</span><span class="p">)</span> <span class="k">do</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">    .....</span>
+</span><span class='line'><span class="sx">&lt;% end %&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>因为是 lazy select，所以这时候连 @articles 都没真正查询出来，直接变成了查询最大 <code>updated_at</code> 的语句。</p>
+
+<p> (有些在 controller 中对那些查询对象进行了操作，就不是 lazy select了）</p>
 
 <p>分割好粒度，否则会得不偿失</p>
 
@@ -576,7 +589,7 @@
 
 
 </div>
-	<footer id="footer" class="inner">Copyright &copy; 2015
+	<footer id="footer" class="inner">Copyright &copy; 2016
 
     林俊柱
 
