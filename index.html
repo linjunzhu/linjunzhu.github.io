@@ -7,20 +7,12 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="Rails 中的关联 前言 這篇文章是好久好久好久之前所做的笔记，Po 上来吧 多对多 1、使用 has_and_belongs_to_many 1
+	<meta name="description" content="OVER THE WALL 1
 2
 3
 4
 5
-6
-7
-8
-9
-10
-11
-12
-13
-class Teacher &lt; ActiveRecord::Base &hellip;">
+小时候，自由是一张破旧的五角钱，我在这头，美食在外头。 长大了，自由是一纸灼人的高考卷，我在这头，大学在外头。 后来啊，自由是一道宏伟的柏林墙，我在这头，世界在外头。 &ldquo;子轩，把那个什么门发我下。&rdquo; 犹记得第一次接触「 &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -87,6 +79,207 @@ class Teacher &lt; ActiveRecord::Base &hellip;">
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/02/17/over-the-wall/">
+		
+			OVER the WALL</a>
+	</h2>
+	<div class="entry-content">
+		<h1>OVER THE WALL</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>小时候，自由是一张破旧的五角钱，我在这头，美食在外头。
+</span><span class='line'>
+</span><span class='line'>长大了，自由是一纸灼人的高考卷，我在这头，大学在外头。
+</span><span class='line'>
+</span><span class='line'>后来啊，自由是一道宏伟的柏林墙，我在这头，世界在外头。</span></code></pre></td></tr></table></div></figure>
+
+
+<p>&ldquo;子轩，把那个什么门发我下。&rdquo;</p>
+
+<p>犹记得第一次接触「wall」的概念，还是大学第二学期，在听子轩介绍完 &ldquo;自由门&rdquo; 的神奇之后，就立马让他发给了我，从此打开了 &ldquo;新世界&rdquo; 的大门~</p>
+
+<h2>工具</h2>
+
+<p>现在的翻墙方式挺多的，主流的有：</p>
+
+<ol>
+<li>VPN</li>
+<li>代理</li>
+<li>ShadowSocks</li>
+</ol>
+
+
+<h2>VPN</h2>
+
+<p>VPN 相当于虚拟出一个虚拟网卡，流量全部走这个虚拟网卡，而如果做了智能分流(修改路由表)的话，访问国内网站会走真实网卡，其他的走虚拟网卡。</p>
+
+<p>VPN 推荐：<a href="http://igotvpn.com/?r=cc22a7c3d700276e">云梯</a></p>
+
+<h2>代理</h2>
+
+<p>顾名思义，将要访问的网站将会通过「代理服务器」来进行中转，操作简单，只需设置下代理地址即可。</p>
+
+<p>代理 推荐：<a href="http://theqingyun.info/r/dkp2pm">轻云</a></p>
+
+<h2>ShadowSocks</h2>
+
+<p>SS 则是通过 SOCKS5 代理的方式，如果你是用 Mac 的话，点开 Wifi 设置 => 高级，就会看到代理的选项。</p>
+
+<p>能否代理要看使用的软件支不支持 SOCKS5 代理,有些软件只支持 HTTP 代理，那就没辙了</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Chrome : 点开设置你会发现它是默认是用系统代理设置的
+</span><span class='line'>QQ : 不使用系统代理设置，可以自定义代理设置
+</span><span class='line'>邮件: 默认系统代理设置</span></code></pre></td></tr></table></div></figure>
+
+
+<p>SS 推荐: <a href="crola.xyz">crola.xyz</a> ( 现在注册需要邀请码，有需要可以找我拿 )</p>
+
+<h2>SHELL 无法代理？</h2>
+
+<p>由于 VPN 是全局流量，因此 SHELL 的流量也是走 VPN 的，因此也处于「翻墙状态」</p>
+
+<p>但 代理 &amp; ShadowSocks 的方式不一样，需要程序支持</p>
+
+<p>而SHELL 只支持 HTTP 代理，并且需要如下设置:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># .zshrc / .bashrc 等配置文件之一</span>
+</span><span class='line'><span class="n">export</span> <span class="n">http_proxy</span><span class="o">=</span><span class="ss">proxy_addr</span><span class="p">:</span><span class="n">port</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如此 SHELL 也处于了「翻墙」的状态了。</p>
+
+<p>但是 ShadowSocks 是通过 SOCKS5 的方式，并不支持 HTTP 流量，因此我们需要工具来将流量转换成 SOCKS5 并且转发给 SS 代理服务。</p>
+
+<p>常见的工具有 ProxyChains-NG</p>
+
+<h2>ProxyChains-NG</h2>
+
+<p>项目主页： <a href="https://github.com/rofl0r/proxychains-ng">https://github.com/rofl0r/proxychains-ng</a></p>
+
+<h3>安装</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">brew</span> <span class="n">install</span> <span class="n">proxychains</span><span class="o">-</span><span class="n">ng</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>配置</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">vim</span> <span class="sr">/etc/</span><span class="n">proxychains</span><span class="o">.</span><span class="n">conf</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># edit</span>
+</span><span class='line'><span class="n">strict_chain</span>
+</span><span class='line'><span class="n">proxy_dns</span>
+</span><span class='line'><span class="n">remote_dns_subnet</span> <span class="mi">224</span>
+</span><span class='line'><span class="n">tcp_read_time_out</span> <span class="mi">15000</span>
+</span><span class='line'><span class="n">tcp_connect_time_out</span> <span class="mi">8000</span>
+</span><span class='line'><span class="n">localnet</span> <span class="mi">127</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">/</span><span class="mi">255</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span>
+</span><span class='line'><span class="n">quiet_mode</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span><span class="no">ProxyList</span><span class="o">]</span>
+</span><span class='line'><span class="n">socks5</span>  <span class="mi">127</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">1</span> <span class="mi">1080</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 本地开启的服务正是 1080 端口</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>使用</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">proxychains4</span> <span class="o">-</span><span class="n">q</span> <span class="n">curl</span> <span class="s1">&#39;google.com&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">## 添加 alias(在 .zshrc / .bashrc ....)</span>
+</span><span class='line'><span class="k">alias</span> <span class="n">ss</span><span class="o">=</span><span class="s2">&quot;proxychains4 -q&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">## 简化</span>
+</span><span class='line'><span class="n">ss</span> <span class="n">curl</span> <span class="s1">&#39;google.com&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>过程</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">SHELL</span> <span class="err">发出</span> <span class="n">request</span> <span class="o">=&gt;</span> <span class="no">ProxyChains</span><span class="o">-</span><span class="no">NG</span> <span class="err">将</span> <span class="no">HTTP</span> <span class="err">流量转换成</span> <span class="no">SOCKS5</span> <span class="err">流量</span> <span class="o">=&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">本地</span> <span class="no">SS</span> <span class="err">服务</span> <span class="err">转发请求到</span> <span class="err">远程</span> <span class="no">SS</span> <span class="err">服务器</span> <span class="o">=&gt;</span> <span class="no">SS</span> <span class="err">服务器请求实际</span> <span class="n">request</span><span class="p">,</span> <span class="err">将</span> <span class="n">response</span> <span class="err">返回</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>10.11</h3>
+
+<p>由于 Mac OSX 10.11 增加了安全机制，导致无法使用，唯一方法就是关闭 SIP</p>
+
+<ol>
+<li>首先重启系统，在开机时按住 Command+R 来进入 Recovery 模式</li>
+<li>菜单栏中找到 terminal, 打开</li>
+<li>执行: csrutil disable</li>
+<li>如果想恢复，可以执行: csrutil enable</li>
+</ol>
+
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-17T15:31:30+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -2578,521 +2771,6 @@ class Teacher &lt; ActiveRecord::Base &hellip;">
 
 
 <time datetime="2015-03-06T15:53:15+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2015/01/30/shi-yong-mosquitto/">
-		
-			使用 Mosquitto</a>
-	</h2>
-	<div class="entry-content">
-		<h2>引言</h2>
-
-<p>这段时间团队需要跟 Google Glass 进行交互，因此要做一个推送机制。而 MQTT 协议的推送是当今最火热的一个。</p>
-
-<p>Mosquitto 则是实现了 MQTT 协议的服务。</p>
-
-<h2>安装</h2>
-
-<p>在 Ubuntu 下：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">add</span><span class="o">-</span><span class="n">repository</span> <span class="ss">ppa</span><span class="p">:</span><span class="n">mosquitto</span><span class="o">-</span><span class="n">dev</span><span class="o">/</span><span class="n">mosquitto</span><span class="o">-</span><span class="n">ppa</span>
-</span><span class='line'><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">update</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果显示<code>apt-add-repository</code>没有识别，则可以：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">python</span><span class="o">-</span><span class="n">software</span><span class="o">-</span><span class="n">properties</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>配置</h2>
-
-<p>安装完成后，所有配置都会在 <code>/etc/mosquitto</code>目录下。其中最重要的则是<code>mosquitto.conf</code> 文件，以下则是配置文件内容。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-<span class='line-number'>62</span>
-<span class='line-number'>63</span>
-<span class='line-number'>64</span>
-<span class='line-number'>65</span>
-<span class='line-number'>66</span>
-<span class='line-number'>67</span>
-<span class='line-number'>68</span>
-<span class='line-number'>69</span>
-<span class='line-number'>70</span>
-<span class='line-number'>71</span>
-<span class='line-number'>72</span>
-<span class='line-number'>73</span>
-<span class='line-number'>74</span>
-<span class='line-number'>75</span>
-<span class='line-number'>76</span>
-<span class='line-number'>77</span>
-<span class='line-number'>78</span>
-<span class='line-number'>79</span>
-<span class='line-number'>80</span>
-<span class='line-number'>81</span>
-<span class='line-number'>82</span>
-<span class='line-number'>83</span>
-<span class='line-number'>84</span>
-<span class='line-number'>85</span>
-<span class='line-number'>86</span>
-<span class='line-number'>87</span>
-<span class='line-number'>88</span>
-<span class='line-number'>89</span>
-<span class='line-number'>90</span>
-<span class='line-number'>91</span>
-<span class='line-number'>92</span>
-<span class='line-number'>93</span>
-<span class='line-number'>94</span>
-<span class='line-number'>95</span>
-<span class='line-number'>96</span>
-<span class='line-number'>97</span>
-<span class='line-number'>98</span>
-<span class='line-number'>99</span>
-<span class='line-number'>100</span>
-<span class='line-number'>101</span>
-<span class='line-number'>102</span>
-<span class='line-number'>103</span>
-<span class='line-number'>104</span>
-<span class='line-number'>105</span>
-<span class='line-number'>106</span>
-<span class='line-number'>107</span>
-<span class='line-number'>108</span>
-<span class='line-number'>109</span>
-<span class='line-number'>110</span>
-<span class='line-number'>111</span>
-<span class='line-number'>112</span>
-<span class='line-number'>113</span>
-<span class='line-number'>114</span>
-<span class='line-number'>115</span>
-<span class='line-number'>116</span>
-<span class='line-number'>117</span>
-<span class='line-number'>118</span>
-<span class='line-number'>119</span>
-<span class='line-number'>120</span>
-<span class='line-number'>121</span>
-<span class='line-number'>122</span>
-<span class='line-number'>123</span>
-<span class='line-number'>124</span>
-<span class='line-number'>125</span>
-<span class='line-number'>126</span>
-<span class='line-number'>127</span>
-<span class='line-number'>128</span>
-<span class='line-number'>129</span>
-<span class='line-number'>130</span>
-<span class='line-number'>131</span>
-<span class='line-number'>132</span>
-<span class='line-number'>133</span>
-<span class='line-number'>134</span>
-<span class='line-number'>135</span>
-<span class='line-number'>136</span>
-<span class='line-number'>137</span>
-<span class='line-number'>138</span>
-<span class='line-number'>139</span>
-<span class='line-number'>140</span>
-<span class='line-number'>141</span>
-<span class='line-number'>142</span>
-<span class='line-number'>143</span>
-<span class='line-number'>144</span>
-<span class='line-number'>145</span>
-<span class='line-number'>146</span>
-<span class='line-number'>147</span>
-<span class='line-number'>148</span>
-<span class='line-number'>149</span>
-<span class='line-number'>150</span>
-<span class='line-number'>151</span>
-<span class='line-number'>152</span>
-<span class='line-number'>153</span>
-<span class='line-number'>154</span>
-<span class='line-number'>155</span>
-<span class='line-number'>156</span>
-<span class='line-number'>157</span>
-<span class='line-number'>158</span>
-<span class='line-number'>159</span>
-<span class='line-number'>160</span>
-<span class='line-number'>161</span>
-<span class='line-number'>162</span>
-<span class='line-number'>163</span>
-<span class='line-number'>164</span>
-<span class='line-number'>165</span>
-<span class='line-number'>166</span>
-<span class='line-number'>167</span>
-<span class='line-number'>168</span>
-<span class='line-number'>169</span>
-<span class='line-number'>170</span>
-<span class='line-number'>171</span>
-<span class='line-number'>172</span>
-<span class='line-number'>173</span>
-<span class='line-number'>174</span>
-<span class='line-number'>175</span>
-<span class='line-number'>176</span>
-<span class='line-number'>177</span>
-<span class='line-number'>178</span>
-<span class='line-number'>179</span>
-<span class='line-number'>180</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># =================================================================</span>
-</span><span class='line'><span class="c1"># General configuration</span>
-</span><span class='line'><span class="c1"># =================================================================</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 客户端心跳的间隔时间</span>
-</span><span class='line'><span class="c1">#retry_interval 20</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 系统状态的刷新时间</span>
-</span><span class='line'><span class="c1">#sys_interval 10</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 系统资源的回收时间，0表示尽快处理</span>
-</span><span class='line'><span class="c1">#store_clean_interval 10</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 服务进程的PID</span>
-</span><span class='line'><span class="c1">#pid_file /var/run/mosquitto.pid</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 服务进程的系统用户</span>
-</span><span class='line'><span class="c1">#user mosquitto</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 客户端心跳消息的最大并发数</span>
-</span><span class='line'><span class="c1">#max_inflight_messages 10</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 客户端心跳消息缓存队列</span>
-</span><span class='line'><span class="c1">#max_queued_messages 100</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 用于设置客户端长连接的过期时间，默认永不过期</span>
-</span><span class='line'><span class="c1">#persistent_client_expiration</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># =================================================================</span>
-</span><span class='line'><span class="c1"># Default listener</span>
-</span><span class='line'><span class="c1"># =================================================================</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 服务绑定的IP地址</span>
-</span><span class='line'><span class="c1">#bind_address</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 服务绑定的端口号</span>
-</span><span class='line'><span class="c1">#port 1883</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 允许的最大连接数，-1表示没有限制</span>
-</span><span class='line'><span class="c1">#max_connections -1</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># cafile：CA证书文件</span>
-</span><span class='line'><span class="c1"># capath：CA证书目录</span>
-</span><span class='line'><span class="c1"># certfile：PEM证书文件</span>
-</span><span class='line'><span class="c1"># keyfile：PEM密钥文件</span>
-</span><span class='line'><span class="c1">#cafile</span>
-</span><span class='line'><span class="c1">#capath</span>
-</span><span class='line'><span class="c1">#certfile</span>
-</span><span class='line'><span class="c1">#keyfile</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 必须提供证书以保证数据安全性</span>
-</span><span class='line'><span class="c1">#require_certificate false</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 若require_certificate值为true，use_identity_as_username也必须为true</span>
-</span><span class='line'><span class="c1">#use_identity_as_username false</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 启用PSK（Pre-shared-key）支持</span>
-</span><span class='line'><span class="c1">#psk_hint</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># SSL/TSL加密算法，可以使用“openssl ciphers”命令获取</span>
-</span><span class='line'><span class="c1"># as the output of that command.</span>
-</span><span class='line'><span class="c1">#ciphers</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># =================================================================</span>
-</span><span class='line'><span class="c1"># Persistence</span>
-</span><span class='line'><span class="c1"># =================================================================</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 消息自动保存的间隔时间</span>
-</span><span class='line'><span class="c1">#autosave_interval 1800</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 消息自动保存功能的开关</span>
-</span><span class='line'><span class="c1">#autosave_on_changes false</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 持久化功能的开关</span>
-</span><span class='line'><span class="n">persistence</span> <span class="kp">true</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 持久化DB文件</span>
-</span><span class='line'><span class="c1">#persistence_file mosquitto.db</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 持久化DB文件目录</span>
-</span><span class='line'><span class="c1">#persistence_location /var/lib/mosquitto/</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># =================================================================</span>
-</span><span class='line'><span class="c1"># Logging</span>
-</span><span class='line'><span class="c1"># =================================================================</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 4种日志模式：stdout、stderr、syslog、topic</span>
-</span><span class='line'><span class="c1"># none 则表示不记日志，此配置可以提升些许性能</span>
-</span><span class='line'><span class="n">log_dest</span> <span class="n">none</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">#还有一种写入文件的模式</span>
-</span><span class='line'><span class="n">log_dest</span> <span class="n">file</span> <span class="s1">&#39;/var/lib/mosquitto/mosquitto.log&#39;</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 选择日志的级别（可设置多项）</span>
-</span><span class='line'><span class="c1">#log_type error</span>
-</span><span class='line'><span class="c1">#log_type warning</span>
-</span><span class='line'><span class="c1">#log_type notice</span>
-</span><span class='line'><span class="c1">#log_type information</span>
-</span><span class='line'><span class="c1">#log_type all</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 是否记录客户端连接信息</span>
-</span><span class='line'><span class="c1">#connection_messages true</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 是否记录日志时间</span>
-</span><span class='line'><span class="c1">#log_timestamp true</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># =================================================================</span>
-</span><span class='line'><span class="c1"># Security</span>
-</span><span class='line'><span class="c1"># =================================================================</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 客户端ID的前缀限制，可用于保证安全性</span>
-</span><span class='line'><span class="c1">#clientid_prefixes</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 允许匿名用户</span>
-</span><span class='line'><span class="c1">#allow_anonymous true</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 用户/密码文件，默认格式：username:password</span>
-</span><span class='line'><span class="c1">#password_file</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># PSK格式密码文件，默认格式：identity:key</span>
-</span><span class='line'><span class="c1">#psk_file</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># pattern write sensor/%u/data</span>
-</span><span class='line'><span class="c1"># ACL权限配置，常用语法如下：</span>
-</span><span class='line'><span class="c1"># 用户限制：user &lt;username&gt;</span>
-</span><span class='line'><span class="c1"># 话题限制：topic [read|write] &lt;topic&gt;</span>
-</span><span class='line'><span class="c1"># 正则限制：pattern write sensor/%u/data</span>
-</span><span class='line'><span class="c1">#acl_file</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># =================================================================</span>
-</span><span class='line'><span class="c1"># Bridges</span>
-</span><span class='line'><span class="c1"># =================================================================</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 允许服务之间使用“桥接”模式（可用于分布式部署）</span>
-</span><span class='line'><span class="c1">#connection &lt;name&gt;</span>
-</span><span class='line'><span class="c1">#address &lt;host&gt;[:&lt;port&gt;]</span>
-</span><span class='line'><span class="c1">#topic &lt;topic&gt; [[[out | in | both] qos-level] local-prefix remote-prefix]</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 设置桥接的客户端ID</span>
-</span><span class='line'><span class="c1">#clientid</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 桥接断开时，是否清除远程服务器中的消息</span>
-</span><span class='line'><span class="c1">#cleansession false</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 是否发布桥接的状态信息</span>
-</span><span class='line'><span class="c1">#notifications true</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 设置桥接模式下，消息将会发布到的话题地址</span>
-</span><span class='line'><span class="c1"># $SYS/broker/connection/&lt;clientid&gt;/state</span>
-</span><span class='line'><span class="c1">#notification_topic</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 设置桥接的keepalive数值</span>
-</span><span class='line'><span class="c1">#keepalive_interval 60</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 桥接模式，目前有三种：automatic、lazy、once</span>
-</span><span class='line'><span class="c1">#start_type automatic</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 桥接模式automatic的超时时间</span>
-</span><span class='line'><span class="c1">#restart_timeout 30</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 桥接模式lazy的超时时间</span>
-</span><span class='line'><span class="c1">#idle_timeout 60</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 桥接客户端的用户名</span>
-</span><span class='line'><span class="c1">#username</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 桥接客户端的密码</span>
-</span><span class='line'><span class="c1">#password</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># bridge_cafile：桥接客户端的CA证书文件</span>
-</span><span class='line'><span class="c1"># bridge_capath：桥接客户端的CA证书目录</span>
-</span><span class='line'><span class="c1"># bridge_certfile：桥接客户端的PEM证书文件</span>
-</span><span class='line'><span class="c1"># bridge_keyfile：桥接客户端的PEM密钥文件</span>
-</span><span class='line'><span class="c1">#bridge_cafile</span>
-</span><span class='line'><span class="c1">#bridge_capath</span>
-</span><span class='line'><span class="c1">#bridge_certfile</span>
-</span><span class='line'><span class="c1">#bridge_keyfile</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 自己的配置可以放到以下目录中</span>
-</span><span class='line'><span class="n">include_dir</span> <span class="sr">/etc/mos</span><span class="n">quitto</span><span class="o">/</span><span class="n">conf</span><span class="o">.</span><span class="n">d</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>权限</h2>
-
-<p>为了避免任何人都可以往服务器去 pull&amp;push，我们需要设置权限。</p>
-
-<p>使用自带工具进行设置账号：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1">#add a count and then will ask you to enter a passwd</span>
-</span><span class='line'><span class="n">mosquitto_passwd</span> <span class="o">-</span><span class="n">c</span> <span class="sr">/etc/mos</span><span class="n">quitto</span><span class="o">/</span><span class="n">passwd</span> <span class="n">glassx</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># delete</span>
-</span><span class='line'><span class="n">mosquitto_passwd</span> <span class="o">-</span><span class="n">D</span> <span class="sr">/etc/mos</span><span class="n">quitto</span><span class="o">/</span><span class="n">passwd</span> <span class="n">glassx</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>启动</h2>
-
-<p>启动服务很简单，直接运行：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">mosquitto</span> <span class="o">-</span><span class="n">c</span> <span class="sr">/etc/mos</span><span class="n">quitto</span><span class="o">/</span><span class="n">mosquitto</span><span class="o">.</span><span class="n">conf</span> <span class="o">-</span><span class="n">d</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">#-c 表示加载指定配置文件</span>
-</span><span class='line'><span class="c1">#-d 表示以后台服务运行</span>
-</span><span class='line'><span class="c1">#-p 表示监听某个端口（默认为1883)</span>
-</span><span class='line'><span class="c1">#-v 表示亢长的日志记录模式，相当于设置 log_type all</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>mosquitto 是个异步 IO 框架，经过测试可以处理 20000 个以上的客户端连接。</p>
-
-<h2>推送</h2>
-
-<p>上面所创建的只是服务器， MQTT 有三个角色， 发布角色，服务器角色，消费角色。 此时我们便使用 Ruby 来实现发布角色。</p>
-
-<p>我们会使用到一个叫做 <code>mqtt</code> 的 gem</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;rubygems&#39;</span>
-</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;mqtt&#39;</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># Publish example</span>
-</span><span class='line'><span class="no">MQTT</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;mqtt://glassx:glassxpw@127.0.0.1&#39;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span>
-</span><span class='line'>  <span class="nb">p</span> <span class="n">c</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s1">&#39;topic&#39;</span><span class="p">,</span> <span class="s1">&#39;message&#39;</span><span class="p">)</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># # Subscribe example</span>
-</span><span class='line'><span class="c1"># MQTT::Client.connect(&#39;test.mosquitto.org&#39;) do |c|</span>
-</span><span class='line'><span class="c1">#   # If you pass a block to the get method, then it will loop</span>
-</span><span class='line'><span class="c1">#   c.get(&#39;test&#39;) do |topic,message|</span>
-</span><span class='line'><span class="c1">#     puts &quot;#{topic}: #{message}&quot;</span>
-</span><span class='line'><span class="c1">#   end</span>
-</span><span class='line'><span class="c1"># end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>接收</h2>
-
-<p>接收则是各个客户端的实现了，这里就不写了。</p>
-
-<h2>引用</h2>
-
-<p>官网：<a href="http://mosquitto.org/">http://mosquitto.org/</a></p>
-
-<p>简要教程：<a href="http://blog.csdn.net/shagoo/article/details/7910598">http://blog.csdn.net/shagoo/article/details/7910598</a></p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-01-30T16:04:40+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>

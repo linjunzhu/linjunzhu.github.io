@@ -7,12 +7,14 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="git push 将本地仓库的更新推送到远程仓库 remote git push [remote-name] [branch-name] git push origin master 1
+	<meta name="description" content="git merge 和 git rebase 两者都是合并分支的功能，但是区别在于: 假如合并前是这样的： 1
 2
 3
-4
-5
-# 如果当前分支跟远程分支有 tracking 关系， &hellip;">
+D---E master /
+A---B---C---F origin/master 使用merge后 1
+2
+3 D--------E / \
+A---B---C---F &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -79,6 +81,251 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/24/git-rebase/">
+		
+			Git &#8211; Rebase 篇</a>
+	</h2>
+	<div class="entry-content">
+		<h2>git merge 和 git rebase</h2>
+
+<p>两者都是合并分支的功能，但是区别在于:</p>
+
+<p>假如合并前是这样的：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>D---E master
+</span><span class='line'>     /
+</span><span class='line'>A---B---C---F origin/master</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用merge后</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  D--------E  
+</span><span class='line'> /          \
+</span><span class='line'>A---B---C---F----G   master, origin/master</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用rebase后，就不会有G这个结点</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>A---B---C---F---D'---E'   master, origin/master</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Tips</h4>
+
+<p>1、D’, E’ 的 commit SHA 序號跟本來 D, E 是不同的，因為算是砍掉重新 commit 了。</p>
+
+<p>2、因为使用<code>rebase</code>算是砍掉 D E 重新commit ,那么这里就可能会造成两次冲突，需要修改两次。而merge只需要修改一次</p>
+
+<p>3、因此如果是小规模改动，冲突不会太大的话，建议使用rebase,否则使用merge。</p>
+
+<p>使用reabse的好处是可以让分支不会那么乱，呈线性。</p>
+
+<h4>进行合并</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">两条分支：</span> <span class="n">dev</span> <span class="err">和</span> <span class="n">master</span><span class="err">，此时</span> <span class="n">dev</span> <span class="err">需要合并回</span> <span class="n">master</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># rebase 方式</span>
+</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">dev</span><span class="p">)</span> <span class="n">git</span> <span class="n">rebase</span> <span class="n">master</span>
+</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">dev</span><span class="p">)</span> <span class="n">git</span> <span class="n">checkout</span> <span class="n">master</span>
+</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">master</span><span class="p">)</span> <span class="n">git</span> <span class="n">merge</span> <span class="n">dev</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># merge 方式</span>
+</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">master</span><span class="p">)</span> <span class="n">git</span> <span class="n">merge</span> <span class="n">dev</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># rebase 方式，此时dev和master的指针都是同时指向最新的commit点</span>
+</span><span class='line'><span class="c1"># 但是 origin/dev 指针头消失了。因此</span>
+</span><span class='line'><span class="c1"># 如果要继续使用 dev, 需要先 pull 一下，跟 远端仓库的 dev 最新 commit 点进行一次 merge ( 当然结果是一个空 commit,此时可以 push --force)</span>
+</span><span class='line'><span class="c1"># 此时 dev 分支的 nerwork 图是：</span>
+</span><span class='line'><span class="c1"># * b6fa04b (HEAD, master, dev, origin/master) dev01 ( 10 seconds ago )</span>
+</span><span class='line'><span class="c1"># 原因见下面</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>解决冲突</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 解决冲突后</span>
+</span><span class='line'><span class="o">-------------------</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># merge 方式</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">add</span> <span class="o">.</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">am</span> <span class="s1">&#39;xx&#39;</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># rebase 方式</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">add</span> <span class="o">.</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">rebase</span> <span class="o">--</span><span class="n">continue</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>pull 时使用 rebase 方式</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">pull</span> <span class="o">--</span><span class="n">rebase</span> <span class="p">(</span> <span class="err">适合同个分支</span> <span class="err">）</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>&ndash;no-ff</h4>
+
+<p>因为两条分支在合并时，当第一条分支完全没做修改时，此时 Git 会用到<code>Fast forward</code>模式，将 HEAD 指向第二条分支的最新 commit 去，这时候我们可以用该参数来禁止<code>fast forward</code>模式。</p>
+
+<p><code>git merge --no-ff</code>这参数的作用跟<code>rebase</code>恰恰相反，是故意弄出一条分支线，表明某些 commit 是为了实现某个功能的。</p>
+
+<p>适用于分支间的合并</p>
+
+<h3>Tips</h3>
+
+<p>一般分支间的 rebase 合并使用场景是：</p>
+
+<p>1、我自己需要实现某个功能，于是开个分支 new_menu，不提交到远程分支。开发完毕用 rebase 弄回 dev 分支</p>
+
+<p>2、一旦分支提交到远程分支，最好不要使用 rebase 进行分支间的合并了，会造成混乱。</p>
+
+<p>3、一般来说，使用 rebase 后的 new_menu 分支就当做废弃了，如果还需要重新使用的话，继续从 dev 分支 new 出一条分支来。</p>
+
+<p>4、在实验中我发现，一旦在 dev 进行 rebase master,那么 origin/dev 的指向就消失了，那是因为 dev 的原先 commit 全部消失了，进行重新 commit，因此本地的 origin/dev 也没得指向了。所以才会造成要 push 时要先<code>pull</code>的现象，(也就是 master分支上的最新commit点,「此时dev也是指向最新commit点」，会跟远程服务器上的origin/dev最新commit点进行merge)因此我们可以用<code>git push --force</code> 强制 push 来解决。</p>
+
+<p>如果是<code>pull</code>:
+<img src="http://data-storage.qiniudn.com/2546D03D-A4B6-4765-9DF4-0154F62606DC.png" alt="" /></p>
+
+<p><img src="http://data-storage.qiniudn.com/C142553B-FE45-42B3-BC10-92111A969C3F.png" alt="" /></p>
+
+<p>如果是<code>git push --force</code> 的话就会成为一条直线。</p>
+
+<h2>整理 commit</h2>
+
+<p>在一个 branch 上开发一段时间后，commit 看起来会很杂乱，或者很多无谓的 commit 点，那么我们可以使用 rabase 来将多个 commit 合并成一个。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">log</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">=&gt;</span>
+</span><span class='line'><span class="n">a</span>
+</span><span class='line'><span class="n">b1</span>
+</span><span class='line'><span class="n">b2</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">=&gt;</span><span class="err">要变成</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">a</span>
+</span><span class='line'><span class="n">b</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 拿到 a 的 SHA-1 后</span>
+</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">rebase</span> <span class="o">-</span><span class="n">i</span> <span class="mi">49687</span><span class="n">a0a646954afdf3f4dae1f914ea793341ea2</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">pick</span> <span class="mo">033</span><span class="n">beb4</span> <span class="n">b1</span>
+</span><span class='line'><span class="n">pick</span> <span class="n">d426a8a</span> <span class="n">b2</span>
+</span><span class='line'><span class="c1"># Rebase 49687a0..d426a8a onto 49687a0</span>
+</span><span class='line'><span class="c1"># pick = use commit </span>
+</span><span class='line'><span class="c1"># squash = use commit, but meld into previous commit</span>
+</span><span class='line'><span class="c1"># pick 会执行该 commit, squash 则将该 commit 合并到前一个 commit</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>于是我们修改成：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">pick</span> <span class="mo">033</span><span class="n">beb4</span> <span class="n">b1</span>
+</span><span class='line'><span class="n">squash</span> <span class="n">d426a8a</span> <span class="n">b2</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 保存退出后会要求输入新的 commit 信息，后可通过 git log 查看。</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Tips</h3>
+
+<p>1、这功能的使用场景是 commit 还没有 push 到远程分支，一旦 push 到远程分支就不要用了。( 虽然可以用 &ndash;force 强制 push，视情况而定 )</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-24T22:12:33+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -2110,82 +2357,6 @@ end         ils&gt;
 
 
 <time datetime="2014-07-02T22:43:33+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/06/12/ru-he-shi-yong-gitbook/">
-		
-			如何使用gitbook</a>
-	</h2>
-	<div class="entry-content">
-		<h3>GitBook</h3>
-
-<p>GitBook是一款利用git和markdown快速写出电子书的工具</p>
-
-<h4>1、开始使用</h4>
-
-<p>首先</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ npm install gitbook -g</span></code></pre></td></tr></table></div></figure>
-
-
-<p>安装gitbook命令行工具, 该命令行工具是用Node.js所写。可以依靠该工具在本地生成预览</p>
-
-<p>接着去官网下载编辑器 <a href="https://www.gitbook.io">https://www.gitbook.io</a>，并且在上面注册账号</p>
-
-<h4>2、开始写书</h4>
-
-<p><img src="https://camo.githubusercontent.com/c1b6c55fca8e171120ce1fd73afcee699cc2a98f/68747470733a2f2f7261772e6769746875622e636f6d2f476974626f6f6b494f2f676974626f6f6b2f6d61737465722f707265766965772e706e67" alt="" /></p>
-
-<p>在File菜单上点击 new book,创建一本新书。
-然后在左边侧边栏右键创建capter,需要注意的是capter名不能为中文。要如何做呢？</p>
-
-<ol>
-<li>用英文名创建capter （其实就相当于在本地创建一个文件夹）</li>
-<li>右键修改capter名为中文</li>
-</ol>
-
-
-<p>否则会出现错误。</p>
-
-<p>然后就愉快的写书啦~~~~</p>
-
-<h4>3、上传数据</h4>
-
-<p>Book => publish as => done</p>
-
-<h4>4、协作写书</h4>
-
-<p>将book文件夹 share 出去即可</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-12T17:29:25+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>

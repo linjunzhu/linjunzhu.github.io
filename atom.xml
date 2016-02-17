@@ -4,7 +4,7 @@
   <title><![CDATA[LinJunzhu's Blog]]></title>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/atom.xml" rel="self"/>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/"/>
-  <updated>2016-01-12T16:05:00+08:00</updated>
+  <updated>2016-02-17T15:35:28+08:00</updated>
   <id>https://github.com/linjunzhu/linjunzhu.github.io.git/</id>
   <author>
     <name><![CDATA[林俊柱]]></name>
@@ -12,6 +12,179 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[OVER THE WALL]]></title>
+    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2016/02/17/over-the-wall/"/>
+    <updated>2016-02-17T15:31:30+08:00</updated>
+    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2016/02/17/over-the-wall</id>
+    <content type="html"><![CDATA[<h1>OVER THE WALL</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>小时候，自由是一张破旧的五角钱，我在这头，美食在外头。
+</span><span class='line'>
+</span><span class='line'>长大了，自由是一纸灼人的高考卷，我在这头，大学在外头。
+</span><span class='line'>
+</span><span class='line'>后来啊，自由是一道宏伟的柏林墙，我在这头，世界在外头。</span></code></pre></td></tr></table></div></figure>
+
+
+<p>&ldquo;子轩，把那个什么门发我下。&rdquo;</p>
+
+<p>犹记得第一次接触「wall」的概念，还是大学第二学期，在听子轩介绍完 &ldquo;自由门&rdquo; 的神奇之后，就立马让他发给了我，从此打开了 &ldquo;新世界&rdquo; 的大门~</p>
+
+<h2>工具</h2>
+
+<p>现在的翻墙方式挺多的，主流的有：</p>
+
+<ol>
+<li>VPN</li>
+<li>代理</li>
+<li>ShadowSocks</li>
+</ol>
+
+
+<h2>VPN</h2>
+
+<p>VPN 相当于虚拟出一个虚拟网卡，流量全部走这个虚拟网卡，而如果做了智能分流(修改路由表)的话，访问国内网站会走真实网卡，其他的走虚拟网卡。</p>
+
+<p>VPN 推荐：<a href="http://igotvpn.com/?r=cc22a7c3d700276e">云梯</a></p>
+
+<h2>代理</h2>
+
+<p>顾名思义，将要访问的网站将会通过「代理服务器」来进行中转，操作简单，只需设置下代理地址即可。</p>
+
+<p>代理 推荐：<a href="http://theqingyun.info/r/dkp2pm">轻云</a></p>
+
+<h2>ShadowSocks</h2>
+
+<p>SS 则是通过 SOCKS5 代理的方式，如果你是用 Mac 的话，点开 Wifi 设置 => 高级，就会看到代理的选项。</p>
+
+<p>能否代理要看使用的软件支不支持 SOCKS5 代理,有些软件只支持 HTTP 代理，那就没辙了</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Chrome : 点开设置你会发现它是默认是用系统代理设置的
+</span><span class='line'>QQ : 不使用系统代理设置，可以自定义代理设置
+</span><span class='line'>邮件: 默认系统代理设置</span></code></pre></td></tr></table></div></figure>
+
+
+<p>SS 推荐: <a href="crola.xyz">crola.xyz</a> ( 现在注册需要邀请码，有需要可以找我拿 )</p>
+
+<h2>SHELL 无法代理？</h2>
+
+<p>由于 VPN 是全局流量，因此 SHELL 的流量也是走 VPN 的，因此也处于「翻墙状态」</p>
+
+<p>但 代理 &amp; ShadowSocks 的方式不一样，需要程序支持</p>
+
+<p>而SHELL 只支持 HTTP 代理，并且需要如下设置:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># .zshrc / .bashrc 等配置文件之一</span>
+</span><span class='line'><span class="n">export</span> <span class="n">http_proxy</span><span class="o">=</span><span class="ss">proxy_addr</span><span class="p">:</span><span class="n">port</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如此 SHELL 也处于了「翻墙」的状态了。</p>
+
+<p>但是 ShadowSocks 是通过 SOCKS5 的方式，并不支持 HTTP 流量，因此我们需要工具来将流量转换成 SOCKS5 并且转发给 SS 代理服务。</p>
+
+<p>常见的工具有 ProxyChains-NG</p>
+
+<h2>ProxyChains-NG</h2>
+
+<p>项目主页： <a href="https://github.com/rofl0r/proxychains-ng">https://github.com/rofl0r/proxychains-ng</a></p>
+
+<h3>安装</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">brew</span> <span class="n">install</span> <span class="n">proxychains</span><span class="o">-</span><span class="n">ng</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>配置</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">vim</span> <span class="sr">/etc/</span><span class="n">proxychains</span><span class="o">.</span><span class="n">conf</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># edit</span>
+</span><span class='line'><span class="n">strict_chain</span>
+</span><span class='line'><span class="n">proxy_dns</span>
+</span><span class='line'><span class="n">remote_dns_subnet</span> <span class="mi">224</span>
+</span><span class='line'><span class="n">tcp_read_time_out</span> <span class="mi">15000</span>
+</span><span class='line'><span class="n">tcp_connect_time_out</span> <span class="mi">8000</span>
+</span><span class='line'><span class="n">localnet</span> <span class="mi">127</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">/</span><span class="mi">255</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span>
+</span><span class='line'><span class="n">quiet_mode</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span><span class="no">ProxyList</span><span class="o">]</span>
+</span><span class='line'><span class="n">socks5</span>  <span class="mi">127</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">1</span> <span class="mi">1080</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 本地开启的服务正是 1080 端口</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>使用</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">proxychains4</span> <span class="o">-</span><span class="n">q</span> <span class="n">curl</span> <span class="s1">&#39;google.com&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">## 添加 alias(在 .zshrc / .bashrc ....)</span>
+</span><span class='line'><span class="k">alias</span> <span class="n">ss</span><span class="o">=</span><span class="s2">&quot;proxychains4 -q&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">## 简化</span>
+</span><span class='line'><span class="n">ss</span> <span class="n">curl</span> <span class="s1">&#39;google.com&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>过程</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">SHELL</span> <span class="err">发出</span> <span class="n">request</span> <span class="o">=&gt;</span> <span class="no">ProxyChains</span><span class="o">-</span><span class="no">NG</span> <span class="err">将</span> <span class="no">HTTP</span> <span class="err">流量转换成</span> <span class="no">SOCKS5</span> <span class="err">流量</span> <span class="o">=&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">本地</span> <span class="no">SS</span> <span class="err">服务</span> <span class="err">转发请求到</span> <span class="err">远程</span> <span class="no">SS</span> <span class="err">服务器</span> <span class="o">=&gt;</span> <span class="no">SS</span> <span class="err">服务器请求实际</span> <span class="n">request</span><span class="p">,</span> <span class="err">将</span> <span class="n">response</span> <span class="err">返回</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>10.11</h3>
+
+<p>由于 Mac OSX 10.11 增加了安全机制，导致无法使用，唯一方法就是关闭 SIP</p>
+
+<ol>
+<li>首先重启系统，在开机时按住 Command+R 来进入 Recovery 模式</li>
+<li>菜单栏中找到 terminal, 打开</li>
+<li>执行: csrutil disable</li>
+<li>如果想恢复，可以执行: csrutil enable</li>
+</ol>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Rails's association]]></title>
@@ -4960,223 +5133,6 @@
 <p><a href="http://git-scm.com">Git 官方</a></p>
 
 <p><a href="http://git-scm.com/book/zh">Git 官方教程</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Git -- rebase 篇]]></title>
-    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/24/git-rebase/"/>
-    <updated>2014-10-24T22:12:33+08:00</updated>
-    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/10/24/git-rebase</id>
-    <content type="html"><![CDATA[<h2>git merge 和 git rebase</h2>
-
-<p>两者都是合并分支的功能，但是区别在于:</p>
-
-<p>假如合并前是这样的：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>D---E master
-</span><span class='line'>     /
-</span><span class='line'>A---B---C---F origin/master</span></code></pre></td></tr></table></div></figure>
-
-
-<p>使用merge后</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  D--------E  
-</span><span class='line'> /          \
-</span><span class='line'>A---B---C---F----G   master, origin/master</span></code></pre></td></tr></table></div></figure>
-
-
-<p>使用rebase后，就不会有G这个结点</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>A---B---C---F---D'---E'   master, origin/master</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>Tips</h4>
-
-<p>1、D’, E’ 的 commit SHA 序號跟本來 D, E 是不同的，因為算是砍掉重新 commit 了。</p>
-
-<p>2、因为使用<code>rebase</code>算是砍掉 D E 重新commit ,那么这里就可能会造成两次冲突，需要修改两次。而merge只需要修改一次</p>
-
-<p>3、因此如果是小规模改动，冲突不会太大的话，建议使用rebase,否则使用merge。</p>
-
-<p>使用reabse的好处是可以让分支不会那么乱，呈线性。</p>
-
-<h4>进行合并</h4>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">两条分支：</span> <span class="n">dev</span> <span class="err">和</span> <span class="n">master</span><span class="err">，此时</span> <span class="n">dev</span> <span class="err">需要合并回</span> <span class="n">master</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># rebase 方式</span>
-</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">dev</span><span class="p">)</span> <span class="n">git</span> <span class="n">rebase</span> <span class="n">master</span>
-</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">dev</span><span class="p">)</span> <span class="n">git</span> <span class="n">checkout</span> <span class="n">master</span>
-</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">master</span><span class="p">)</span> <span class="n">git</span> <span class="n">merge</span> <span class="n">dev</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># merge 方式</span>
-</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">master</span><span class="p">)</span> <span class="n">git</span> <span class="n">merge</span> <span class="n">dev</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># rebase 方式，此时dev和master的指针都是同时指向最新的commit点</span>
-</span><span class='line'><span class="c1"># 但是 origin/dev 指针头消失了。因此</span>
-</span><span class='line'><span class="c1"># 如果要继续使用 dev, 需要先 pull 一下，跟 远端仓库的 dev 最新 commit 点进行一次 merge ( 当然结果是一个空 commit,此时可以 push --force)</span>
-</span><span class='line'><span class="c1"># 此时 dev 分支的 nerwork 图是：</span>
-</span><span class='line'><span class="c1"># * b6fa04b (HEAD, master, dev, origin/master) dev01 ( 10 seconds ago )</span>
-</span><span class='line'><span class="c1"># 原因见下面</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>解决冲突</h4>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 解决冲突后</span>
-</span><span class='line'><span class="o">-------------------</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># merge 方式</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">add</span> <span class="o">.</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">am</span> <span class="s1">&#39;xx&#39;</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># rebase 方式</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">add</span> <span class="o">.</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">rebase</span> <span class="o">--</span><span class="n">continue</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>pull 时使用 rebase 方式</h4>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">pull</span> <span class="o">--</span><span class="n">rebase</span> <span class="p">(</span> <span class="err">适合同个分支</span> <span class="err">）</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>&ndash;no-ff</h4>
-
-<p>因为两条分支在合并时，当第一条分支完全没做修改时，此时 Git 会用到<code>Fast forward</code>模式，将 HEAD 指向第二条分支的最新 commit 去，这时候我们可以用该参数来禁止<code>fast forward</code>模式。</p>
-
-<p><code>git merge --no-ff</code>这参数的作用跟<code>rebase</code>恰恰相反，是故意弄出一条分支线，表明某些 commit 是为了实现某个功能的。</p>
-
-<p>适用于分支间的合并</p>
-
-<h3>Tips</h3>
-
-<p>一般分支间的 rebase 合并使用场景是：</p>
-
-<p>1、我自己需要实现某个功能，于是开个分支 new_menu，不提交到远程分支。开发完毕用 rebase 弄回 dev 分支</p>
-
-<p>2、一旦分支提交到远程分支，最好不要使用 rebase 进行分支间的合并了，会造成混乱。</p>
-
-<p>3、一般来说，使用 rebase 后的 new_menu 分支就当做废弃了，如果还需要重新使用的话，继续从 dev 分支 new 出一条分支来。</p>
-
-<p>4、在实验中我发现，一旦在 dev 进行 rebase master,那么 origin/dev 的指向就消失了，那是因为 dev 的原先 commit 全部消失了，进行重新 commit，因此本地的 origin/dev 也没得指向了。所以才会造成要 push 时要先<code>pull</code>的现象，(也就是 master分支上的最新commit点,「此时dev也是指向最新commit点」，会跟远程服务器上的origin/dev最新commit点进行merge)因此我们可以用<code>git push --force</code> 强制 push 来解决。</p>
-
-<p>如果是<code>pull</code>:
-<img src="http://data-storage.qiniudn.com/2546D03D-A4B6-4765-9DF4-0154F62606DC.png" alt="" /></p>
-
-<p><img src="http://data-storage.qiniudn.com/C142553B-FE45-42B3-BC10-92111A969C3F.png" alt="" /></p>
-
-<p>如果是<code>git push --force</code> 的话就会成为一条直线。</p>
-
-<h2>整理 commit</h2>
-
-<p>在一个 branch 上开发一段时间后，commit 看起来会很杂乱，或者很多无谓的 commit 点，那么我们可以使用 rabase 来将多个 commit 合并成一个。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">log</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">=&gt;</span>
-</span><span class='line'><span class="n">a</span>
-</span><span class='line'><span class="n">b1</span>
-</span><span class='line'><span class="n">b2</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">=&gt;</span><span class="err">要变成</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">a</span>
-</span><span class='line'><span class="n">b</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 拿到 a 的 SHA-1 后</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">rebase</span> <span class="o">-</span><span class="n">i</span> <span class="mi">49687</span><span class="n">a0a646954afdf3f4dae1f914ea793341ea2</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">pick</span> <span class="mo">033</span><span class="n">beb4</span> <span class="n">b1</span>
-</span><span class='line'><span class="n">pick</span> <span class="n">d426a8a</span> <span class="n">b2</span>
-</span><span class='line'><span class="c1"># Rebase 49687a0..d426a8a onto 49687a0</span>
-</span><span class='line'><span class="c1"># pick = use commit </span>
-</span><span class='line'><span class="c1"># squash = use commit, but meld into previous commit</span>
-</span><span class='line'><span class="c1"># pick 会执行该 commit, squash 则将该 commit 合并到前一个 commit</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>于是我们修改成：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">pick</span> <span class="mo">033</span><span class="n">beb4</span> <span class="n">b1</span>
-</span><span class='line'><span class="n">squash</span> <span class="n">d426a8a</span> <span class="n">b2</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 保存退出后会要求输入新的 commit 信息，后可通过 git log 查看。</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Tips</h3>
-
-<p>1、这功能的使用场景是 commit 还没有 push 到远程分支，一旦 push 到远程分支就不要用了。( 虽然可以用 &ndash;force 强制 push，视情况而定 )</p>
 ]]></content>
   </entry>
   

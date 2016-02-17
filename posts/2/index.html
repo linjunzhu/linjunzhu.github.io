@@ -7,7 +7,9 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="引用 在项目中，将一些无需即时返回且耗时的操作提取出来，放入消息队列，进行异步处理，而这种异步处理的方式大大的节省了服务器的请求响应时间，从而提高了系统的吞吐量。 RabbitMQ 是一个在 AMQP 基础上完整的，可复用的企业消息系统。他遵循Mozilla Public License开源协议 &hellip;">
+	<meta name="description" content="引言 这段时间团队需要跟 Google Glass 进行交互，因此要做一个推送机制。而 MQTT 协议的推送是当今最火热的一个。 Mosquitto 则是实现了 MQTT 协议的服务。 安装 在 Ubuntu 下： 1
+2
+sudo apt-add-repository ppa: &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -74,6 +76,521 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2015/01/30/shi-yong-mosquitto/">
+		
+			使用 Mosquitto</a>
+	</h2>
+	<div class="entry-content">
+		<h2>引言</h2>
+
+<p>这段时间团队需要跟 Google Glass 进行交互，因此要做一个推送机制。而 MQTT 协议的推送是当今最火热的一个。</p>
+
+<p>Mosquitto 则是实现了 MQTT 协议的服务。</p>
+
+<h2>安装</h2>
+
+<p>在 Ubuntu 下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">add</span><span class="o">-</span><span class="n">repository</span> <span class="ss">ppa</span><span class="p">:</span><span class="n">mosquitto</span><span class="o">-</span><span class="n">dev</span><span class="o">/</span><span class="n">mosquitto</span><span class="o">-</span><span class="n">ppa</span>
+</span><span class='line'><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">update</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果显示<code>apt-add-repository</code>没有识别，则可以：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">python</span><span class="o">-</span><span class="n">software</span><span class="o">-</span><span class="n">properties</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>配置</h2>
+
+<p>安装完成后，所有配置都会在 <code>/etc/mosquitto</code>目录下。其中最重要的则是<code>mosquitto.conf</code> 文件，以下则是配置文件内容。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+<span class='line-number'>124</span>
+<span class='line-number'>125</span>
+<span class='line-number'>126</span>
+<span class='line-number'>127</span>
+<span class='line-number'>128</span>
+<span class='line-number'>129</span>
+<span class='line-number'>130</span>
+<span class='line-number'>131</span>
+<span class='line-number'>132</span>
+<span class='line-number'>133</span>
+<span class='line-number'>134</span>
+<span class='line-number'>135</span>
+<span class='line-number'>136</span>
+<span class='line-number'>137</span>
+<span class='line-number'>138</span>
+<span class='line-number'>139</span>
+<span class='line-number'>140</span>
+<span class='line-number'>141</span>
+<span class='line-number'>142</span>
+<span class='line-number'>143</span>
+<span class='line-number'>144</span>
+<span class='line-number'>145</span>
+<span class='line-number'>146</span>
+<span class='line-number'>147</span>
+<span class='line-number'>148</span>
+<span class='line-number'>149</span>
+<span class='line-number'>150</span>
+<span class='line-number'>151</span>
+<span class='line-number'>152</span>
+<span class='line-number'>153</span>
+<span class='line-number'>154</span>
+<span class='line-number'>155</span>
+<span class='line-number'>156</span>
+<span class='line-number'>157</span>
+<span class='line-number'>158</span>
+<span class='line-number'>159</span>
+<span class='line-number'>160</span>
+<span class='line-number'>161</span>
+<span class='line-number'>162</span>
+<span class='line-number'>163</span>
+<span class='line-number'>164</span>
+<span class='line-number'>165</span>
+<span class='line-number'>166</span>
+<span class='line-number'>167</span>
+<span class='line-number'>168</span>
+<span class='line-number'>169</span>
+<span class='line-number'>170</span>
+<span class='line-number'>171</span>
+<span class='line-number'>172</span>
+<span class='line-number'>173</span>
+<span class='line-number'>174</span>
+<span class='line-number'>175</span>
+<span class='line-number'>176</span>
+<span class='line-number'>177</span>
+<span class='line-number'>178</span>
+<span class='line-number'>179</span>
+<span class='line-number'>180</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'><span class="c1"># General configuration</span>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 客户端心跳的间隔时间</span>
+</span><span class='line'><span class="c1">#retry_interval 20</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 系统状态的刷新时间</span>
+</span><span class='line'><span class="c1">#sys_interval 10</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 系统资源的回收时间，0表示尽快处理</span>
+</span><span class='line'><span class="c1">#store_clean_interval 10</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 服务进程的PID</span>
+</span><span class='line'><span class="c1">#pid_file /var/run/mosquitto.pid</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 服务进程的系统用户</span>
+</span><span class='line'><span class="c1">#user mosquitto</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 客户端心跳消息的最大并发数</span>
+</span><span class='line'><span class="c1">#max_inflight_messages 10</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 客户端心跳消息缓存队列</span>
+</span><span class='line'><span class="c1">#max_queued_messages 100</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 用于设置客户端长连接的过期时间，默认永不过期</span>
+</span><span class='line'><span class="c1">#persistent_client_expiration</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'><span class="c1"># Default listener</span>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 服务绑定的IP地址</span>
+</span><span class='line'><span class="c1">#bind_address</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 服务绑定的端口号</span>
+</span><span class='line'><span class="c1">#port 1883</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 允许的最大连接数，-1表示没有限制</span>
+</span><span class='line'><span class="c1">#max_connections -1</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># cafile：CA证书文件</span>
+</span><span class='line'><span class="c1"># capath：CA证书目录</span>
+</span><span class='line'><span class="c1"># certfile：PEM证书文件</span>
+</span><span class='line'><span class="c1"># keyfile：PEM密钥文件</span>
+</span><span class='line'><span class="c1">#cafile</span>
+</span><span class='line'><span class="c1">#capath</span>
+</span><span class='line'><span class="c1">#certfile</span>
+</span><span class='line'><span class="c1">#keyfile</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 必须提供证书以保证数据安全性</span>
+</span><span class='line'><span class="c1">#require_certificate false</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 若require_certificate值为true，use_identity_as_username也必须为true</span>
+</span><span class='line'><span class="c1">#use_identity_as_username false</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 启用PSK（Pre-shared-key）支持</span>
+</span><span class='line'><span class="c1">#psk_hint</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># SSL/TSL加密算法，可以使用“openssl ciphers”命令获取</span>
+</span><span class='line'><span class="c1"># as the output of that command.</span>
+</span><span class='line'><span class="c1">#ciphers</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'><span class="c1"># Persistence</span>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 消息自动保存的间隔时间</span>
+</span><span class='line'><span class="c1">#autosave_interval 1800</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 消息自动保存功能的开关</span>
+</span><span class='line'><span class="c1">#autosave_on_changes false</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 持久化功能的开关</span>
+</span><span class='line'><span class="n">persistence</span> <span class="kp">true</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 持久化DB文件</span>
+</span><span class='line'><span class="c1">#persistence_file mosquitto.db</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 持久化DB文件目录</span>
+</span><span class='line'><span class="c1">#persistence_location /var/lib/mosquitto/</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'><span class="c1"># Logging</span>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 4种日志模式：stdout、stderr、syslog、topic</span>
+</span><span class='line'><span class="c1"># none 则表示不记日志，此配置可以提升些许性能</span>
+</span><span class='line'><span class="n">log_dest</span> <span class="n">none</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">#还有一种写入文件的模式</span>
+</span><span class='line'><span class="n">log_dest</span> <span class="n">file</span> <span class="s1">&#39;/var/lib/mosquitto/mosquitto.log&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 选择日志的级别（可设置多项）</span>
+</span><span class='line'><span class="c1">#log_type error</span>
+</span><span class='line'><span class="c1">#log_type warning</span>
+</span><span class='line'><span class="c1">#log_type notice</span>
+</span><span class='line'><span class="c1">#log_type information</span>
+</span><span class='line'><span class="c1">#log_type all</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 是否记录客户端连接信息</span>
+</span><span class='line'><span class="c1">#connection_messages true</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 是否记录日志时间</span>
+</span><span class='line'><span class="c1">#log_timestamp true</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'><span class="c1"># Security</span>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 客户端ID的前缀限制，可用于保证安全性</span>
+</span><span class='line'><span class="c1">#clientid_prefixes</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 允许匿名用户</span>
+</span><span class='line'><span class="c1">#allow_anonymous true</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 用户/密码文件，默认格式：username:password</span>
+</span><span class='line'><span class="c1">#password_file</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># PSK格式密码文件，默认格式：identity:key</span>
+</span><span class='line'><span class="c1">#psk_file</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># pattern write sensor/%u/data</span>
+</span><span class='line'><span class="c1"># ACL权限配置，常用语法如下：</span>
+</span><span class='line'><span class="c1"># 用户限制：user &lt;username&gt;</span>
+</span><span class='line'><span class="c1"># 话题限制：topic [read|write] &lt;topic&gt;</span>
+</span><span class='line'><span class="c1"># 正则限制：pattern write sensor/%u/data</span>
+</span><span class='line'><span class="c1">#acl_file</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'><span class="c1"># Bridges</span>
+</span><span class='line'><span class="c1"># =================================================================</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 允许服务之间使用“桥接”模式（可用于分布式部署）</span>
+</span><span class='line'><span class="c1">#connection &lt;name&gt;</span>
+</span><span class='line'><span class="c1">#address &lt;host&gt;[:&lt;port&gt;]</span>
+</span><span class='line'><span class="c1">#topic &lt;topic&gt; [[[out | in | both] qos-level] local-prefix remote-prefix]</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 设置桥接的客户端ID</span>
+</span><span class='line'><span class="c1">#clientid</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 桥接断开时，是否清除远程服务器中的消息</span>
+</span><span class='line'><span class="c1">#cleansession false</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 是否发布桥接的状态信息</span>
+</span><span class='line'><span class="c1">#notifications true</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 设置桥接模式下，消息将会发布到的话题地址</span>
+</span><span class='line'><span class="c1"># $SYS/broker/connection/&lt;clientid&gt;/state</span>
+</span><span class='line'><span class="c1">#notification_topic</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 设置桥接的keepalive数值</span>
+</span><span class='line'><span class="c1">#keepalive_interval 60</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 桥接模式，目前有三种：automatic、lazy、once</span>
+</span><span class='line'><span class="c1">#start_type automatic</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 桥接模式automatic的超时时间</span>
+</span><span class='line'><span class="c1">#restart_timeout 30</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 桥接模式lazy的超时时间</span>
+</span><span class='line'><span class="c1">#idle_timeout 60</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 桥接客户端的用户名</span>
+</span><span class='line'><span class="c1">#username</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 桥接客户端的密码</span>
+</span><span class='line'><span class="c1">#password</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># bridge_cafile：桥接客户端的CA证书文件</span>
+</span><span class='line'><span class="c1"># bridge_capath：桥接客户端的CA证书目录</span>
+</span><span class='line'><span class="c1"># bridge_certfile：桥接客户端的PEM证书文件</span>
+</span><span class='line'><span class="c1"># bridge_keyfile：桥接客户端的PEM密钥文件</span>
+</span><span class='line'><span class="c1">#bridge_cafile</span>
+</span><span class='line'><span class="c1">#bridge_capath</span>
+</span><span class='line'><span class="c1">#bridge_certfile</span>
+</span><span class='line'><span class="c1">#bridge_keyfile</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 自己的配置可以放到以下目录中</span>
+</span><span class='line'><span class="n">include_dir</span> <span class="sr">/etc/mos</span><span class="n">quitto</span><span class="o">/</span><span class="n">conf</span><span class="o">.</span><span class="n">d</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>权限</h2>
+
+<p>为了避免任何人都可以往服务器去 pull&amp;push，我们需要设置权限。</p>
+
+<p>使用自带工具进行设置账号：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1">#add a count and then will ask you to enter a passwd</span>
+</span><span class='line'><span class="n">mosquitto_passwd</span> <span class="o">-</span><span class="n">c</span> <span class="sr">/etc/mos</span><span class="n">quitto</span><span class="o">/</span><span class="n">passwd</span> <span class="n">glassx</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># delete</span>
+</span><span class='line'><span class="n">mosquitto_passwd</span> <span class="o">-</span><span class="n">D</span> <span class="sr">/etc/mos</span><span class="n">quitto</span><span class="o">/</span><span class="n">passwd</span> <span class="n">glassx</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>启动</h2>
+
+<p>启动服务很简单，直接运行：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">mosquitto</span> <span class="o">-</span><span class="n">c</span> <span class="sr">/etc/mos</span><span class="n">quitto</span><span class="o">/</span><span class="n">mosquitto</span><span class="o">.</span><span class="n">conf</span> <span class="o">-</span><span class="n">d</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">#-c 表示加载指定配置文件</span>
+</span><span class='line'><span class="c1">#-d 表示以后台服务运行</span>
+</span><span class='line'><span class="c1">#-p 表示监听某个端口（默认为1883)</span>
+</span><span class='line'><span class="c1">#-v 表示亢长的日志记录模式，相当于设置 log_type all</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>mosquitto 是个异步 IO 框架，经过测试可以处理 20000 个以上的客户端连接。</p>
+
+<h2>推送</h2>
+
+<p>上面所创建的只是服务器， MQTT 有三个角色， 发布角色，服务器角色，消费角色。 此时我们便使用 Ruby 来实现发布角色。</p>
+
+<p>我们会使用到一个叫做 <code>mqtt</code> 的 gem</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;rubygems&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;mqtt&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Publish example</span>
+</span><span class='line'><span class="no">MQTT</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;mqtt://glassx:glassxpw@127.0.0.1&#39;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span>
+</span><span class='line'>  <span class="nb">p</span> <span class="n">c</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s1">&#39;topic&#39;</span><span class="p">,</span> <span class="s1">&#39;message&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># # Subscribe example</span>
+</span><span class='line'><span class="c1"># MQTT::Client.connect(&#39;test.mosquitto.org&#39;) do |c|</span>
+</span><span class='line'><span class="c1">#   # If you pass a block to the get method, then it will loop</span>
+</span><span class='line'><span class="c1">#   c.get(&#39;test&#39;) do |topic,message|</span>
+</span><span class='line'><span class="c1">#     puts &quot;#{topic}: #{message}&quot;</span>
+</span><span class='line'><span class="c1">#   end</span>
+</span><span class='line'><span class="c1"># end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>接收</h2>
+
+<p>接收则是各个客户端的实现了，这里就不写了。</p>
+
+<h2>引用</h2>
+
+<p>官网：<a href="http://mosquitto.org/">http://mosquitto.org/</a></p>
+
+<p>简要教程：<a href="http://blog.csdn.net/shagoo/article/details/7910598">http://blog.csdn.net/shagoo/article/details/7910598</a></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-01-30T16:04:40+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -2538,251 +3055,6 @@
 
 
 <time datetime="2014-10-24T23:13:33+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/24/git-rebase/">
-		
-			Git &#8211; Rebase 篇</a>
-	</h2>
-	<div class="entry-content">
-		<h2>git merge 和 git rebase</h2>
-
-<p>两者都是合并分支的功能，但是区别在于:</p>
-
-<p>假如合并前是这样的：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>D---E master
-</span><span class='line'>     /
-</span><span class='line'>A---B---C---F origin/master</span></code></pre></td></tr></table></div></figure>
-
-
-<p>使用merge后</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  D--------E  
-</span><span class='line'> /          \
-</span><span class='line'>A---B---C---F----G   master, origin/master</span></code></pre></td></tr></table></div></figure>
-
-
-<p>使用rebase后，就不会有G这个结点</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>A---B---C---F---D'---E'   master, origin/master</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>Tips</h4>
-
-<p>1、D’, E’ 的 commit SHA 序號跟本來 D, E 是不同的，因為算是砍掉重新 commit 了。</p>
-
-<p>2、因为使用<code>rebase</code>算是砍掉 D E 重新commit ,那么这里就可能会造成两次冲突，需要修改两次。而merge只需要修改一次</p>
-
-<p>3、因此如果是小规模改动，冲突不会太大的话，建议使用rebase,否则使用merge。</p>
-
-<p>使用reabse的好处是可以让分支不会那么乱，呈线性。</p>
-
-<h4>进行合并</h4>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">两条分支：</span> <span class="n">dev</span> <span class="err">和</span> <span class="n">master</span><span class="err">，此时</span> <span class="n">dev</span> <span class="err">需要合并回</span> <span class="n">master</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># rebase 方式</span>
-</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">dev</span><span class="p">)</span> <span class="n">git</span> <span class="n">rebase</span> <span class="n">master</span>
-</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">dev</span><span class="p">)</span> <span class="n">git</span> <span class="n">checkout</span> <span class="n">master</span>
-</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">master</span><span class="p">)</span> <span class="n">git</span> <span class="n">merge</span> <span class="n">dev</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># merge 方式</span>
-</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="n">master</span><span class="p">)</span> <span class="n">git</span> <span class="n">merge</span> <span class="n">dev</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># rebase 方式，此时dev和master的指针都是同时指向最新的commit点</span>
-</span><span class='line'><span class="c1"># 但是 origin/dev 指针头消失了。因此</span>
-</span><span class='line'><span class="c1"># 如果要继续使用 dev, 需要先 pull 一下，跟 远端仓库的 dev 最新 commit 点进行一次 merge ( 当然结果是一个空 commit,此时可以 push --force)</span>
-</span><span class='line'><span class="c1"># 此时 dev 分支的 nerwork 图是：</span>
-</span><span class='line'><span class="c1"># * b6fa04b (HEAD, master, dev, origin/master) dev01 ( 10 seconds ago )</span>
-</span><span class='line'><span class="c1"># 原因见下面</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>解决冲突</h4>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 解决冲突后</span>
-</span><span class='line'><span class="o">-------------------</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># merge 方式</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">add</span> <span class="o">.</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">am</span> <span class="s1">&#39;xx&#39;</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># rebase 方式</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">add</span> <span class="o">.</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">rebase</span> <span class="o">--</span><span class="n">continue</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>pull 时使用 rebase 方式</h4>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">pull</span> <span class="o">--</span><span class="n">rebase</span> <span class="p">(</span> <span class="err">适合同个分支</span> <span class="err">）</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>&ndash;no-ff</h4>
-
-<p>因为两条分支在合并时，当第一条分支完全没做修改时，此时 Git 会用到<code>Fast forward</code>模式，将 HEAD 指向第二条分支的最新 commit 去，这时候我们可以用该参数来禁止<code>fast forward</code>模式。</p>
-
-<p><code>git merge --no-ff</code>这参数的作用跟<code>rebase</code>恰恰相反，是故意弄出一条分支线，表明某些 commit 是为了实现某个功能的。</p>
-
-<p>适用于分支间的合并</p>
-
-<h3>Tips</h3>
-
-<p>一般分支间的 rebase 合并使用场景是：</p>
-
-<p>1、我自己需要实现某个功能，于是开个分支 new_menu，不提交到远程分支。开发完毕用 rebase 弄回 dev 分支</p>
-
-<p>2、一旦分支提交到远程分支，最好不要使用 rebase 进行分支间的合并了，会造成混乱。</p>
-
-<p>3、一般来说，使用 rebase 后的 new_menu 分支就当做废弃了，如果还需要重新使用的话，继续从 dev 分支 new 出一条分支来。</p>
-
-<p>4、在实验中我发现，一旦在 dev 进行 rebase master,那么 origin/dev 的指向就消失了，那是因为 dev 的原先 commit 全部消失了，进行重新 commit，因此本地的 origin/dev 也没得指向了。所以才会造成要 push 时要先<code>pull</code>的现象，(也就是 master分支上的最新commit点,「此时dev也是指向最新commit点」，会跟远程服务器上的origin/dev最新commit点进行merge)因此我们可以用<code>git push --force</code> 强制 push 来解决。</p>
-
-<p>如果是<code>pull</code>:
-<img src="http://data-storage.qiniudn.com/2546D03D-A4B6-4765-9DF4-0154F62606DC.png" alt="" /></p>
-
-<p><img src="http://data-storage.qiniudn.com/C142553B-FE45-42B3-BC10-92111A969C3F.png" alt="" /></p>
-
-<p>如果是<code>git push --force</code> 的话就会成为一条直线。</p>
-
-<h2>整理 commit</h2>
-
-<p>在一个 branch 上开发一段时间后，commit 看起来会很杂乱，或者很多无谓的 commit 点，那么我们可以使用 rabase 来将多个 commit 合并成一个。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">log</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">=&gt;</span>
-</span><span class='line'><span class="n">a</span>
-</span><span class='line'><span class="n">b1</span>
-</span><span class='line'><span class="n">b2</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">=&gt;</span><span class="err">要变成</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">a</span>
-</span><span class='line'><span class="n">b</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 拿到 a 的 SHA-1 后</span>
-</span><span class='line'><span class="err">$</span> <span class="n">git</span> <span class="n">rebase</span> <span class="o">-</span><span class="n">i</span> <span class="mi">49687</span><span class="n">a0a646954afdf3f4dae1f914ea793341ea2</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">pick</span> <span class="mo">033</span><span class="n">beb4</span> <span class="n">b1</span>
-</span><span class='line'><span class="n">pick</span> <span class="n">d426a8a</span> <span class="n">b2</span>
-</span><span class='line'><span class="c1"># Rebase 49687a0..d426a8a onto 49687a0</span>
-</span><span class='line'><span class="c1"># pick = use commit </span>
-</span><span class='line'><span class="c1"># squash = use commit, but meld into previous commit</span>
-</span><span class='line'><span class="c1"># pick 会执行该 commit, squash 则将该 commit 合并到前一个 commit</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>于是我们修改成：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">pick</span> <span class="mo">033</span><span class="n">beb4</span> <span class="n">b1</span>
-</span><span class='line'><span class="n">squash</span> <span class="n">d426a8a</span> <span class="n">b2</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 保存退出后会要求输入新的 commit 信息，后可通过 git log 查看。</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Tips</h3>
-
-<p>1、这功能的使用场景是 commit 还没有 push 到远程分支，一旦 push 到远程分支就不要用了。( 虽然可以用 &ndash;force 强制 push，视情况而定 )</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-24T22:12:33+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>
