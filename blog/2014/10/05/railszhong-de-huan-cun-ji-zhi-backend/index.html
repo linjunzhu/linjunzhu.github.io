@@ -1,0 +1,511 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Web 缓存 以及 Rails 缓存实践 &#8211; 后端篇 - LinJunzhu&#8217;s Blog</title>
+	<meta name="author" content="林俊柱">
+
+	
+	<meta name="description" content="1、 Rails 中的 ETag 在 Rails 中默认使用Rack::ETag middleware中间件，它会自动给无 ETag 的 response 加上 ETag，再根据 ETag 来判断资源是否更改，从而返回 200 / 304。 注意: &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="LinJunzhu's Blog" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script async="true" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+</head>
+
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">LinJunzhu&#8217;s Blog</a></h1>
+<nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</nav>
+<nav id="mobile-nav">
+	<div class="alignleft menu">
+		<a class="button">Menu</a>
+		<div class="container"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</div>
+	</div>
+	<div class="alignright search">
+		<a class="button"></a>
+		<div class="container">
+			<form action="https://www.google.com/search" method="get">
+				<input type="text" name="q" results="0">
+				<input type="hidden" name="q" value="site:github.com/linjunzhu/linjunzhu.github.io.git">
+			</form>
+		</div>
+	</div>
+</nav>
+<nav id="sub-nav" class="alignright">
+	<div class="social">
+		
+		
+		
+		
+    
+		
+		
+		
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+    
+	</div>
+	<form class="search" action="https://www.google.com/search" method="get">
+		<input class="alignright" type="text" name="q" results="0">
+		<input type="hidden" name="q" value="site:github.com/linjunzhu/linjunzhu.github.io.git">
+	</form>
+</nav>
+
+</header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h2 class="title">Web 缓存 以及 Rails 缓存实践 &#8211; 后端篇</h2>
+	<div class="entry-content"><h2>1、 Rails 中的 ETag</h2>
+
+<p>在 Rails 中默认使用<code>Rack::ETag middleware</code>中间件，它会自动给无 ETag 的 response 加上 ETag，再根据 ETag 来判断资源是否更改，从而返回 200 / 304。</p>
+
+<p><code>注意</code>: 返回304并不是说服务器没有处理资源直接就返回304，而是完全的处理完了资源，生成了response准备响应了，才进行生成 ETag，然后进行判断，这样虽然也会消耗服务器的资源，但是可以大大减少客户端传输网络的时间。</p>
+
+<p>之前有个疑惑：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>为什么要等到生成完整 response 再加上 ETag 进行判断呢？我的想法是：因为判断
+</span><span class='line'>资源是否有变化，所以需要判断`response内的某些资源`是否有变化，因此迟早都要生成response，
+</span><span class='line'>所以是否等到生成完整response再加上ETag是无所谓的</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>2、Nginx</h2>
+
+<p>Nginx 1.7.3 以前如果开启了 <code>gzip on</code>，Nginx 会将 Rails响应中的 ETag 头去掉。</p>
+
+<p>Nginx 1.7.3 后开始支持 <code>Weak_ETag</code>，会将 Rails响应中的 ETag 转换为 <code>Weak_ETag</code>,不过 Rack::ETag在1.6.0 也默认生成 <code>Weak ETag</code>了</p>
+
+<p>Nginx 默认就会给静态文件打上 ETag 和 Last-Modified</p>
+
+<h2>3、Rails的缓存机制</h2>
+
+<p>服务器端缓存区存储有两种方式：</p>
+
+<ol>
+<li>硬盘</li>
+<li>内存</li>
+</ol>
+
+
+<p>运行流程图：</p>
+
+<p><img src="http://data-storage.qiniudn.com/%E5%90%8E%E7%AB%AF%E7%BC%93%E5%AD%98.png" alt="" /></p>
+
+<p>画得有点呵呵，将就着看吧。</p>
+
+<p>说明几点：</p>
+
+<ol>
+<li>每次请求都会重新计算<code>cache_key</code>，而计算<code>cache_key</code>则会进入到数据库去查询，比如<code>products</code>需要查询<code>products.max(&amp;:updated_at)</code>。</li>
+<li>缓存本质倒不是查不查，而是把一个长查询转化成短查询。</li>
+<li>当资源更新时，对应缓存区的缓存会过期，但过期不是删除，缓存还是会存在缓存区中，只是不再命中，<code>所以基于 file 的缓存方案会产生许多重复的垃圾，dhh 推荐使用 memcache 就是把删除缓存的操作交给 memcache 来做。</code></li>
+</ol>
+
+
+<h2>4、Rails中使用缓存</h2>
+
+<p>在 Rails 中使用缓存是个大学问</p>
+
+<h3>4.1、fresh_when</h3>
+
+<p>前文说到，Rails 默认的中间件<code>Rack::ETag middleware</code>会自动给无<code>ETag</code>的<code>response</code>加上<code>ETag</code>，那么，有没办法在生成完整的response之前（节省资源）我们自己加上<code>ETag</code>呢？ Rails 提供了 <code>fresh_when</code> helper</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ArticlesController</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">show</span>
+</span><span class='line'>    <span class="vi">@article</span> <span class="o">=</span> <span class="no">Article</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">fresh_when</span> <span class="ss">:last_modified</span> <span class="o">=&gt;</span> <span class="vi">@article</span><span class="o">.</span><span class="n">updated_at</span><span class="o">.</span><span class="n">utc</span><span class="p">,</span> <span class="ss">:etag</span> <span class="o">=&gt;</span> <span class="vi">@article</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>下次用户再访问的时候，会对比request header里面的If-Modified-Since和If-None-Match，如果相符合，就直接返回304，而不再生成response body。</p>
+
+<p>但是这样会遇到一个问题，假设我们的网站导航有用户信息，一个用户在未登陆专题访问了一下，然后登陆以后再访问，会发现页面上显示的还是未登陆状态。或者在app访问一篇文章，做了一下收藏，下次再进入这篇文章，还是显示未收藏状态。解决这个问题的方法很简单，将用户相关的变量也加入到etag的计算里面：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'> <span class="n">fresh_when</span> <span class="ss">:etag</span> <span class="o">=&gt;</span> <span class="o">[</span><span class="vi">@article</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="o">]</span>
+</span><span class='line'> <span class="n">fresh_when</span> <span class="ss">:etag</span> <span class="o">=&gt;</span> <span class="o">[</span><span class="vi">@article</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">current_user_favorited</span><span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>和fresh_when相比，自动etag能够节省的只是客户端时间</code></p>
+
+<h3>4.2  Fragment Caching</h3>
+
+<p>Rails  中有几种 cache，这种是最常见使用最多的。</p>
+
+<p>如下，有个项目页面：
+<img src="http://data-storage.qiniudn.com/%E5%A5%97%E5%A8%83%E6%9C%BA%E5%88%B6.jpg" alt="" /></p>
+
+<p>接下来我们看看，如果这个页面的某一条数据，比如「任务 A-1」 的内容被改变了，会发生什么。</p>
+
+<p>首先，这条任务自己对应的 L4 Todo Item 缓存失效了，所以在拼装外面的 L3 级「任务清单A」缓存的时候，会从缓存里获取任务 A-2、A-3 的缓存，速度嗖嗖快，快到可以忽略不计，然后对任务 A-1 重新渲染一次，放入缓存，这样「任务清单A」通过直接从缓存里读取两条任务（A-2 和 A-3），以及渲染一条新的（ A-1 ）生成了整个 L3 Todolist Item 的页面片段。剩下的「任务清单B」和「任务清单C」，都没有变化，因此由在生成「任务清单」Section 缓存的时候，直接拼装即可。</p>
+
+<p>其它几个 Section 片段因为和任务没有任何关系，所有缓存都不会过期，因此这几个 Section 的页面片段都是直接从缓存里捞出来，同样嗖嗖快。</p>
+
+<p>最后，整个项目详情页把这几个 Section 拼装起来，返回给客户。从上面的过程可以看出，只有「任务 A-1」 这个片段的页面被重新渲染了。</p>
+
+<p>所以，这种套娃式的缓存，能够保证页面缓存利用率的最大化，任何数据的更新，只会导致某一个片段的缓存失效，这样在组装完整页面的时候，由于大量的页面片段都是直接从缓存里读取，所以页面生成的时间开销就很小。</p>
+
+<p>那么，套娃是如何在缓存中存取页面片段的呢？主要是靠一个叫做 cache_key 的东西来决定的。</p>
+
+<h3>4.2.1、cache_key</h3>
+
+<p>代码初级版：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@project</span> <span class="k">do</span>  <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">  &lt;%= @project.name %&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="o">&lt;!--</span> <span class="no">Section</span> <span class="no">Topics</span> <span class="o">--&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@top3_topics</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span> <span class="k">do</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;topics/topic&#39;, collection: @top3_topics %&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">  &lt;!-- Section todolists --&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@todolists</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span> <span class="k">do</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;todolists/todolist&#39;, collection: @todolists %&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">  &lt;!-- Section uploads --&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@uploads</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span> <span class="k">do</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;uploads/upload&#39;, collection: @uploads %&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">  &lt;!-- Section documents --&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@documents</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span> <span class="k">do</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;documents/document&#39;, collection: @documents %&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">  &lt;!-- Section calendar_events --&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@calendar_events</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span> <span class="k">do</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;calendar_events/calendar_event&#39;, collection: @calendar_events %&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">&lt;% end %&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>单个资源</h3>
+
+<p>可以看到，最外层有个<code>&lt;% cache @project %&gt;</code>，这个<code>cache</code>使用<code>@project</code>作为参数，cache内部会对该对象进行处理，计算出<code>cache_key</code></p>
+
+<p>大概是：<code>views/projects/1-20140906112338</code></p>
+
+<p>Rails 会使用该<code>cache_key</code> 作为<code>key</code>,将包含的所有东西（包括数据和html）通通放入缓存区。每次有请求到来时，就会重新计算 cache_key，然后到缓存区进行查找，命中则返回，不命中则服务器查询资源，重新将资源放入缓存区。</p>
+
+<p>当资源更新时，<code>cache_key</code> 也随之变化（注意，<code>cache_key</code> 大部分需要自己设计)，因此就不会命中缓存，缓存自然过期。</p>
+
+<p><code>注意：</code> 如果不生成<code>cache_key</code>，缓存永远都不会变！！！无论资源是否更新
+<code>注意：</code> 缓存过期不代表缓存被删除，因为缓存区会存在大量垃圾，需要memcached来解决。</p>
+
+<h3>多个资源</h3>
+
+<p>那如果是资源列表呢？如果我们直接把 <code>@top3_topics</code> 对象作为 cache 的参数 <code>&lt;% cache @top3_topics %&gt;</code>，得到的 <code>cache_key</code> 实际上会是这样的形式：</p>
+
+<p><code>views/topics/3-20140906112338/topics/2-20140906102338/topics/3-20140906092338</code></p>
+
+<p>显然，这样做不太好，因此我们可以取这组数据内最新一个被更新的数据的updated_at时间戳，这样会生成：</p>
+
+<p><code>views/20140906112338</code></p>
+
+<p>但这样会出现一个问题，假如此时<code>@top_topics</code>为空，那么我们此时是对 nil 进行缓存，不幸的是，所有 nil 的 <code>cache_key</code> 都一模一样，这样就会造成混乱。再加上，加入任务清单 Section 和讨论 Section 最后更新的那条数据的 updated_at 时间戳恰好一样，也会造成两个缓存片混淆的问题。</p>
+
+<p>解决方法就是给每个cache都加上model名
+<code>&lt;% cache [:topics, @top3_topics.max(&amp;:updated_at)] %&gt;</code></p>
+
+<p>代码更新版：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@project</span> <span class="k">do</span>  <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">  &lt;%= @project.name %&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="o">&lt;!--</span> <span class="no">Section</span> <span class="no">Topics</span> <span class="o">--&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="o">[</span><span class="ss">:topics</span><span class="p">,</span> <span class="vi">@top3_topics</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span><span class="o">]</span> <span class="k">do</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;topics/topic&#39;, collection: @top3_topics %&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">  &lt;!-- Section todolists --&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="o">[</span><span class="p">:</span> <span class="n">todolists</span><span class="p">,</span>  <span class="vi">@todolists</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span><span class="o">]</span> <span class="k">do</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;todolists/todolist&#39;, collection: @todolists %&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">  &lt;!-- Section uploads --&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="o">[</span><span class="p">:</span> <span class="n">uploads</span><span class="p">,</span>  <span class="vi">@uploads</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span><span class="o">]</span> <span class="k">do</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;uploads/upload&#39;, collection: @uploads %&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">  &lt;!-- Section documents --&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="o">[</span><span class="p">:</span> <span class="n">documents</span><span class="p">,</span>  <span class="vi">@documents</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span><span class="o">]</span> <span class="k">do</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;documents/document&#39;, collection: @documents %&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">  &lt;!-- Section calendar_events --&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% cache </span><span class="o">[</span><span class="p">:</span> <span class="n">calendar_events</span><span class="p">,</span>  <span class="vi">@calendar_events</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:updated_at</span><span class="p">)</span><span class="o">]</span> <span class="k">do</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">    &lt;%= render partial: &#39;calendar_events/calendar_event&#39;, collection: @calendar_events %&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">&lt;% end %&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>4.2.2 touch!机制</h3>
+
+<p>我们回过头来再看看套娃缓存的读取机制，访问项目详情页的时候，首先读取最外层的大套娃 &lt;% cache @project %> ，如果这个缓存片对应的 <code>cache_key</code>在缓存里能找到，则直接取出来并且返回，如果缓存过期，则读取第二级套娃 — 几个列表 Section 缓存，这些缓存根据列表里最新一条数据的更新时间生成 cache_key，如果最新一条数据的更新时间没有变化，则缓存不过期，直接取出来供页面拼装用，如果缓存过期，则继续读取各自的第三级套娃。</p>
+
+<p>等等，这里有个问题，如果我改变了一条任务的内容，也就是作废了任务 partial 自己的缓存，但是包裹任务的任务清单，以及包裹任务清单的项目都没有变化，这样当页面加载的时候，读取到的第一个大套娃 &ndash; &lt;% cache @project %> 都没有更新，会直接返回被缓存了的整个项目详情页，所以根本不会走到渲染更新的任务 partial 那里去。对于这个问题的解决方案，是 Rails 模型层的 touch 机制。</p>
+
+<p>简单的说，我们需要让里面的子套娃在数据更新了以后，touch 一下处在外面的套娃，告诉它，嘿，我更新了，你也得更新才行。我们直接看看这个代码片段：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Project</span> <span class="o">&lt;</span> <span class="no">ActiveRecode</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="c1">#...</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Todolist</span> <span class="o">&lt;</span> <span class="no">ActiveRecode</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:project</span><span class="p">,</span> <span class="ss">touch</span><span class="p">:</span> <span class="kp">true</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Todo</span> <span class="o">&lt;</span> <span class="no">ActiveRecode</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:todolist</span><span class="p">,</span> <span class="ss">touch</span><span class="p">:</span> <span class="kp">true</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>由于 touch 的存在，当 todo 的某条任务修改时，会自动通知到 todolist, 让其修改 updated_at 属性，而 todolist 也会修改到 project，一层层保证整个缓存系统的正常运作。</p>
+
+<h2>5、Rails 里使用缓存的坑</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@project</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx"> &lt;% cache [:todolists, @todolists.max(&amp;:updated_at)] do %&gt;</span>
+</span><span class='line'>       <span class="o">&lt;</span><span class="n">span</span><span class="o">&gt;</span><span class="err">清单所属项目：</span> <span class="o">&lt;</span><span class="sx">%= @project.name %&gt;&lt;/span&gt;</span>
+</span><span class='line'><span class="sx">     &lt;%=</span> <span class="n">render</span> <span class="ss">partial</span><span class="p">:</span> <span class="s1">&#39;todolists/todolsit&#39;</span><span class="p">,</span> <span class="ss">collection</span><span class="p">:</span> <span class="vi">@todolists</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">&lt;% end %&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>
+当出现以上情况时，属于父级cache的属性出现在子级cache内，当@project的内容更改了，这时 @todolists 的 cache_key 并没有改变，也就是说这段缓存没有过期，<code>&lt;%= @project.name %&gt;</code> 显示的还是过去的 name</p>
+
+<p>解决方法：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@project</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx"> &lt;% cache [:todolists, @project, @todolists.max(&amp;:updated_at)] do %&gt;</span>
+</span><span class='line'>       <span class="o">&lt;</span><span class="n">span</span><span class="o">&gt;</span><span class="err">清单所属项目：</span> <span class="o">&lt;</span><span class="sx">%= @project.name %&gt;&lt;/span&gt;</span>
+</span><span class='line'><span class="sx">     &lt;%=</span> <span class="n">render</span> <span class="ss">partial</span><span class="p">:</span> <span class="s1">&#39;todolists/todolsit&#39;</span><span class="p">,</span> <span class="ss">collection</span><span class="p">:</span> <span class="vi">@todolists</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">&lt;% end %&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">% cache </span><span class="vi">@project</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx"> &lt;% cache [:todolists, @project.name, @todolists.max(&amp;:updated_at)] do %&gt;</span>
+</span><span class='line'>       <span class="o">&lt;</span><span class="n">span</span><span class="o">&gt;</span><span class="err">清单所属项目：</span> <span class="o">&lt;</span><span class="sx">%= @project.name %&gt;&lt;/span&gt;</span>
+</span><span class='line'><span class="sx">     &lt;%=</span> <span class="n">render</span> <span class="ss">partial</span><span class="p">:</span> <span class="s1">&#39;todolists/todolsit&#39;</span><span class="p">,</span> <span class="ss">collection</span><span class="p">:</span> <span class="vi">@todolists</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">&lt;% end %&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>
+这样子当修改@project时，也会修改子级的 cache_key</p>
+
+<h2>6、注意</h2>
+
+<p>当请求过来时，还是会经过controller,进行lazy select,再经过erb,再进行真正的 <code>cache_key</code> 计算，当然，此时 controller 中查询的那些还没有真正的查询，就仅仅只是计算了 <code>cache_key</code>, 比如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;%=</span> <span class="n">cache</span> <span class="vi">@articles</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="ss">:updated_at</span><span class="p">)</span> <span class="k">do</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">    .....</span>
+</span><span class='line'><span class="sx">&lt;% end %&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>因为是 lazy select，所以这时候连 @articles 都没真正查询出来，直接变成了查询最大 <code>updated_at</code> 的语句。</p>
+
+<p> (有些在 controller 中对那些查询对象进行了操作，就不是 lazy select了）</p>
+
+<p>分割好粒度，否则会得不偿失</p>
+
+<p>还有第二个坑，写得脑仁疼，不写啦，看下面参考文</p>
+
+<h2>参考</h2>
+
+<p>总结 web 应用中常用的各种 cache: <a href="https://ruby-china.org/topics/19389">https://ruby-china.org/topics/19389</a></p>
+
+<p>Cache 在 Ruby China 里面的应用:  <a href="https://ruby-china.org/topics/19436">https://ruby-china.org/topics/19436</a></p>
+
+<p>说说 Rails 的套娃缓存机制:  <a href="https://ruby-china.org/topics/21488?page=1#replies">https://ruby-china.org/topics/21488?page=1#replies</a></p>
+
+<p>官方缓存讲解：<a href="http://guides.ruby-china.org/caching_with_rails.html">http://guides.ruby-china.org/caching_with_rails.html</a></p>
+</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-05T11:43:12+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+		
+		
+		<a class="addthis_button_tweet"></a>
+		
+		
+		
+	</div>
+	
+</div>
+
+
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2016
+
+    林俊柱
+
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+
+
+
+</body>
+</html>
