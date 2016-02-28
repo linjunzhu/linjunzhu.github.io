@@ -7,14 +7,8 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="git merge 和 git rebase 两者都是合并分支的功能，但是区别在于: 假如合并前是这样的： 1
-2
-3
-D---E master /
-A---B---C---F origin/master 使用merge后 1
-2
-3 D--------E / \
-A---B---C---F &hellip;">
+	<meta name="description" content="1、取消本地修改，恢复到上一次的commit 如果你的本地文件修改得一团乱，但是还没有提交，可以通过下面的命令恢复到上次提交时的状态( 其实就是恢复到上次的 commit，因此这次的本地修改自然没了）（注意是修改，不包括添加文件） 1
+git reset --hard &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -81,6 +75,164 @@ A---B---C---F &hellip;">
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/24/git-resume/">
+		
+			Git &#8211; 恢复撤销篇</a>
+	</h2>
+	<div class="entry-content">
+		<h3>1、取消本地修改，恢复到上一次的commit</h3>
+
+<p>如果你的本地文件修改得一团乱，但是还没有提交，可以通过下面的命令恢复到上次提交时的状态( 其实就是恢复到上次的 commit，因此这次的本地修改自然没了）（<code>注意是修改，不包括添加文件</code>）</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git reset --hard</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这条命令将会取消掉本地的所有修改，恢复到上一次我们的commit信息</p>
+
+<h3>2、取消 git add 的文件</h3>
+
+<p>有时我们会不小心git add . 所有文件，想反悔，取消某些add的文件。那么可以(还原暂存区)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git reset HEAD xxxx</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>3、取消对文件的修改</h3>
+
+<p>如果觉得刚才对XX文件的修改没有必要，想要恢复，那么:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git checkout -- xxx</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>4、取消已经提交的修改</h3>
+
+<p>如果已经做了一个提交(commit),并且马上后悔了。那么可以创建一个新的提交，在新提交里撤销老的提交所做的修改</p>
+
+<p>创建一个新的，撤销(revert)了前期修改的提交(commit)是很容易的。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git revert HEAD</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样就创建了一个撤销了上次提交(HEAD)的新提交</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gir revert HEAD^</span></code></pre></td></tr></table></div></figure>
+
+
+<p>撤销上上次</p>
+
+<h3>5、Tips</h3>
+
+<h4>回滚到某一次 commit</h4>
+
+<p><code>git reset --hard aa89cd6bcc</code></p>
+
+<p>这样会回滚到某个commit状态，只要知道commit id 就可以</p>
+
+<h4>回滚后反悔怎么办？</h4>
+
+<p><code>git reflog</code> 记录了我们的每一次命令（ commit、merge 等信息）</p>
+
+<p>根据这命令来查出我们的历史 commit id，然后 <code>git reset</code>即可</p>
+
+<ol>
+<li><p>HEAD指向的版本就是当前版本，因此，Git允许我们在版本的历史之间穿梭，使用命令git reset &ndash;hard commit_id。</p></li>
+<li><p>穿梭前，用git log可以查看提交历史，以便确定要回退到哪个版本。</p></li>
+<li>要重返未来，用git reflog查看命令历史，以便确定要回到未来的哪个版本。</li>
+<li><p>场景1：当你改乱了工作区某个文件的内容，想直接丢弃工作区的修改时，用命令git checkout &ndash; file。</p></li>
+<li><p>场景2：当你不但改乱了工作区某个文件的内容，还添加到了暂存区时，想丢弃修改，分两步，第一步用命令git reset HEAD file，就回到了场景1，第二步按场景1操作。</p></li>
+</ol>
+
+
+<h3>6. 取消已经 push 的行为（重建分支）</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 备份到另一分支，以防万一</span>
+</span><span class='line'><span class="n">git</span> <span class="n">branch</span> <span class="n">old_master</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 推送备份分支</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="ss">old_master</span><span class="p">:</span><span class="n">old_master</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 本地仓库回退到某一版本</span>
+</span><span class='line'><span class="n">git</span> <span class="n">reset</span> <span class="o">-</span><span class="n">hard</span> <span class="n">xxxx</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 删除远程分支</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="ss">:master</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 推送本地还原后的分支</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>6. 取消已经 push 的行为（强制 PUSH）</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 本地仓库回退到某一版本</span>
+</span><span class='line'><span class="n">git</span> <span class="n">reset</span> <span class="o">-</span><span class="n">hard</span> <span class="n">xxxx</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 强制 PUSH，此时远程分支已经恢复成指定的 commit 了</span>
+</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span> <span class="o">--</span><span class="n">force</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>参考</h2>
+
+<p><a href="http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/001374027586935cf69c53637d8458c9aec27dd546a6cd6000">廖雪峰 Git 教程</a></p>
+
+<p><a href="http://git-scm.com">Git 官方</a></p>
+
+<p><a href="http://git-scm.com/book/zh">Git 官方教程</a></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-24T23:13:33+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -1630,7 +1782,7 @@ Mysql 版本5.5 以上，需要这么做：</p>
 <span class='line-number'>4</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 这里是直接告诉 代理缓存服务器 / 服务器，我要最新的副本 ( 然后再通过 ETag / If-None-Match 去判断是否从缓存区里拿 )</span>
 </span><span class='line'><span class="c1"># 之前很疑惑，既然 response 都有 no-cache 了，那 request 设这个值的意义何在呢？</span>
-</span><span class='line'><span class="c1"># 目的是强制资源进行重新验证，避免代理缓存服务器在需要验证权限的情况下返回了之前的资源副本。</span>
+</span><span class='line'><span class="c1"># 目的是告诉「代理缓存服务器」强制向「服务器」对资源进行重新验证，避免权限过期后，代理缓存服务器还是返回之前的资源副本。</span>
 </span><span class='line'><span class="n">cache</span><span class="o">-</span><span class="ss">control</span><span class="p">:</span> <span class="n">no</span><span class="o">-</span><span class="n">cache</span>
 </span></code></pre></td></tr></table></div></figure>
 
@@ -2082,251 +2234,6 @@ Mysql 版本5.5 以上，需要这么做：</p>
 
 
 <time datetime="2014-09-21T21:39:25+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/09/14/rails-zhong-rack-de-zhi-shi/">
-		
-			Rails 中 Rack 的知识</a>
-	</h2>
-	<div class="entry-content">
-		<h3>1、什么是Rack?</h3>
-
-<p>其实 Rails 就是一个 Rack app。</p>
-
-<p> Rack 为使用 Ruby 开发的网页程序提供了小型模块化，适应性极高的接口。Rack 尽量使用最简单的方式封装 HTTP 请求和响应，为服务器、框架和二者之间的软件（中间件）提供了统一的 API，只要调用一个简单的方法就能完成一切操作。</p>
-
-<p>当然， Rack 还包含了许多东西，如处理静态文件，缓存， Log 等。</p>
-
-<p><code>这里的Rack可跟Rake不同</code></p>
-
-<h3>2、Rails 是如何启动的？</h3>
-
-<p>我们会在命令行打 <code>rails s</code></p>
-
-<p>这条命令其实是运行 app/rails， 而 rails 的内容为：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1">#!/usr/bin/env ruby</span>
-</span><span class='line'><span class="no">APP_PATH</span> <span class="o">=</span> <span class="no">File</span><span class="o">.</span><span class="n">expand_path</span><span class="p">(</span><span class="s1">&#39;../../config/application&#39;</span><span class="p">,</span>  <span class="bp">__FILE__</span><span class="p">)</span>
-</span><span class='line'><span class="n">require_relative</span> <span class="s1">&#39;../config/boot&#39;</span>
-</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;rails/commands&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>而 s 参数 则会调用 Rails::Server 模块</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Rails</span><span class="o">::</span><span class="no">Server</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">tap</span> <span class="k">do</span> <span class="o">|</span><span class="n">server</span><span class="o">|</span>
-</span><span class='line'>  <span class="nb">require</span> <span class="no">APP_PATH</span>
-</span><span class='line'>  <span class="no">Dir</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
-</span><span class='line'>  <span class="n">server</span><span class="o">.</span><span class="n">start</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>其中 Rails::Server 又是继承 Rake::Server</p>
-
-<h3>3、逻辑</h3>
-
-<p>一切从Rack开始. 几乎所有的ruby web framework都是rack app. Rack对象响应call方法, 返回三元素的array, 分别是status code, header, content body. 只要你的项目符合以上三个要求, 就是一个合法的rack app. 可以运行它, 在浏览器访问, 看到完整的响应内容. 所以, 主流程即是request与response的地程. 我们所做的事情就是在中间加入一些自己的东西.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;rack&#39;</span>
-</span><span class='line'><span class="k">class</span> <span class="nc">HelloWorld</span>
-</span><span class='line'>  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
-</span><span class='line'>    <span class="o">[</span><span class="mi">200</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span> <span class="o">=&gt;</span> <span class="s2">&quot;text/html&quot;</span><span class="p">},</span> <span class="o">[</span><span class="s2">&quot;Hello Rack!&quot;</span><span class="o">]]</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">Handler</span><span class="o">::</span><span class="no">Mongrel</span><span class="o">.</span><span class="n">run</span> <span class="no">HelloWorld</span><span class="o">.</span><span class="n">new</span><span class="p">,</span> <span class="ss">:Port</span> <span class="o">=&gt;</span> <span class="mi">9292</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>一、 http request 到达 web server 后会即被rack封装, 而后你得到一个env对象. 它包含了客户的请求类型(get/post/put/delete/..), 请求的地址(env[&lsquo;PATH_INFO&rsquo;], QUERY_STRING)等等.</p>
-
-<ol>
-<li><p>通过分析env, 我们知道客户的请求是指向哪个controller#action. 而后查看路由表我们的app能否响应此请求.</p></li>
-<li><p>路由表在新建app对象时通过routes方法来定义, 具体的做法是接受一个block, block内调用match, get, post等方法时, 生成路由规则加入路由表. 路由表里包含路径字符串的匹配正则, controller, action, params等等.</p></li>
-<li><p>参照上一条, 在路由规则中检查 env[&lsquo;PATH_INFO&rsquo;], 若匹配, 就知道了指向哪个controller的哪个action, 以及其params. 通过 ctrl_const = Object.const_get(params[:controller].capitalize)来得到相应的controller.</p></li>
-<li><p>通过 ctrl_const.new(env).call(params[:action]) 可以调用到相应的方法.</p></li>
-<li><p>到这一步, 已经初步描述了一个请求从客户端到服务器端并指向需要的controller#action的基本过程. 也即处理request的过程完成.</p></li>
-</ol>
-
-
-<p>二、Response的过程:</p>
-
-<ol>
-<li><p>在ctrl_const.new上调用action后新的对象内就会拥有相应的实例变量. 这时通过Tiltgem, 按规则生成目标view的名字, 找到它, 而后render, render时将self作为scope传入. 至此view里可以调用action里所有的实例变量.Tilt.new(view).render self 得到了应该返回的html的内容.</p></li>
-<li><p>上一步render得到的只是Controller#action对应的view, 需要将它交给layout处理.同样的使用Tilt, 将上一步得到的partial view 放到block中提交过去. 这样layout中的&lt;%= yield %>关键字生效. 至此, 得到完整的html内容.</p></li>
-<li><p>Rack要求调用call后的返回的值是一个三值的array, 分别是[status code, head content, body].上一步得到的是html内容就是body部分.</p></li>
-</ol>
-
-
-<h4>4、Rails中的中间件</h4>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">cd</span> <span class="n">your</span><span class="o">/</span><span class="n">project</span><span class="o">/</span><span class="n">path</span>
-</span><span class='line'><span class="n">rake</span> <span class="n">middleware</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">=&gt;</span>
-</span><span class='line'><span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Sendfile</span>
-</span><span class='line'><span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Static</span>
-</span><span class='line'><span class="n">use</span> <span class="c1">#&lt;ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007fd93e3aee58&gt;</span>
-</span><span class='line'><span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Runtime</span>
-</span><span class='line'><span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">MethodOverride</span>
-</span><span class='line'><span class="err">等等</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Action</span> <span class="no">Controller</span> <span class="err">的很多功能都以中间件的形式实现。下面解释各个中间件的作用。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">Sendfile</span><span class="err">：设置服务器上的</span> <span class="n">X</span><span class="o">-</span><span class="no">Sendfile</span> <span class="err">报头。通过</span> <span class="n">config</span><span class="o">.</span><span class="n">action_dispatch</span><span class="o">.</span><span class="n">x_sendfile_header</span> <span class="err">选项设置。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Static</span><span class="err">：用来服务静态资源文件。如果选项</span> <span class="n">config</span><span class="o">.</span><span class="n">serve_static_assets</span> <span class="err">为</span> <span class="kp">false</span><span class="err">，则禁用这个中间件。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">Lock</span><span class="err">：把</span> <span class="n">env</span><span class="o">[</span><span class="s2">&quot;rack.multithread&quot;</span><span class="o">]</span> <span class="err">旗标设为</span> <span class="kp">false</span><span class="err">，程序放入互斥锁中。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Cache</span><span class="o">::</span><span class="no">Strategy</span><span class="o">::</span><span class="no">LocalCache</span><span class="o">::</span><span class="no">Middleware</span><span class="err">：在内存中保存缓存，非线程安全。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">Runtime</span><span class="err">：设置</span> <span class="n">X</span><span class="o">-</span><span class="no">Runtime</span> <span class="err">报头，即执行请求的时长，单位为秒。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">MethodOverride</span><span class="err">：如果指定了</span> <span class="n">params</span><span class="o">[</span><span class="ss">:_method</span><span class="o">]</span> <span class="err">参数，会覆盖所用的请求方法。这个中间件实现了</span> <span class="no">PUT</span> <span class="err">和</span> <span class="no">DELETE</span> <span class="err">方法。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">RequestId</span><span class="err">：在响应中设置一个唯一的</span> <span class="n">X</span><span class="o">-</span><span class="no">Request</span><span class="o">-</span><span class="no">Id</span> <span class="err">报头，并启用</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Request</span><span class="c1">#uuid 方法。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rails</span><span class="o">::</span><span class="no">Rack</span><span class="o">::</span><span class="no">Logger</span><span class="err">：请求开始时提醒日志，请求完成后写入日志。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">ShowExceptions</span><span class="err">：补救程序抛出的所有异常，调用处理异常的程序，使用特定的格式显示给用户。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">DebugExceptions</span><span class="err">：如果在本地开发，把异常写入日志，并显示一个调试页面。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">RemoteIp</span><span class="err">：检查欺骗攻击的</span> <span class="no">IP</span><span class="err">。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Reloader</span><span class="err">：提供“准备”和“清理”回调，协助开发环境中的代码重新加载功能。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Callbacks</span><span class="err">：在处理请求之前调用“准备”回调。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="o">::</span><span class="no">CheckPending</span><span class="err">：检查是否有待运行的迁移，如果有就抛出</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">PendingMigrationError</span> <span class="err">异常。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">ConnectionAdapters</span><span class="o">::</span><span class="no">ConnectionManagement</span><span class="err">：请求处理完成后，清理活跃的连接，除非在发起请求的环境中把</span> <span class="n">rack</span><span class="o">.</span><span class="n">test</span> <span class="err">设为</span> <span class="kp">true</span><span class="err">。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">QueryCache</span><span class="err">：启用</span> <span class="no">Active</span> <span class="no">Record</span> <span class="err">查询缓存。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Cookies</span><span class="err">：设置请求的</span> <span class="n">cookies</span><span class="err">。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Session</span><span class="o">::</span><span class="no">CookieStore</span><span class="err">：负责把会话存储在</span> <span class="n">cookies</span> <span class="err">中。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Flash</span><span class="err">：设置</span> <span class="no">Flash</span> <span class="err">消息的键。只有设定了</span> <span class="n">config</span><span class="o">.</span><span class="n">action_controller</span><span class="o">.</span><span class="n">session_store</span> <span class="err">选项时才可用。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">ParamsParser</span><span class="err">：把请求中的参数出入</span> <span class="n">params</span><span class="err">。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Head</span><span class="err">：把</span> <span class="no">HEAD</span> <span class="err">请求转换成</span> <span class="no">GET</span> <span class="err">请求，并处理。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">ConditionalGet</span><span class="err">：添加对“条件</span> <span class="no">GET</span><span class="err">”的支持，如果页面未修改，就不响应。</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rack</span><span class="o">::</span><span class="no">ETag</span><span class="err">：为所有字符串类型的主体添加</span> <span class="no">ETags</span> <span class="err">报头。</span><span class="no">ETags</span> <span class="err">用来验证缓存。</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><a href="https://ruby-china.org/topics/21517">https://ruby-china.org/topics/21517</a></p>
-
-<p><a href="http://wp.xdite.net/?p=1557">http://wp.xdite.net/?p=1557</a></p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-14T00:39:14+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>

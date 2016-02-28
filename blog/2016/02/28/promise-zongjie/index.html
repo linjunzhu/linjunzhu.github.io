@@ -1,0 +1,632 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Promise 总结 - LinJunzhu&#8217;s Blog</title>
+	<meta name="author" content="林俊柱">
+
+	
+	<meta name="description" content="什么是 Promise 简单来说， Promise 是把类似的异步处理对象和处理规则进行规范化，并按照统一的接口来编写，这样我们就能够避免写很多的 callback ( 相信有不少人已经对 callback 有恐惧心理了 ) 比如正常 callback 写法： 1
+2
+3
+4
+5
+6 &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="LinJunzhu's Blog" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script async="true" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+</head>
+
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">LinJunzhu&#8217;s Blog</a></h1>
+<nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</nav>
+<nav id="mobile-nav">
+	<div class="alignleft menu">
+		<a class="button">Menu</a>
+		<div class="container"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</div>
+	</div>
+	<div class="alignright search">
+		<a class="button"></a>
+		<div class="container">
+			<form action="https://www.google.com/search" method="get">
+				<input type="text" name="q" results="0">
+				<input type="hidden" name="q" value="site:github.com/linjunzhu/linjunzhu.github.io.git">
+			</form>
+		</div>
+	</div>
+</nav>
+<nav id="sub-nav" class="alignright">
+	<div class="social">
+		
+		
+		
+		
+    
+		
+		
+		
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+    
+	</div>
+	<form class="search" action="https://www.google.com/search" method="get">
+		<input class="alignright" type="text" name="q" results="0">
+		<input type="hidden" name="q" value="site:github.com/linjunzhu/linjunzhu.github.io.git">
+	</form>
+</nav>
+
+</header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h2 class="title">Promise 总结</h2>
+	<div class="entry-content"><h2>什么是 Promise</h2>
+
+<p>简单来说， Promise 是把类似的异步处理对象和处理规则进行规范化，并按照统一的接口来编写，这样我们就能够避免写很多的 callback ( 相信有不少人已经对 callback 有恐惧心理了 )</p>
+
+<p>比如正常 callback 写法：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">getAsync</span><span class="p">(</span><span class="s2">&quot;fileA.txt&quot;</span><span class="p">,</span> <span class="n">function</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">result</span><span class="p">){</span>
+</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">error</span><span class="p">){</span><span class="o">//</span> <span class="err">取得失败时的处理</span>
+</span><span class='line'>        <span class="kp">throw</span> <span class="n">error</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="sr">//</span> <span class="err">取得成功时的处理</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Promise 写法：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">var</span> <span class="n">promise</span> <span class="o">=</span> <span class="n">getAsyncPromise</span><span class="p">(</span><span class="s2">&quot;fileA.txt&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="n">promise</span><span class="o">.</span><span class="n">then</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">result</span><span class="p">){</span>
+</span><span class='line'>    <span class="sr">//</span> <span class="err">获取文件内容成功时的处理</span>
+</span><span class='line'><span class="p">})</span><span class="o">.</span><span class="n">catch</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">error</span><span class="p">){</span>
+</span><span class='line'>    <span class="sr">//</span> <span class="err">获取文件内容失败时的处理</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>相比之下，Promise 更加清晰</p>
+
+<h2>如何支持 Promise</h2>
+
+<p><img src="http://7jpo3s.com1.z0.glb.clouddn.com/promise-1.png" alt="" /></p>
+
+<p>目前来说，上图的相应浏览器已经原生支持 <code>ES6 Promise</code> 标准了，就是说你可以不用加任何库就可以在浏览器使用<code>Promise</code></p>
+
+<p>那么在不支持<code>Promise</code>的浏览器上该怎么办呢？我们则需要引入<code>Promise</code>的实现库 <code>Polyfill</code></p>
+
+<h4>jakearchibald/es6-promise</h4>
+
+<p>一个兼容 ES6 Promises 的Polyfill类库。 它基于 RSVP.js 这个兼容 Promises/A+ 的类库， 它只是 RSVP.js 的一个子集，只实现了Promises 规定的 API。</p>
+
+<h4>yahoo/ypromise</h4>
+
+<p>这是一个独立版本的 YUI 的 Promise Polyfill，具有和 ES6 Promises 的兼容性。 本书的示例代码也都是基于这个 ypromise 的 Polyfill 来在线运行的。</p>
+
+<h4>getify/native-promise-only</h4>
+
+<p>以作为ES6 Promises的polyfill为目的的类库 它严格按照ES6 Promises的规范设计，没有添加在规范中没有定义的功能。 如果运行环境有原生的Promise支持的话，则优先使用原生的Promise支持。</p>
+
+<p>如果是使用了<code>Babel</code>来编译<code>ES6</code>的话，则需要使用<code>babel-polyfill</code></p>
+
+<h2>基本用法</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">function</span> <span class="n">asyncFunction</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="kp">new</span> <span class="no">Promise</span><span class="p">(</span><span class="n">function</span> <span class="p">(</span><span class="n">resolve</span><span class="p">,</span> <span class="n">reject</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">var</span> <span class="n">num</span> <span class="o">=</span> <span class="no">Math</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">100</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">num</span> <span class="o">&gt;</span> <span class="mi">50</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="sr">//</span> <span class="err">成功事件</span>
+</span><span class='line'>            <span class="n">resolve</span><span class="p">(</span><span class="s1">&#39;yo&#39;</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>            <span class="sr">//</span> <span class="err">失败事件</span>
+</span><span class='line'>            <span class="n">reject</span><span class="p">(</span><span class="s1">&#39;sad&#39;</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">//</span> <span class="err">第一种写法</span>
+</span><span class='line'><span class="n">asyncFunction</span><span class="p">()</span><span class="o">.</span><span class="n">then</span><span class="p">(</span><span class="n">function</span> <span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>    <span class="sr">//</span> <span class="o">=&gt;</span> <span class="s1">&#39;yo&#39;</span>
+</span><span class='line'><span class="p">})</span><span class="o">.</span><span class="n">catch</span><span class="p">(</span><span class="n">function</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">error</span><span class="p">);</span>    <span class="sr">//</span> <span class="o">=&gt;</span> <span class="s1">&#39;sad&#39;</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">//</span> <span class="err">第二种写法</span>
+</span><span class='line'><span class="n">asyncFunction</span><span class="p">()</span><span class="o">.</span><span class="n">then</span><span class="p">(</span><span class="n">function</span> <span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>    <span class="sr">//</span> <span class="o">=&gt;</span> <span class="s1">&#39;yo&#39;</span>
+</span><span class='line'><span class="p">},</span> <span class="n">function</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span> <span class="sr">//</span> <span class="err">注意这里是个逗号</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">error</span><span class="p">);</span>    <span class="sr">//</span> <span class="o">=&gt;</span> <span class="s1">&#39;sad&#39;</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># then() 方法可以同时处理成功状态以及失败状态</span>
+</span><span class='line'><span class="n">promise</span><span class="o">.</span><span class="n">then</span><span class="p">(</span><span class="n">function</span> <span class="n">onResolve</span><span class="p">(){},</span> <span class="n">function</span> <span class="n">onReject</span><span class="p">(){})</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 不过最好还是使用下面这种方法</span>
+</span><span class='line'><span class="c1"># 因为这样在 then() 中发生的错误也可以在 catch() 内捕捉到</span>
+</span><span class='line'><span class="n">promise</span><span class="o">.</span><span class="n">then</span><span class="p">(</span>
+</span><span class='line'>    <span class="n">function</span> <span class="n">onResolve</span><span class="p">(){}</span>
+</span><span class='line'><span class="p">)</span><span class="o">.</span><span class="n">catch</span><span class="p">(</span>
+</span><span class='line'>    <span class="n">function</span> <span class="n">onReject</span><span class="p">(){}</span>
+</span><span class='line'><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># promise.catch() 相当于</span>
+</span><span class='line'><span class="n">promise</span><span class="o">.</span><span class="n">then</span><span class="p">(</span><span class="n">undefined</span><span class="p">,</span> <span class="n">onReject</span><span class="p">(){</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Promise.resolve</h3>
+
+<p>一般来说我们会用 <code>new Promise()</code> 来创建 promise, 但也可以用其他方法</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Promise</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以认为是下面的语法糖</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 直接将状态变为成功状态</span>
+</span><span class='line'><span class="kp">new</span> <span class="no">Promise</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">resolve</span><span class="p">){</span>
+</span><span class='line'>    <span class="n">resolve</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span>
+</span><span class='line'><span class="p">})</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>Promise.resolve(42)</code> 返回的也是一个 promise 对象，因此我们可以直接连用<code>then</code>方法</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Promise</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">then</span><span class="p">(</span><span class="n">function</span> <span class="p">(</span><span class="n">value</span><span class="p">){</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span><span class='line'><span class="p">})</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Promise.reject</h3>
+
+<p>相应的，<code>Promise.reject</code>也是一个快捷方式</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Promise</span><span class="o">.</span><span class="n">reject</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>相当于</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="kp">new</span> <span class="no">Promise</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">resolve</span><span class="p">,</span> <span class="n">reject</span><span class="p">){</span>
+</span><span class='line'>    <span class="n">reject</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span>
+</span><span class='line'><span class="p">})</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>那么我们可以直接:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Promise</span><span class="o">.</span><span class="n">reject</span><span class="p">(</span><span class="kp">new</span> <span class="no">Error</span><span class="p">(</span><span class="s2">&quot;BOOM!&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">catch</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">error</span><span class="p">){</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>异步调用</h3>
+
+<p>在使用<code>Promise.resolve()</code>时，promise对象立马进入了 resolve 状态，那<code>then()</code>的方法是不是立马同步调用呢?</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">var</span> <span class="n">promise</span> <span class="o">=</span> <span class="kp">new</span> <span class="no">Promise</span><span class="p">(</span><span class="n">function</span> <span class="p">(</span><span class="n">resolve</span><span class="p">){</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;inner promise&quot;</span><span class="p">);</span> <span class="sr">//</span> <span class="mi">1</span>
+</span><span class='line'>    <span class="n">resolve</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'><span class="n">promise</span><span class="o">.</span><span class="n">then</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">value</span><span class="p">){</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">value</span><span class="p">);</span> <span class="sr">//</span> <span class="mi">3</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'><span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;outer promise&quot;</span><span class="p">);</span> <span class="sr">//</span> <span class="mi">2</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>也许你会以为输出结果是：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">inner</span> <span class="n">promise</span> <span class="sr">//</span> <span class="mi">1</span>
+</span><span class='line'><span class="mi">42</span>            <span class="o">//</span> <span class="mi">2</span>
+</span><span class='line'><span class="n">outer</span> <span class="n">promise</span> <span class="sr">//</span> <span class="mi">3</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>但其实是:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">inner</span> <span class="n">promise</span> <span class="sr">//</span> <span class="mi">1</span>
+</span><span class='line'><span class="n">outer</span> <span class="n">promise</span> <span class="sr">//</span> <span class="mi">2</span>
+</span><span class='line'><span class="mi">42</span>            <span class="o">//</span> <span class="mi">3</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>说明了<code>then()</code>方法并不是同步调用的，而是异步调用。</p>
+
+<p>因为同步与异步一起使用的话，会造成混乱，因为 Promise 规范也指明了：<code>Promise 只能够使用异步调用方式</code></p>
+
+<blockquote><p>绝对不能对异步回调函数（即使在数据已经就绪）进行同步调用。</p>
+
+<p>如果对异步回调函数进行同步调用的话，处理顺序可能会与预期不符，可能带来意料之外的后果。</p>
+
+<p>对异步回调函数进行同步调用，还可能导致栈溢出或异常处理错乱等问题。</p>
+
+<p>如果想在将来某时刻调用异步回调函数的话，可以使用 setTimeout 等异步API。</p>
+
+<p>Effective JavaScript
+— David Herman</p></blockquote>
+
+<h2>方法链</h2>
+
+<p>想必使用过 JQuery 的人都已经使用过<code>方法链</code>了。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">promise</span><span class="o">.</span><span class="n">then</span><span class="p">(</span><span class="n">function</span> <span class="n">taskA</span><span class="p">(</span><span class="n">value</span><span class="p">){</span>
+</span><span class='line'>    <span class="k">return</span> <span class="s1">&#39;hello&#39;</span>
+</span><span class='line'><span class="p">})</span><span class="o">.</span><span class="n">then</span><span class="p">(</span><span class="n">function</span> <span class="n">taskB</span><span class="p">(</span><span class="n">value</span><span class="p">){</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>   <span class="sr">//</span> <span class="o">=&gt;</span> <span class="s1">&#39;hello&#39;</span>
+</span><span class='line'><span class="p">})</span><span class="o">.</span><span class="n">catch</span><span class="p">(</span><span class="n">function</span> <span class="n">onRejected</span><span class="p">(</span><span class="n">error</span><span class="p">){</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">error</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>then()</code>和<code>catch()</code>都会返回一个新的<code>promise对象</code>，这也是为什么可以使用<code>方法链</code>的原因。</p>
+
+<p>前一个<code>then()</code>的回调函数中，返回的值不同也会有不同的情况:</p>
+
+<ol>
+<li>回调函数返回的是<code>非 promise 对象</code>,那么该返回值将会传给第二个<code>then()</code>的<code>resolved</code>回调函数中（即 promise 默认为 resolved 状态)</li>
+<li>回调函数返回的是<code>promise 对象 A</code>,那么<code>then()</code>生成的<code>新 promise B</code>将会把<code>A</code>的状态以及返回值占为己有。</li>
+<li>没有返回值，<code>then()</code>返回的默认为 resolved 状态的 promise</li>
+</ol>
+
+
+<h2>Reject or Throw?</h2>
+
+<p><code>Promise</code>的构造函数，以及被 <code>then</code> 调用执行的函数基本上都可以认为是在 <code>try...catch</code> 代码块中执行的，所以在这些代码中即使使用 <code>throw</code> ，程序本身也不会因为异常而终止。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">var</span> <span class="n">promise</span> <span class="o">=</span> <span class="kp">new</span> <span class="no">Promise</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">resolve</span><span class="p">,</span> <span class="n">reject</span><span class="p">){</span>
+</span><span class='line'>    <span class="kp">throw</span> <span class="kp">new</span> <span class="no">Error</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'><span class="n">promise</span><span class="o">.</span><span class="n">catch</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">error</span><span class="p">){</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error</span><span class="p">);</span><span class="o">//</span> <span class="o">=&gt;</span> <span class="s2">&quot;message&quot;</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>但是一般来说我们使用<code>Reject</code>会更符合我们想把<code>promise</code>置为<code>reject</code>的意思。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">var</span> <span class="n">promise</span> <span class="o">=</span> <span class="kp">new</span> <span class="no">Promise</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">resolve</span><span class="p">,</span> <span class="n">reject</span><span class="p">){</span>
+</span><span class='line'>    <span class="n">reject</span><span class="p">(</span><span class="kp">new</span> <span class="no">Error</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">));</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'><span class="n">promise</span><span class="o">.</span><span class="n">catch</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">error</span><span class="p">){</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error</span><span class="p">);</span><span class="o">//</span> <span class="o">=&gt;</span> <span class="s2">&quot;message&quot;</span>
+</span><span class='line'><span class="p">})</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>那么在<code>then</code>中如何使用<code>reject</code>呢？我们可以在回调函数中返回<code>rejected</code>状态的<code>promise</code>对象，那么此时promise就会变成<code>rejected</code>状态了。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">var</span> <span class="n">onRejected</span> <span class="o">=</span> <span class="n">console</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">console</span><span class="p">);</span>
+</span><span class='line'><span class="n">var</span> <span class="n">promise</span> <span class="o">=</span> <span class="no">Promise</span><span class="o">.</span><span class="n">resolve</span><span class="p">();</span>
+</span><span class='line'><span class="n">promise</span><span class="o">.</span><span class="n">then</span><span class="p">(</span><span class="n">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="no">Promise</span><span class="o">.</span><span class="n">reject</span><span class="p">(</span><span class="kp">new</span> <span class="no">Error</span><span class="p">(</span><span class="s2">&quot;this promise is rejected&quot;</span><span class="p">));</span>
+</span><span class='line'><span class="p">})</span><span class="o">.</span><span class="n">catch</span><span class="p">(</span><span class="n">onRejected</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Then Or Catch ?</h2>
+
+<p>前面我们说过，<code>catch(function(){})</code>其实就是等于<code>then(undefined, function(){})</code>。</p>
+
+<p>那为何我们建议用<code>catch()</code>来进行捕获<code>rejected</code>状态的 promise 呢？</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">function</span> <span class="n">throwError</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="sr">//</span> <span class="err">抛出异常</span>
+</span><span class='line'>    <span class="kp">throw</span> <span class="kp">new</span> <span class="no">Error</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="sr">//</span> <span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span> <span class="n">onRejected</span><span class="err">不会被调用</span>
+</span><span class='line'><span class="n">function</span> <span class="n">badMain</span><span class="p">(</span><span class="n">onRejected</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="no">Promise</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">then</span><span class="p">(</span><span class="n">throwError</span><span class="p">,</span> <span class="n">onRejected</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="sr">//</span> <span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span> <span class="err">有异常发生时</span><span class="n">onRejected</span><span class="err">会被调用</span>
+</span><span class='line'><span class="n">function</span> <span class="n">goodMain</span><span class="p">(</span><span class="n">onRejected</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="no">Promise</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">then</span><span class="p">(</span><span class="n">throwError</span><span class="p">)</span><span class="o">.</span><span class="n">catch</span><span class="p">(</span><span class="n">onRejected</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="sr">//</span> <span class="err">运行示例</span>
+</span><span class='line'><span class="n">badMain</span><span class="p">(</span><span class="n">function</span><span class="p">(){</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;BAD&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'><span class="n">goodMain</span><span class="p">(</span><span class="n">function</span><span class="p">(){</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;GOOD&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>就是说，当<code>then(resolve(){}, reject(){})</code> 内的<code>resolve(){}</code>方法发生错误的时候，此时<code>reject(){}</code>函数并不能够去捕捉到。而使用<code>catch()</code>则可以。</p>
+
+<h2>Promise.all</h2>
+
+<p><code>Promise.all</code> 接收一个 promise对象的数组作为参数，当这个数组里的所有promise对象全部变为resolve或reject状态的时候，它才会去调用 .then 方法。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">first_promise</span> <span class="o">=</span> <span class="kp">new</span> <span class="no">Promise</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">resolve</span><span class="p">,</span> <span class="n">reject</span><span class="p">){</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span><span class='line'><span class="p">})</span>
+</span><span class='line'><span class="n">second_promise</span> <span class="o">=</span> <span class="kp">new</span> <span class="no">Promise</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">resolve</span><span class="p">,</span> <span class="n">reject</span><span class="p">){</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span><span class='line'><span class="p">})</span>
+</span><span class='line'><span class="no">Promise</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="o">[</span><span class="n">first_promise</span><span class="p">,</span> <span class="n">second_promise</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">then</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">results</span><span class="p">)){</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>  <span class="sr">//</span> <span class="err">按照数组顺序返回的值</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>需要注意的是，数组内的 promise 是同时执行的。</p>
+
+<h2>Promise.race</h2>
+
+<p><code>Promise.all</code> 在接收到的所有的对象promise都变为 <code>FulFilled</code> 或者 <code>Rejected</code> 状态之后才会继续进行后面的处理， 与之相对的是 <code>Promise.race</code> 只要有一个<code>promise</code>对象进入 <code>FulFilled</code> 或者 <code>Rejected</code> 状态的话，就会继续进行后面的处理。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="sr">//</span> <span class="sb">`delay`</span><span class="err">毫秒后执行</span><span class="n">resolve</span>
+</span><span class='line'><span class="n">function</span> <span class="n">timerPromisefy</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="kp">new</span> <span class="no">Promise</span><span class="p">(</span><span class="n">function</span> <span class="p">(</span><span class="n">resolve</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">setTimeout</span><span class="p">(</span><span class="n">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">resolve</span><span class="p">(</span><span class="n">delay</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">},</span> <span class="n">delay</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="sr">//</span> <span class="err">任何一个</span><span class="n">promise</span><span class="err">变为</span><span class="n">resolve</span><span class="err">或</span><span class="n">reject</span> <span class="err">的话就执行</span><span class="k">then</span><span class="p">()</span><span class="err">方法</span>
+</span><span class='line'><span class="no">Promise</span><span class="o">.</span><span class="n">race</span><span class="p">(</span><span class="o">[</span>
+</span><span class='line'>    <span class="n">timerPromisefy</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+</span><span class='line'>    <span class="n">timerPromisefy</span><span class="p">(</span><span class="mi">32</span><span class="p">),</span>
+</span><span class='line'>    <span class="n">timerPromisefy</span><span class="p">(</span><span class="mi">64</span><span class="p">),</span>
+</span><span class='line'>    <span class="n">timerPromisefy</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>
+</span><span class='line'><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">then</span><span class="p">(</span><span class="n">function</span> <span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>    <span class="sr">//</span> <span class="o">=&gt;</span> <span class="mi">1</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>关于 IE8</h2>
+
+<p>现在的浏览器基本都是基于 ECMAScript 5 的，但是 IE8 以及以下的浏览器都是基于 ECMAScript 3 的，而 <code>catch</code> 在 <code>ECMAScript 3</code>是保留字，所以使用<code>.catch()</code>会报错</p>
+
+<p>解决方法：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">var</span> <span class="n">promise</span> <span class="o">=</span> <span class="no">Promise</span><span class="o">.</span><span class="n">reject</span><span class="p">(</span><span class="kp">new</span> <span class="no">Error</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">));</span>
+</span><span class='line'><span class="n">promise</span><span class="o">[</span><span class="s2">&quot;catch&quot;</span><span class="o">]</span><span class="p">(</span><span class="n">function</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">console</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-28T15:24:30+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+		
+		
+		<a class="addthis_button_tweet"></a>
+		
+		
+		
+	</div>
+	
+</div>
+
+
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2016
+
+    林俊柱
+
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+
+
+
+</body>
+</html>

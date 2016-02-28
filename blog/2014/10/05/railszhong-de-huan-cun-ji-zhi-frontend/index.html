@@ -139,7 +139,7 @@
 <span class='line-number'>4</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 这里是直接告诉 代理缓存服务器 / 服务器，我要最新的副本 ( 然后再通过 ETag / If-None-Match 去判断是否从缓存区里拿 )</span>
 </span><span class='line'><span class="c1"># 之前很疑惑，既然 response 都有 no-cache 了，那 request 设这个值的意义何在呢？</span>
-</span><span class='line'><span class="c1"># 目的是强制资源进行重新验证，避免代理缓存服务器在需要验证权限的情况下返回了之前的资源副本。</span>
+</span><span class='line'><span class="c1"># 目的是告诉「代理缓存服务器」强制向「服务器」对资源进行重新验证，避免权限过期后，代理缓存服务器还是返回之前的资源副本。</span>
 </span><span class='line'><span class="n">cache</span><span class="o">-</span><span class="ss">control</span><span class="p">:</span> <span class="n">no</span><span class="o">-</span><span class="n">cache</span>
 </span></code></pre></td></tr></table></div></figure>
 

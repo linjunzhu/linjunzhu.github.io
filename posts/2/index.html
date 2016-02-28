@@ -7,9 +7,9 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="引言 这段时间团队需要跟 Google Glass 进行交互，因此要做一个推送机制。而 MQTT 协议的推送是当今最火热的一个。 Mosquitto 则是实现了 MQTT 协议的服务。 安装 在 Ubuntu 下： 1
-2
-sudo apt-add-repository ppa: &hellip;">
+	<meta name="description" content="前言 偶尔项目中会用到二维码，这时生成二维码有几种方式： 自己动手，丰衣足食，自己来生成
+通过调用网络API来拉取二维码 但是，由于担心网络的不稳定 或者 项目只能对内部开放，此时就需要第一种方式来实现了。 所需 Gem gem &lsquo;qrencoder&rsquo;
+gem & &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -76,6 +76,139 @@ sudo apt-add-repository ppa: &hellip;">
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2015/03/06/shi-yong-rubysheng-cheng-er-wei-ma/">
+		
+			使用Ruby生成二维码</a>
+	</h2>
+	<div class="entry-content">
+		<h2>前言</h2>
+
+<p>偶尔项目中会用到二维码，这时生成二维码有几种方式：</p>
+
+<ol>
+<li>自己动手，丰衣足食，自己来生成</li>
+<li>通过调用网络API来拉取二维码</li>
+</ol>
+
+
+<p>但是，由于担心网络的不稳定 或者 项目只能对内部开放，此时就需要第一种方式来实现了。</p>
+
+<h2>所需 Gem</h2>
+
+<ol>
+<li>gem &lsquo;qrencoder&rsquo;</li>
+<li>gem &lsquo;rqrencoder-magick&rsquo;</li>
+<li>gem &lsquo;rqrcode_png&rsquo;</li>
+</ol>
+
+
+<h2>Begin</h2>
+
+<h3>1. 先安装本机库 <code>qrencode</code></h3>
+
+<p>Mac 用户：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brew install qrencode</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Linux 用户：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>apt-get install qrencode</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>2. 安装 <code>qrencoder</code> 这个 gem</h3>
+
+<p>项目主页： <a href="https://github.com/harrisj/qrencoder">https://github.com/harrisj/qrencoder</a></p>
+
+<p>安装之前需要先安装依赖库，否则会安装不上：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>apt-get install libqrencode-dev python-qrencode qrencode
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>安装时需要指定路径：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gem install qrencoder –with-opt-include<span class="o">=</span>/usr/local/include –with-opt-lib<span class="o">=</span>/usr/local/lib
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>gem qrencoder</code></p>
+
+<h3>3. 安装 <code>rqrencoder-magick</code> 和 <code>rqrencoder</code></h3>
+
+<p>前者是利用了<code>RMagick</code>来生成二维码，因此需要事先安装 <code>RMagick</code>，安装方法就不说了。</p>
+
+<p>在 <code>gemfile</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gem <span class="s1">&#39;rqrencoder-magick&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在<code>shell</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gem install rqrencoder –with-opt-include<span class="o">=</span>/usr/local/include –with-opt-lib<span class="o">=</span>/usr/local/lib
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>4. 安装<code>rqrcode_png</code></h3>
+
+<p><code>gem rqrcode_png</code></p>
+
+<p>这个 Gem 可以为生成的二维码指定<code>宽度</code>和<code>高度</code></p>
+
+<h3>5. <code>DEMO</code></h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># 生成二维码</span>
+</span><span class='line'><span class="nv">qr</span> <span class="o">=</span> RQRCode::QRCode.new<span class="o">(</span> self.code, :size <span class="o">=</span>&gt; 1, :level <span class="o">=</span>&gt; :l <span class="o">)</span>
+</span><span class='line'><span class="nv">png</span> <span class="o">=</span> qr.to_img
+</span><span class='line'>png.resize<span class="o">(</span>300, 300<span class="o">)</span>.save<span class="o">(</span>path<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>6. 不足</h3>
+
+<p>这种方式生成的二维码图片会比现今网上提供的api所生成的二维码要「难扫」「复杂」，所以如果对二维码的扫描难度有要求的话，就&hellip;.</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-03-06T15:53:15+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -2897,164 +3030,6 @@ sudo apt-add-repository ppa: &hellip;">
 
 
 <time datetime="2014-12-26T14:55:59+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/24/git-resume/">
-		
-			Git &#8211; 恢复撤销篇</a>
-	</h2>
-	<div class="entry-content">
-		<h3>1、取消本地修改，恢复到上一次的commit</h3>
-
-<p>如果你的本地文件修改得一团乱，但是还没有提交，可以通过下面的命令恢复到上次提交时的状态( 其实就是恢复到上次的 commit，因此这次的本地修改自然没了）（<code>注意是修改，不包括添加文件</code>）</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git reset --hard</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这条命令将会取消掉本地的所有修改，恢复到上一次我们的commit信息</p>
-
-<h3>2、取消 git add 的文件</h3>
-
-<p>有时我们会不小心git add . 所有文件，想反悔，取消某些add的文件。那么可以(还原暂存区)</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git reset HEAD xxxx</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>3、取消对文件的修改</h3>
-
-<p>如果觉得刚才对XX文件的修改没有必要，想要恢复，那么:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git checkout -- xxx</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>4、取消已经提交的修改</h3>
-
-<p>如果已经做了一个提交(commit),并且马上后悔了。那么可以创建一个新的提交，在新提交里撤销老的提交所做的修改</p>
-
-<p>创建一个新的，撤销(revert)了前期修改的提交(commit)是很容易的。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git revert HEAD</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这样就创建了一个撤销了上次提交(HEAD)的新提交</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gir revert HEAD^</span></code></pre></td></tr></table></div></figure>
-
-
-<p>撤销上上次</p>
-
-<h3>5、Tips</h3>
-
-<h4>回滚到某一次 commit</h4>
-
-<p><code>git reset --hard aa89cd6bcc</code></p>
-
-<p>这样会回滚到某个commit状态，只要知道commit id 就可以</p>
-
-<h4>回滚后反悔怎么办？</h4>
-
-<p><code>git reflog</code> 记录了我们的每一次命令（ commit、merge 等信息）</p>
-
-<p>根据这命令来查出我们的历史 commit id，然后 <code>git reset</code>即可</p>
-
-<ol>
-<li><p>HEAD指向的版本就是当前版本，因此，Git允许我们在版本的历史之间穿梭，使用命令git reset &ndash;hard commit_id。</p></li>
-<li><p>穿梭前，用git log可以查看提交历史，以便确定要回退到哪个版本。</p></li>
-<li>要重返未来，用git reflog查看命令历史，以便确定要回到未来的哪个版本。</li>
-<li><p>场景1：当你改乱了工作区某个文件的内容，想直接丢弃工作区的修改时，用命令git checkout &ndash; file。</p></li>
-<li><p>场景2：当你不但改乱了工作区某个文件的内容，还添加到了暂存区时，想丢弃修改，分两步，第一步用命令git reset HEAD file，就回到了场景1，第二步按场景1操作。</p></li>
-</ol>
-
-
-<h3>6. 取消已经 push 的行为（重建分支）</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 备份到另一分支，以防万一</span>
-</span><span class='line'><span class="n">git</span> <span class="n">branch</span> <span class="n">old_master</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 推送备份分支</span>
-</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="ss">old_master</span><span class="p">:</span><span class="n">old_master</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 本地仓库回退到某一版本</span>
-</span><span class='line'><span class="n">git</span> <span class="n">reset</span> <span class="o">-</span><span class="n">hard</span> <span class="n">xxxx</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 删除远程分支</span>
-</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="ss">:master</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 推送本地还原后的分支</span>
-</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>6. 取消已经 push 的行为（强制 PUSH）</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 本地仓库回退到某一版本</span>
-</span><span class='line'><span class="n">git</span> <span class="n">reset</span> <span class="o">-</span><span class="n">hard</span> <span class="n">xxxx</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 强制 PUSH，此时远程分支已经恢复成指定的 commit 了</span>
-</span><span class='line'><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">master</span> <span class="o">--</span><span class="n">force</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>参考</h2>
-
-<p><a href="http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/001374027586935cf69c53637d8458c9aec27dd546a6cd6000">廖雪峰 Git 教程</a></p>
-
-<p><a href="http://git-scm.com">Git 官方</a></p>
-
-<p><a href="http://git-scm.com/book/zh">Git 官方教程</a></p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-24T23:13:33+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>
