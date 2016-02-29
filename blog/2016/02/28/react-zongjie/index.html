@@ -208,7 +208,7 @@ Babel React React是Facebook开发的一款JS库, &hellip;">
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ApprovalChainManage</span> <span class="n">extends</span> <span class="no">Component</span> <span class="p">{</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="n">render</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="o">&lt;</span><span class="no">ChildComponent</span> <span class="sr">/&gt;</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">&lt;</span><span class="no">ChildComponent</span><span class="o">&gt;&lt;</span><span class="sr">/ChildComponent&gt;</span>
 </span><span class='line'><span class="sr">    }</span>
 </span><span class='line'><span class="sr">}</span>
 </span><span class='line'>
@@ -311,7 +311,7 @@ Babel React React是Facebook开发的一款JS库, &hellip;">
 </span><span class='line'><span class="k">class</span> <span class="nc">ApprovalChainManage</span> <span class="n">extends</span> <span class="no">Component</span> <span class="p">{</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="n">render</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="o">&lt;</span><span class="no">ChildComponent</span> <span class="sr">/&gt;</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">&lt;</span><span class="no">ChildComponent</span><span class="o">&gt;&lt;</span><span class="sr">/ChildComponent&gt;</span>
 </span><span class='line'><span class="sr">    }</span>
 </span><span class='line'><span class="sr">}</span>
 </span><span class='line'>
@@ -423,13 +423,13 @@ Babel React React是Facebook开发的一款JS库, &hellip;">
 </span><span class='line'>    <span class="k">return</span> <span class="p">(</span>
 </span><span class='line'>      <span class="o">&lt;</span><span class="n">div</span><span class="o">&gt;</span>
 </span><span class='line'>        <span class="o">&lt;</span><span class="n">div</span> <span class="n">className</span><span class="o">=</span><span class="s2">&quot;er-header&quot;</span><span class="o">&gt;</span>
-</span><span class='line'>          <span class="o">&lt;</span><span class="no">Header</span> <span class="n">navBarIndex</span><span class="o">=</span><span class="p">{</span><span class="mi">1</span><span class="p">}</span><span class="o">/&gt;</span>
-</span><span class='line'>        <span class="o">&lt;</span><span class="sr">/div&gt;</span>
-</span><span class='line'><span class="sr">        # 这里来根据路由加载不同的子组件</span>
-</span><span class='line'><span class="sr">        # 使用 cloneElement 的原因是为了将数据传入子组件</span>
-</span><span class='line'><span class="sr">        # cloneElement 并非是真正的 clone, 只是将我们传入的数据进行合并罢了</span>
-</span><span class='line'><span class="sr">        {cloneElement(children, { entities, actions, publicEntities, publicActions })}</span>
-</span><span class='line'><span class="sr">        &lt;Footer/</span><span class="o">&gt;</span>
+</span><span class='line'>          <span class="o">&lt;</span><span class="no">Header</span> <span class="n">navBarIndex</span><span class="o">=</span><span class="p">{</span><span class="mi">1</span><span class="p">}</span><span class="o">&gt;&lt;</span><span class="sr">/Header&gt;</span>
+</span><span class='line'><span class="sr">        &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'>        <span class="c1"># 这里来根据路由加载不同的子组件</span>
+</span><span class='line'>        <span class="c1"># 使用 cloneElement 的原因是为了将数据传入子组件</span>
+</span><span class='line'>        <span class="c1"># cloneElement 并非是真正的 clone, 只是将我们传入的数据进行合并罢了</span>
+</span><span class='line'>        <span class="p">{</span><span class="n">cloneElement</span><span class="p">(</span><span class="n">children</span><span class="p">,</span> <span class="p">{</span> <span class="n">entities</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">publicEntities</span><span class="p">,</span> <span class="n">publicActions</span> <span class="p">})}</span>
+</span><span class='line'>        <span class="o">&lt;</span><span class="no">Footer</span><span class="o">/&gt;</span>
 </span><span class='line'>      <span class="o">&lt;</span><span class="sr">/div&gt;</span>
 </span><span class='line'><span class="sr">    );</span>
 </span><span class='line'><span class="sr">  }</span>
@@ -605,25 +605,25 @@ Babel React React是Facebook开发的一款JS库, &hellip;">
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Father</span> <span class="n">extends</span> <span class="no">Component</span><span class="p">(){</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="n">render</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="p">(</span> <span class="o">&lt;</span><span class="no">Children</span><span class="o">/&gt;</span> <span class="p">)</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">Children</span> <span class="n">extends</span> <span class="no">Component</span><span class="p">(){</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">doSomething</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="c1"># setState 后, this.state 的值并不会立马更新！</span>
-</span><span class='line'>        <span class="n">this</span><span class="o">.</span><span class="n">setState</span><span class="p">({</span>
-</span><span class='line'>            <span class="nb">name</span><span class="p">:</span> <span class="s2">&quot;fancy&quot;</span>
-</span><span class='line'>        <span class="p">})</span>
-</span><span class='line'>        <span class="c1"># 这里会执行完，才进行重新 render</span>
-</span><span class='line'>        <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;yo&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">render</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="p">(</span> <span class="o">&lt;</span><span class="n">div</span><span class="o">&gt;</span> <span class="no">Yo</span> <span class="o">&lt;</span><span class="sr">/div&gt; )</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span> <span class="o">&lt;</span><span class="no">Children</span><span class="o">&gt;&lt;</span><span class="sr">/Children&gt; )</span>
 </span><span class='line'><span class="sr">    }</span>
 </span><span class='line'><span class="sr">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">class Children extends Component(){</span>
+</span><span class='line'><span class="sr">    </span>
+</span><span class='line'><span class="sr">    doSomething() {</span>
+</span><span class='line'><span class="sr">        # setState 后, this.state 的值并不会立马更新！</span>
+</span><span class='line'><span class="sr">        this.setState({</span>
+</span><span class='line'><span class="sr">            name: &quot;fancy&quot;</span>
+</span><span class='line'><span class="sr">        })</span>
+</span><span class='line'><span class="sr">        # 这里会执行完，才进行重新 render</span>
+</span><span class='line'><span class="sr">        console.log(&quot;yo&quot;);</span>
+</span><span class='line'><span class="sr">    }</span>
+</span><span class='line'><span class="sr">    </span>
+</span><span class='line'><span class="sr">    render() {</span>
+</span><span class='line'><span class="sr">        return ( &lt;div&gt; Yo &lt;/</span><span class="n">div</span><span class="o">&gt;</span> <span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
