@@ -80,7 +80,7 @@ class ChainSelectBox extends Component {
 class ApprovalChainManage extends Component {
 
     render() {
-        return <ChildComponent />
+        return <ChildComponent></ChildComponent>
     }
 }
 
@@ -134,7 +134,7 @@ export default connect( mapStateToProps, mapDispatchToProps )( ApprovalChainMana
 class ApprovalChainManage extends Component {
 
     render() {
-        return <ChildComponent />
+        return <ChildComponent></ChildComponent>
     }
 }
 
@@ -210,7 +210,7 @@ class CashView extends Component {
     return (
       <div>
         <div className="er-header">
-          <Header navBarIndex={1}/>
+          <Header navBarIndex={1}></Header>
         </div>
         # 这里来根据路由加载不同的子组件
         # 使用 cloneElement 的原因是为了将数据传入子组件
@@ -314,7 +314,7 @@ const store = createStoreWithMiddleware( createStore )(
 class Father extends Component(){
     
     render() {
-        return ( <Children/> )
+        return ( <Children></Children> )
     }
 }
 
