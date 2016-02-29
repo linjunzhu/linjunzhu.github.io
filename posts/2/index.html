@@ -7,9 +7,11 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="前言 偶尔项目中会用到二维码，这时生成二维码有几种方式： 自己动手，丰衣足食，自己来生成
-通过调用网络API来拉取二维码 但是，由于担心网络的不稳定 或者 项目只能对内部开放，此时就需要第一种方式来实现了。 所需 Gem gem &lsquo;qrencoder&rsquo;
-gem & &hellip;">
+	<meta name="description" content="目录 引言
+session
+CSRF
+真相大白
+破解？ 一、引言 这段时间一直在想，Rails 的 CSRF token 要破解不是很简单么？GET请求到网页拿到 token，随后发送恶意POST请求到服务器不就破解了么？事实证明我还是 Too young too simple. 二、尝试 &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -76,6 +78,195 @@ gem & &hellip;">
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2015/04/20/rails-csrf-explore/">
+		
+			Rails-CSRF-Explore</a>
+	</h2>
+	<div class="entry-content">
+		<h2>目录</h2>
+
+<ol>
+<li>引言</li>
+<li>session</li>
+<li>CSRF</li>
+<li>真相大白</li>
+<li>破解？</li>
+</ol>
+
+
+<h2>一、引言</h2>
+
+<p>这段时间一直在想，Rails 的 CSRF token 要破解不是很简单么？<code>GET</code>请求到网页拿到 token，随后发送恶意<code>POST</code>请求到服务器不就破解了么？事实证明我还是 Too young too simple.</p>
+
+<h2>二、尝试</h2>
+
+<ol>
+<li><p>写了个程序在<code>ruby</code>中去<code>GET</code>其他服务器的网页，获取到<code>token</code>后，伪造恶意<code>POST</code>请求，附带<code>token</code>，结果<code>402 invalid token</code></p></li>
+<li><p>真实打开浏览器，获取网页中<code>token</code>，随后复制该<code>token</code>，在<code>ruby</code>中恶意伪造<code>POST</code>请求并附带<code>token</code>，结果还是<code>402 invalid token</code></p></li>
+<li><p>真实打开浏览器，获取token，打开<code>postman</code>，发送<code>POST</code>请求。成功<code>200</code></p></li>
+</ol>
+
+
+<p>这是为什么呢？</p>
+
+<h2>二、session</h2>
+
+<p>在 Rails 中，默认的session存储方式是：<code>ActionDispatch::Session::CookieStore</code></p>
+
+<p>也就是默认将<code>session</code>的内容存放到客户端<code>cookie</code>中。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">_glassx_session</span><span class="p">:</span>
+</span><span class='line'><span class="no">TE9xZ3Zud1dxRFYxdEtSek5mYldTMkpnZ1NWUlF5SjdzODVRSkJYNGN6VmNDc1VGb1lzSGJPU0FLYWhoMU5ZSHZCeXUwNTFWdWFQaWpKZmZSUC96c0dWbFdDcmlZK3RTcENabXZoaFVScWx1SWlxR1dEbmcwU1BXSDBZWUVOVW1EN0ZscmZpWkJsOFBZajZST0Z3VWxJM09NOGVTRFp2djRyYVB4SVJZNkVWRlM4dmw0TVNYb01jOGJYdVRXKzYxY1pyeXNtT0VkVWZ4YjZFcTdVU1FLVEU2aXlXbGRIOWY3c0Q1THlPRGtWeFhOb1BCd1M0S3hOQ04xTHNSajh3MC0tS3I0UVZkK2tuWGx0d1BDSVp3b1diZz09</span><span class="o">--</span><span class="n">cd6094c15ae50026d0377b6c32b7e0986b447d74</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>session中的数据保存在cookie中时是先marshal后，然后利用密码来加密的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">marshal</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">---</span><span class="n">digest_with_secret_key</span><span class="p">(</span><span class="n">marshal</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里所用<code>secret key</code>则是我们在<code>config/secrets.yml</code>设置的。</p>
+
+<p>加密的原因是防止 session 被偷看，并且<code>防止 session 被修改</code>。</p>
+
+<h2>三、CSRF</h2>
+
+<p>我们在访问服务器的网页时，会找到这样的 token</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="n">meta</span> <span class="nb">name</span><span class="o">=</span><span class="s2">&quot;csrf-param&quot;</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;authenticity_token&quot;</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">meta</span> <span class="nb">name</span><span class="o">=</span><span class="s2">&quot;csrf-token&quot;</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;yT5/q+GxMDy96ISmdNfE4esNrc8YZOBUrQefXO21tJ19iGD1XjRkJ2/ELC1A952U5qDp3vpo6MhhHQB8fOmivw==&quot;</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这<code>token</code>是服务器生成后返回的。</p>
+
+<p>具体流程是：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 生成加密的token（也就是我们在网页上见到的csrf-token)</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">masked_authenticity_token</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">one_time_pad</span> <span class="o">=</span> <span class="no">SecureRandom</span><span class="o">.</span><span class="n">random_bytes</span><span class="p">(</span><span class="no">AUTHENTICITY_TOKEN_LENGTH</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">encrypted_csrf_token</span> <span class="o">=</span> <span class="n">xor_byte_strings</span><span class="p">(</span><span class="n">one_time_pad</span><span class="p">,</span> <span class="n">real_csrf_token</span><span class="p">(</span><span class="n">session</span><span class="p">))</span>
+</span><span class='line'>  <span class="n">masked_token</span> <span class="o">=</span> <span class="n">one_time_pad</span> <span class="o">+</span> <span class="n">encrypted_csrf_token</span>
+</span><span class='line'>  <span class="no">Base64</span><span class="o">.</span><span class="n">strict_encode64</span><span class="p">(</span><span class="n">masked_token</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 生成 _csrf_token，并且将其放入`session[:_csrf_token]`中</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">real_csrf_token</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">session</span><span class="o">[</span><span class="ss">:_csrf_token</span><span class="o">]</span> <span class="o">||=</span> <span class="no">SecureRandom</span><span class="o">.</span><span class="n">base64</span><span class="p">(</span><span class="no">AUTHENTICITY_TOKEN_LENGTH</span><span class="p">)</span>
+</span><span class='line'>  <span class="no">Base64</span><span class="o">.</span><span class="n">strict_decode64</span><span class="p">(</span><span class="n">session</span><span class="o">[</span><span class="ss">:_csrf_token</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 验证 token 是否有效（这段代码我简化过）</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">valid_authenticity_token?</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">encoded_masked_token</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">masked_token</span> <span class="o">=</span> <span class="no">Base64</span><span class="o">.</span><span class="n">strict_decode64</span><span class="p">(</span><span class="n">encoded_masked_token</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">masked_token</span><span class="o">.</span><span class="n">length</span> <span class="o">==</span> <span class="no">AUTHENTICITY_TOKEN_LENGTH</span>
+</span><span class='line'>       <span class="n">compare_with_real_token</span> <span class="n">masked_token</span><span class="p">,</span> <span class="n">session</span>
+</span><span class='line'>  <span class="k">elsif</span> <span class="n">masked_token</span><span class="o">.</span><span class="n">length</span> <span class="o">==</span> <span class="no">AUTHENTICITY_TOKEN_LENGTH</span> <span class="o">*</span> <span class="mi">2</span>
+</span><span class='line'>     <span class="n">one_time_pad</span> <span class="o">=</span> <span class="n">masked_token</span><span class="o">[</span><span class="mi">0</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">AUTHENTICITY_TOKEN_LENGTH</span><span class="o">]</span>
+</span><span class='line'>       <span class="n">encrypted_csrf_token</span> <span class="o">=</span> <span class="n">masked_token</span><span class="o">[</span><span class="no">AUTHENTICITY_TOKEN_LENGTH</span><span class="o">.</span><span class="n">.</span><span class="o">-</span><span class="mi">1</span><span class="o">]</span>
+</span><span class='line'>       <span class="n">csrf_token</span> <span class="o">=</span> <span class="n">xor_byte_strings</span><span class="p">(</span><span class="n">one_time_pad</span><span class="p">,</span> <span class="n">encrypted_csrf_token</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>       <span class="n">compare_with_real_token</span> <span class="n">csrf_token</span><span class="p">,</span> <span class="n">session</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 开始验证</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">compare_with_real_token</span><span class="p">(</span><span class="n">unmasked_token</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
+</span><span class='line'>   <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">SecurityUtils</span><span class="o">.</span><span class="n">secure_compare</span><span class="p">(</span><span class="n">unmasked_token</span><span class="p">,</span> <span class="n">real_csrf_token</span><span class="p">(</span><span class="n">session</span><span class="p">))</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从源码可以看出，服务器会将生成的<code>_csrf_token</code>放入用户的<code>session</code>中，当客户端将<code>csrf_token</code>随着<code>request</code>发送过来时，服务器会将<code>csrf_token</code>转换回非加密，随后与<code>session</code>中的<code>_csrf_token</code>进行验证。</p>
+
+<h2>四、真相大白</h2>
+
+<ol>
+<li>验证时需要<code>session内的_csrf_token</code>，而用<code>ruby</code>代码直接发送http请求时是不会附带<code>cookies</code>的，所以验证肯定不会通过，这也是上面尝试第一二步失败的原因。</li>
+<li>使用<code>postman</code>是会自带<code>cookies</code>发送过去的，因此验证通过。</li>
+</ol>
+
+
+<h3>Tips</h3>
+
+<p>附带<code>cookies</code>是浏览器的行为</p>
+
+<h2>五、破解？</h2>
+
+<p>这时有人会问，<code>rails</code>是开源的，有人看了源码之后，拿到网页的<code>csrf_token</code>，按照步骤一步步转换回非加密状态，不就破解了？</p>
+
+<p>还是 too young!</p>
+
+<p>在服务器是将<code>session[_csrf_token]</code>跟用户的<code>csrf_token</code>进行验证，就算你将<code>csrf_token</code>还原了也没用，还是需要<code>session[_csrf_token]</code>，而<code>session</code>是经过<code>secret</code>加密过的，因为无法篡改<code>session</code>，因而也破解不了。</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-04-20T22:52:59+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -2769,267 +2960,6 @@ gem & &hellip;">
 
 
 <time datetime="2014-12-26T14:56:25+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/12/26/dalli-%5Byi-%5D/">
-		
-			Dalli -「译」</a>
-	</h2>
-	<div class="entry-content">
-		<h1>Dalli</h1>
-
-<p>Dalli 对于 memcached 服务是一个高性能的纯Ruby 客户端，它工作于 1.4+ 版本的 memcached，因为它使用了较新的二进制协议。它被认为是 memcache-client gem 的替代品。</p>
-
-<p>  这个名字是一位葡萄牙画家的有名画作的变种。</p>
-
-<p>  Dalli的最初版本是 CouchBase 赞助的，非常感谢他！</p>
-
-<h2>设计</h2>
-
-<p>在维护 memcache-client 两年后，因为一些特殊的原因我决定去写 Dalli。</p>
-
-<ol>
-<li>代码太过老旧以及粗糙，大部分的代码是单独的 1000 行 .rb 文件</li>
-<li>它的许多参数都很少被使用并且复杂化了代码库</li>
-<li>实施监控钩子的时候没有单独的店</li>
-<li>使用太旧的文本协议，降低了未处理的性能</li>
-</ol>
-
-
-<p>所以有一些笔记，Dailli:</p>
-
-<ol>
-<li>使用确切相同的算法去选择一个服务，因此存在的 memcached集群运行起 TB级的数据跟 memcache-client 一样</li>
-<li>在 Ruby 1.9.2 中大约比 memcache-client 快百分之20</li>
-<li>包含详细的“阻塞点”方法，能够处理所有请求；这些通过检测工具能够被 hook 来追踪 memcached的使用情况</li>
-<li>在管理环境下支持 SASL</li>
-<li>提供正确的故障切换和可调控的超时</li>
-</ol>
-
-
-<h1>支持 Ruby 版本</h1>
-
-<p>Dalli应该工作于：</p>
-
-<ol>
-<li>JRuby 1.6+</li>
-<li>Ruby 1.9.3+</li>
-<li>Rubinius 2.0</li>
-</ol>
-
-
-<p>如果你有问题，请提 issue</p>
-
-<h1>安装和使用</h1>
-
-<p>记住，Dalli要求 memcached 1.4+，你可以通过 <code>memcached -h</code> 来检查版本。请注意 memcached 1.2.8 版本和 Mac OS X Snow Leopadrd 不兼容。通过 Homebrew 来安装 memacached 1.4.x</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">brew</span> <span class="n">install</span> <span class="n">memcached</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在 Ubuntu 上你可以通过运行以下命令来安装：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">memcached</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>你可以使用下面这段代码来确认安装情况</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="n">install</span> <span class="n">dalli</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;dalli&#39;</span>
-</span><span class='line'><span class="n">options</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">:namespace</span> <span class="o">=&gt;</span> <span class="s2">&quot;app_v1&quot;</span><span class="p">,</span> <span class="ss">:compress</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">}</span>
-</span><span class='line'><span class="n">dc</span> <span class="o">=</span> <span class="no">Dalli</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;localhost:11211&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-</span><span class='line'><span class="n">dc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;abc&#39;</span><span class="p">,</span> <span class="mi">123</span><span class="p">)</span>
-</span><span class='line'><span class="n">value</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;abc&#39;</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这测试套件要求 memcached 1.4.3+ 和激活的 SASL。Dalli 没有运行时依赖并且以后也不会有。你可以自定义安装 &lsquo;kgio&rsquo; gem 去给 Dalli 提升 百分之20到30的运行提升。</p>
-
-<h2>在 Rails3.X 和 Rails4.X 的使用</h2>
-
-<p>在你的 gemfile:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s1">&#39;dalli&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在<code>config/environments/production.rb</code>:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:dalli_store</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这里是一个更全面的例子，在这个 Rails App 中，设置了一天内的最大缓存，压缩过大的数据和对所有记录进行命名空间规划，如果你有多个 APP 并且要共享缓存的值，可以移除命名空间。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:dalli_store</span><span class="p">,</span> <span class="s1">&#39;cache-1.example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;cache-2.example.com&#39;</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">{</span> <span class="ss">:namespace</span> <span class="o">=&gt;</span> <span class="no">NAME_OF_RAILS_APP</span><span class="p">,</span> <span class="ss">:expires_in</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="ss">:compress</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果你的服务器在<code>ENV["MEMCACHE_SERVERS"]</code>有特别的设置（比如在 Heroku使用第三方缓存服务时），在服务器中简单的提供<code>nil</code></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:dalli_store</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="p">{</span> <span class="ss">:namespace</span> <span class="o">=&gt;</span> <span class="no">NAME_OF_RAILS_APP</span><span class="p">,</span> <span class="ss">:expires_in</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="ss">:compress</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>使用 Dalli 为了20分钟后 Rails 的 session 存储过期， 在<code>config/initializers/session_store.rb</code>中：</p>
-
-<p>针对 Rails >= 3.2.4 :</p>
-
-<pre><code class="`ruby"> Rails.application.config.session_store ActionDispatch::Session::CacheStore, :expire_after =&gt; 20.minutes
-</code></pre>
-
-<p>针对 Rails 3.X :</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;action_dispatch/middleware/session/dalli_store&#39;</span>
-</span><span class='line'><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">session_store</span> <span class="ss">:dalli_store</span><span class="p">,</span> <span class="ss">:memcache_server</span> <span class="o">=&gt;</span> <span class="o">[</span><span class="s1">&#39;host1&#39;</span><span class="p">,</span> <span class="s1">&#39;host2&#39;</span><span class="o">]</span><span class="p">,</span> <span class="ss">:namespace</span> <span class="o">=&gt;</span> <span class="s1">&#39;sessions&#39;</span><span class="p">,</span> <span class="ss">:key</span> <span class="o">=&gt;</span> <span class="s1">&#39;_foundation_session&#39;</span><span class="p">,</span> <span class="ss">:expire_after</span> <span class="o">=&gt;</span> <span class="mi">20</span><span class="o">.</span><span class="n">minutes</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Dalli 不支持 Rails 2.X。</p>
-
-<h1>Rails 和多线程</h1>
-
-<p>如果你使用 Puma 或者其他的多线程 APP SERVER，在 Dalli 2.7 中，你可以使用Dalli 客户端池，并且确认 Rails.cache 并不会变成多线程的资源。你必须添加 <code>gem 'connection_pool</code> 到你的 gemfile 中，以及加上 <code>:pool_size</code> 到 <code>dalli_store</code> 配置中：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:dalli_store</span><span class="p">,</span> <span class="s1">&#39;cache-1.example.com&#39;</span><span class="p">,</span> <span class="p">{</span> <span class="ss">:pool_size</span> <span class="o">=&gt;</span> <span class="mi">5</span> <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>之后你可以像平常一样使用 Rails 的 cache，并且 Rails.cache 会使用连接池，或者你可以检验 Dalli 客户端指向：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Rails</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="ss">:expires_in</span> <span class="o">=&gt;</span> <span class="mi">300</span><span class="p">)</span> <span class="k">do</span>
-</span><span class='line'>  <span class="s1">&#39;bar&#39;</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rails</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">dalli</span><span class="o">.</span><span class="n">with</span> <span class="k">do</span> <span class="o">|</span><span class="n">client</span><span class="o">|</span>
-</span><span class='line'>  <span class="c1"># client is a Dalli::Client instance which you can</span>
-</span><span class='line'>  <span class="c1"># use ONLY within this block</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h1>配置</h1>
-
-<p><code>Dalli:Client</code>接受以下的参数，所有的时间都在几秒内。</p>
-
-<p><code>expires_in</code> : 全局默认 TTL 的 key 为 0，意味着不过期</p>
-
-<p><code>namespace</code> : 如果有规定，预先考虑每一个key和它的值提供一个简单的命名空间，默认是 nil</p>
-
-<p><code>failover</code> ：boolean 值，如果为 true 并且当主要的服务崩溃时，Daill 将会切换到另一个服务，默认为 true</p>
-
-<p><code>threadsafe</code> : boolean 值，如果为 true，Dalli 会确保只有一个线程在给定的时间内使用socket，默认为 true, 设置为 false 是很危险的。</p>
-
-<p><code>serializer</code> : 能够使对象进行存储。</p>
-
-<p><code>compress</code> : boolean  值， 如果为true, Dalli 将会用 gzip 来压缩超过 1K 的数据，默认为 false</p>
-
-<p><code>compression_min_size</code>  ：当超过这个数值时就尝试压缩，默认为1K</p>
-
-<p><code>compression_max_size</code> ：低于这个数值时才尝试压缩，默认为无限</p>
-
-<p><code>compressor</code> : 被压缩的对象将被存储，默认为 zlib，通过<code>Dalli::Compressor</code>来实现。如果正被压缩的数据使用 nginx 的 HttpMemcachedModule， 设置</p>
-
-<p><code>memcached_gzip_flag 2</code> 并且使用 <code>Dalli::GzipCompressor</code></p>
-
-<p><code>keepalive</code> : boolean值，如果为 true, Dalli 将会使 socket 长久连接，默认为 true</p>
-
-<p><code>socket_timeout</code> : 所有的 socket 操作超时时间，默认为 0.5</p>
-
-<p><code>socket_max_failures</code> : 当socket 超时后，socket 操作失败，一个相同的操作将会重试，当处于一个非常缓慢的网络问题时，并不会即时去执行，默认为2</p>
-
-<p><code>socket_failure_delay</code> : 重试一个 socket 操作之前，这段时间进程将会睡眠，默认为 0.01，设置为 nil 将无延迟</p>
-
-<p><code>down_retry_delay</code> : 当一个服务因为许多失败明显的崩溃了，仅仅会在这段时间服务将会再次检查以求正常运行。不要将这个值设置得太低，不然每一个到达崩溃服务的请求也许会固定在最大的 socket_timeout，默认为 1 秒</p>
-
-<h1>监控</h1>
-
-<p><code>telnet 127.0.0.1 11211</code>  连接上 memcache</p>
-
-<p>输入 <code>stats</code> 获得状态</p>
-
-<h1>反省</h1>
-
-<p>第一次翻译，翻译得太生硬太渣了。。。</p>
-
-<h1>疑惑</h1>
-
-<p>看了官方文档，写着：“使用 memcached 来存储缓存时， Rails 会使用默认附带安装的 Dalli gem。” 但是我并没有看到有 Dalli gem 的安装，而且配置也跟 Dalli 有差别。</p>
-
-<p>自带：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:mem_cache_store</span><span class="p">,</span> <span class="s2">&quot;cache-1.example.com&quot;</span><span class="p">,</span> <span class="s2">&quot;cache-2.example.com&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Dalli:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:dalli_store</span><span class="p">,</span> <span class="s2">&quot;cache-1.example.com&quot;</span><span class="p">,</span> <span class="s2">&quot;cache-2.example.com&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这是为毛- -！</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-12-26T14:55:59+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>

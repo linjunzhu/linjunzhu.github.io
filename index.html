@@ -7,12 +7,11 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="什么是 Promise 简单来说， Promise 是把类似的异步处理对象和处理规则进行规范化，并按照统一的接口来编写，这样我们就能够避免写很多的 callback ( 相信有不少人已经对 callback 有恐惧心理了 ) 比如正常 callback 写法： 1
-2
-3
-4
-5
-6 &hellip;">
+	<meta name="description" content="前言 啊，React 的项目完结到现在已经有一个月了，之前一直唠叨着说昨晚项目要写篇总结，无奈一直拖拖拖拖，拖到现在，还是写了它吧。 项目 这个前端项目用的是： React
+Redux
+React Router
+ES6
+Babel React React是Facebook开发的一款JS库, &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -79,6 +78,643 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/02/28/react-zongjie/">
+		
+			React 总结</a>
+	</h2>
+	<div class="entry-content">
+		<h2>前言</h2>
+
+<p>啊，React 的项目完结到现在已经有一个月了，之前一直唠叨着说昨晚项目要写篇总结，无奈一直拖拖拖拖，拖到现在，还是写了它吧。</p>
+
+<h2>项目</h2>
+
+<p>这个前端项目用的是：</p>
+
+<ol>
+<li>React</li>
+<li>Redux</li>
+<li>React Router</li>
+<li>ES6</li>
+<li>Babel</li>
+</ol>
+
+
+<h3>React</h3>
+
+<p>React是Facebook开发的一款JS库, 目的是为了构建那些数据会随着时间改变的大型应用。</p>
+
+<p>主要原理则是<code>虚拟 DOM</code> 以及 <code>Component 组件</code></p>
+
+<p>React有个diff算法，更新Virtual DOM并不保证马上影响真实的DOM，React会等到事件循环结束，然后利用这个diff算法，通过当前新的dom表述与之前的作比较，计算出最小的步骤更新真实的DOM。</p>
+
+<h3>Redux</h3>
+
+<p>Redux 是应用状态管理服务，用来管理 React 中的 state，应用中所有的 state 都以一个对象树的形式储存在一个单一的 store 中。</p>
+
+<p>React 算是传统 MVVM 意义上的 View 层，负责来渲染页面，数据管理方面则需要搭配其他的库，比如出名的是 Facebook 出的 flux 以及 Redux, 但目前来说，Redux 使用的人要多于 flux</p>
+
+<h3>React Router</h3>
+
+<p><code>React Router</code> 是完整的 React 路由解决方案，可以根据不同的<code>URL</code>来加载不同的<code>component</code></p>
+
+<h2>要点</h2>
+
+<p>基本知识在这里就不啰嗦了，在线看文档就够了。在这里写下之前所记的一些要点吧。</p>
+
+<h3>1、action</h3>
+
+<p><code>action</code> 用来表达发生的事件，如果要改变<code>state</code>，必须统一通过发<code>action</code></p>
+
+<h3>2、reducer</h3>
+
+<p><code>reducer</code>用来接收之前的 <code>state</code> 以及 <code>action</code>, 从而返回新的<code>state</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">function</span> <span class="n">todoApp</span><span class="p">(</span><span class="n">state</span> <span class="o">=</span> <span class="n">initialState</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">switch</span> <span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">case</span> <span class="ss">SET_VISIBILITY_FILTER</span><span class="p">:</span>
+</span><span class='line'>      <span class="k">return</span> <span class="no">Object</span><span class="o">.</span><span class="n">assign</span><span class="p">({},</span> <span class="n">state</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>        <span class="ss">visibilityFilter</span><span class="p">:</span> <span class="n">action</span><span class="o">.</span><span class="n">filter</span>
+</span><span class='line'>      <span class="p">});</span>
+</span><span class='line'>    <span class="k">case</span> <span class="ss">COMPLETE_TODO</span><span class="p">:</span>
+</span><span class='line'>      <span class="k">return</span> <span class="no">Object</span><span class="o">.</span><span class="n">assign</span><span class="p">({},</span> <span class="n">state</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>        <span class="ss">todos</span><span class="p">:</span> <span class="n">todos</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">todos</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
+</span><span class='line'>      <span class="p">});</span>
+</span><span class='line'>    <span class="ss">default</span><span class="p">:</span>
+</span><span class='line'>      <span class="k">return</span> <span class="n">state</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>默认应该返回<code>旧state</code>,注意在返回<code>新state</code>时，不要对<code>旧state</code>做出改变。</p>
+
+<h3>3、component</h3>
+
+<p> 创建组件，就相当于 class xx extends Component</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 创建组件</span>
+</span><span class='line'><span class="no">React</span><span class="o">.</span><span class="n">createClass</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 相当于</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">ChainSelectBox</span> <span class="n">extends</span> <span class="no">Component</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>4、connect()</h3>
+
+<p>任何一个 connect() 的组件，都可以得到 dispatch 方法作为组件的 props, 以及得到全局的 state.一次我们一般会在较顶级的组件进行<code>connect()</code>操作，并且将数据传入子组件进行使用。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ApprovalChainManage</span> <span class="n">extends</span> <span class="no">Component</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">render</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">&lt;</span><span class="no">ChildComponent</span> <span class="sr">/&gt;</span>
+</span><span class='line'><span class="sr">    }</span>
+</span><span class='line'><span class="sr">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr"># 当 state 有更新的时候，就会被调用</span>
+</span><span class='line'><span class="sr">const mapStateToProps = ( state ) =&gt; {</span>
+</span><span class='line'><span class="sr">  return {</span>
+</span><span class='line'><span class="sr">    approvalChainEntities:       state.ApprovalChainEntity</span>
+</span><span class='line'><span class="sr">  }</span>
+</span><span class='line'><span class="sr">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr"># 将 actions 传入 props</span>
+</span><span class='line'><span class="sr">const mapDispatchToProps = ( dispatch ) =&gt; ( {</span>
+</span><span class='line'><span class="sr">  approvalChainActions:       bindActionCreators( approvalChainActions, dispatch )</span>
+</span><span class='line'><span class="sr">} );</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="sr">export default connect( mapStateToProps, mapDispatchToProps )( ApprovalChainManage );</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果父组件以及子组件都有<code>connect()</code>的操作，那么当<code>state</code>有变化时，两者的<code>mapStateToProps()</code>方法都会被调用。具体的说应该是，当<code>state</code>有变化时，所有正在被加载的<code>connect()</code>过的组件，内的<code>mapStateToProps()</code>方法都会被调用</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 子组件</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">ChildComponent</span> <span class="n">extends</span> <span class="no">Component</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">render</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1"># JSX 语法</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span>
+</span><span class='line'>            <span class="o">&lt;</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'>                <span class="o">&lt;</span><span class="n">span</span><span class="o">&gt;</span><span class="no">Yo</span> <span class="n">yo</span><span class="o">&lt;</span><span class="sr">/span&gt;</span>
+</span><span class='line'><span class="sr">            &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'>        <span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">const</span> <span class="n">mapStateToProps</span> <span class="o">=</span> <span class="p">(</span> <span class="n">state</span> <span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">approvalChainEntities</span><span class="p">:</span>       <span class="n">state</span><span class="o">.</span><span class="n">ApprovalChainEntity</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">const</span> <span class="n">mapDispatchToProps</span> <span class="o">=</span> <span class="p">(</span> <span class="n">dispatch</span> <span class="p">)</span> <span class="o">=&gt;</span> <span class="p">(</span> <span class="p">{</span>
+</span><span class='line'>   <span class="ss">studentActions</span><span class="p">:</span>       <span class="n">bindActionCreators</span><span class="p">(</span> <span class="no">StudentActions</span><span class="p">,</span> <span class="n">dispatch</span> <span class="p">)</span>
+</span><span class='line'><span class="p">}</span> <span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">export</span> <span class="n">default</span> <span class="n">connect</span><span class="p">(</span> <span class="n">mapStateToProps</span><span class="p">,</span> <span class="n">mapDispatchToProps</span> <span class="p">)(</span> <span class="no">ApprovalChainManage</span> <span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 父组件</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">ApprovalChainManage</span> <span class="n">extends</span> <span class="no">Component</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">render</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">&lt;</span><span class="no">ChildComponent</span> <span class="sr">/&gt;</span>
+</span><span class='line'><span class="sr">    }</span>
+</span><span class='line'><span class="sr">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr"># 当 state 有更新的时候，就会被调用</span>
+</span><span class='line'><span class="sr">const mapStateToProps = ( state ) =&gt; {</span>
+</span><span class='line'><span class="sr">  return {</span>
+</span><span class='line'><span class="sr">    approvalChainEntities:       state.ApprovalChainEntity</span>
+</span><span class='line'><span class="sr">  }</span>
+</span><span class='line'><span class="sr">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr"># 将 actions 传入 props</span>
+</span><span class='line'><span class="sr">const mapDispatchToProps = ( dispatch ) =&gt; ( {</span>
+</span><span class='line'><span class="sr">  approvalChainActions:       bindActionCreators( approvalChainActions, dispatch )</span>
+</span><span class='line'><span class="sr">} );</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="sr">export default connect( mapStateToProps, mapDispatchToProps )( ApprovalChainManage );</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>5、Store</h3>
+
+<p>当用户进行<code>刷新</code>操作时，<code>Store</code>内的数据是会被清空的，所有组件重新加载，相当于第一次打开页面，这点要切记。</p>
+
+<p>Store 内的值是所有人共享的，如果你在组件 A 执行了 action, 更新了一些数据，并且跳往其他页面，此时这些数据也是一直存在的。</p>
+
+<h3>6、mapStateToProps</h3>
+
+<p>该函数返回的值会植入该组件的<code>props</code>，并且当<code>state</code>有更新时，会调用该方法。</p>
+
+<p>不过细心的人会发现，第一次打开页面，<code>mapStateToProps()</code>会被执行两次</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 第一次是因为初始化，第二次是因为connect</span>
+</span><span class='line'><span class="n">const</span> <span class="n">mapStateToProps</span> <span class="o">=</span> <span class="p">(</span> <span class="n">state</span> <span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;开始 state cashview&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">return</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">entities</span><span class="p">:</span> <span class="n">state</span><span class="o">.</span><span class="n">cashEntity</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>7、通过路由来统一管理加载页面</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'> <span class="o">&lt;</span><span class="no">Route</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/&#39;</span> <span class="n">component</span><span class="o">=</span><span class="p">{</span><span class="no">Root</span><span class="p">}</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="o">&lt;</span><span class="no">IndexRoute</span> <span class="n">component</span><span class="o">=</span><span class="p">{</span><span class="no">LoginView</span><span class="p">}</span> <span class="sr">/&gt;</span>
+</span><span class='line'><span class="sr">      &lt;Route path=&#39;cash&#39; component={CashView}&gt;</span>
+</span><span class='line'><span class="sr">        &lt;Route path=&#39;product/</span><span class="ss">:id</span><span class="s1">&#39; component={CashProductDetail}&gt;&lt;/Route&gt;</span>
+</span><span class='line'><span class="s1">        &lt;Route path=&#39;</span><span class="n">index</span><span class="err">&#39;</span> <span class="n">component</span><span class="o">=</span><span class="p">{</span><span class="no">CashIndex</span><span class="p">}</span><span class="o">&gt;&lt;</span><span class="sr">/Route&gt;</span>
+</span><span class='line'><span class="sr">      &lt;/</span><span class="no">Route</span><span class="o">&gt;</span>
+</span><span class='line'> <span class="o">&lt;</span><span class="sr">/Route&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>一般来说几个类似的页面会统一挂在某个<code>view</code>下，作为子组件，比如<code>登陆页</code>有自己的<code>view</code>,<code>商品列表``商品详情``商品购买</code>会挂载某个<code>view</code>下，<code>订单列表``订单详情</code>会挂载某个<code>view</code>下。</p>
+
+<p>并且我们会在<code>view</code>上<code>connect()</code>获取数据，接着将数据传入子组件。这样整个结构就比较清晰。</p>
+
+<p>上述例子，除去<code>顶级组件</code>会<code>connect()</code>外，我们还会在<code>cash</code>这个<code>view</code>上进行<code>connect()</code>操作。</p>
+
+<p>此时<code>URL</code>为<code>localhost:3000/cash/index</code>时，便会加载<code>Root``CashView``CashIndex</code>组件</p>
+
+<p>此时<code>URL</code>为<code>localhost:3000/cash/product/1</code>时，便会加载<code>Root``CashView``CashProductDetail</code>组件</p>
+
+<p><code>详情页</code>以及<code>首页列表</code>在进行切换时，仅仅只是替换了各自的组件，不会影响到<code>CashView</code>层。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">CashView</span> <span class="n">extends</span> <span class="no">Component</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">render</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">const</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">entities</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">children</span><span class="p">,</span> <span class="n">publicEntities</span><span class="p">,</span> <span class="n">publicActions</span>
+</span><span class='line'>    <span class="p">}</span> <span class="o">=</span> <span class="n">this</span><span class="o">.</span><span class="n">props</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="p">(</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'>        <span class="o">&lt;</span><span class="n">div</span> <span class="n">className</span><span class="o">=</span><span class="s2">&quot;er-header&quot;</span><span class="o">&gt;</span>
+</span><span class='line'>          <span class="o">&lt;</span><span class="no">Header</span> <span class="n">navBarIndex</span><span class="o">=</span><span class="p">{</span><span class="mi">1</span><span class="p">}</span><span class="o">/&gt;</span>
+</span><span class='line'>        <span class="o">&lt;</span><span class="sr">/div&gt;</span>
+</span><span class='line'><span class="sr">        # 这里来根据路由加载不同的子组件</span>
+</span><span class='line'><span class="sr">        # 使用 cloneElement 的原因是为了将数据传入子组件</span>
+</span><span class='line'><span class="sr">        # cloneElement 并非是真正的 clone, 只是将我们传入的数据进行合并罢了</span>
+</span><span class='line'><span class="sr">        {cloneElement(children, { entities, actions, publicEntities, publicActions })}</span>
+</span><span class='line'><span class="sr">        &lt;Footer/</span><span class="o">&gt;</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="sr">/div&gt;</span>
+</span><span class='line'><span class="sr">    );</span>
+</span><span class='line'><span class="sr">  }</span>
+</span><span class='line'><span class="sr">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>8、重新渲染页面</h3>
+
+<p>现在有这样的一个需求:</p>
+
+<blockquote><p>点击按钮后，该按钮需要变色</p></blockquote>
+
+<ol>
+<li>组件加载完成，页面渲染完毕</li>
+<li>单击按钮，发送action修改state内的值，此时重新render(),按钮成功变色 A</li>
+<li>单击第二个按钮，发送action,修改state,重新render()后,此时第二个按钮变色B，第一个按钮的颜色还是 A</li>
+</ol>
+
+
+<p>就是说，渲染是基于最新的 dom 元素来进行渲染的，而不是重新完全渲染</p>
+
+<h3>9、Redux 的 store 以及 React 的 state</h3>
+
+<p>由于 Store 就是来管理 React 的数据的，所以很多人会有这样的误解：</p>
+
+<p><code>Store是在管理操作React内的State</code></p>
+
+<p>其实不是，<code>Redux</code>的<code>store</code>跟<code>React</code>的<code>state</code>并没有什么关系。只是我们用前者来代替后者而已。</p>
+
+<p>所以，<code>React</code>内的<code>state</code>我们也是可以正常使用的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Teacher</span> <span class="n">extends</span> <span class="no">Component</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">construtor</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1"># 由于使用了 ES6 语法，因此不能用 defaultState 属性来进行初始化</span>
+</span><span class='line'>        <span class="n">this</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nb">name</span><span class="p">:</span> <span class="s1">&#39;fancy&#39;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">componentWillMount</span><span class="p">(){</span>
+</span><span class='line'>        <span class="k">if</span><span class="p">(</span><span class="n">this</span><span class="o">.</span><span class="n">props</span><span class="o">.</span><span class="n">rightLinkTxt</span><span class="p">){</span>
+</span><span class='line'>          <span class="c1"># 更改该组件的 state, 此时该组件会重新 render, 父级组件不受影响</span>
+</span><span class='line'>          <span class="n">this</span><span class="o">.</span><span class="n">setState</span><span class="p">({</span>
+</span><span class='line'>            <span class="nb">name</span><span class="p">:</span> <span class="s1">&#39;nancy&#39;</span>
+</span><span class='line'>          <span class="p">});</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>所以在较小的组件内，比如单选框，要通过<code>state</code>来改变样式的话，就可以直接使用<code>React</code>的<code>state</code>，更新状态只在该组件内，而不是使用<code>redux</code>的<code>store</code>，勾选后发送<code>action</code>, <code>reducer</code> 处理数据, 造成所有正在被加载的组件都重新 render。</p>
+
+<p>这样结构就比较清晰，将小组件的影响分离了出来。</p>
+
+<h3>10、直接在 URL 上修改参数</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 以下按顺序发生</span>
+</span><span class='line'><span class="mi">1</span><span class="o">.</span> <span class="n">url</span>
+</span><span class='line'><span class="mi">2</span><span class="o">.</span> <span class="n">url?params</span><span class="o">=</span><span class="mi">123</span>   <span class="o">=&gt;</span> <span class="err">直接按</span><span class="n">enter</span> <span class="o">=&gt;</span> <span class="err">刷新动作</span>
+</span><span class='line'><span class="mi">3</span><span class="o">.</span> <span class="n">url?params</span><span class="o">=</span><span class="mi">12</span> <span class="o">=&gt;</span> <span class="err">直接按</span><span class="n">enter</span> <span class="o">=&gt;</span> <span class="n">update</span>
+</span><span class='line'><span class="mi">4</span><span class="o">.</span> <span class="n">url?params</span><span class="o">=</span><span class="mi">112</span> <span class="o">=&gt;</span> <span class="err">直接按</span><span class="n">enter</span> <span class="o">=&gt;</span> <span class="n">update</span>
+</span><span class='line'><span class="mi">5</span><span class="o">.</span> <span class="n">url?params</span><span class="o">=</span><span class="mi">122</span> <span class="o">=&gt;</span> <span class="err">直接按</span><span class="n">enter</span> <span class="o">=&gt;</span> <span class="n">update</span>
+</span><span class='line'><span class="mi">6</span><span class="o">.</span> <span class="n">url?params</span><span class="o">=</span> <span class="o">=&gt;</span> <span class="err">直接按</span><span class="n">enter</span> <span class="o">=&gt;</span> <span class="err">刷新动作</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>11、Reducer 与 entites</h3>
+
+<p>1、我们把所有的 reducer都合并成了一个 rootRecuder</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kr">export</span> <span class="k">default</span> <span class="nx">combineReducers</span><span class="p">({</span>
+</span><span class='line'>  <span class="nx">router</span><span class="o">:</span> <span class="nx">routerStateReducer</span><span class="p">,</span>
+</span><span class='line'>  <span class="nx">loginEntity</span><span class="p">,</span>
+</span><span class='line'>  <span class="nx">homeEntity</span>
+</span><span class='line'><span class="p">})</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 实际上转换的是：</span>
+</span><span class='line'>
+</span><span class='line'><span class="kr">export</span> <span class="k">default</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">router</span><span class="o">:</span> <span class="nx">routerStateReducer</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">router</span><span class="p">,</span> <span class="nx">action</span><span class="p">),</span>
+</span><span class='line'>  <span class="c1">// 注意这里的 state.loginEntity，这就是为什么我们在自己的 reducer 只能够拿到自己相关 entites 内容的原因。</span>
+</span><span class='line'>  <span class="nx">loginStzEntity</span><span class="o">:</span> <span class="nx">loginStzEntity</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">loginStzEntity</span><span class="p">,</span> <span class="nx">action</span><span class="p">),</span>
+</span><span class='line'>  <span class="nx">homeEntity</span><span class="o">:</span> <span class="nx">homeEntity</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">homeEntity</span><span class="p">,</span> <span class="nx">action</span><span class="p">),</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 根rootReducer 返回所有 state 的内容</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>2、将 rootRecuder 跟 store 进行绑定</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="c1">// 这样子以后发的action通通都会被 rootReducer 所接收到</span>
+</span><span class='line'><span class="kr">const</span> <span class="nx">store</span> <span class="o">=</span> <span class="nx">createStoreWithMiddleware</span><span class="p">(</span> <span class="nx">createStore</span> <span class="p">)(</span>
+</span><span class='line'>    <span class="nx">rootReducer</span><span class="p">,</span> <span class="nx">initialState</span>
+</span><span class='line'><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 也就是说一个 action 会被里面所有的子 reducer 所接收~</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>12、render  的时机</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Father</span> <span class="n">extends</span> <span class="no">Component</span><span class="p">(){</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">render</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span> <span class="o">&lt;</span><span class="no">Children</span><span class="o">/&gt;</span> <span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Children</span> <span class="n">extends</span> <span class="no">Component</span><span class="p">(){</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">doSomething</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1"># setState 后, this.state 的值并不会立马更新！</span>
+</span><span class='line'>        <span class="n">this</span><span class="o">.</span><span class="n">setState</span><span class="p">({</span>
+</span><span class='line'>            <span class="nb">name</span><span class="p">:</span> <span class="s2">&quot;fancy&quot;</span>
+</span><span class='line'>        <span class="p">})</span>
+</span><span class='line'>        <span class="c1"># 这里会执行完，才进行重新 render</span>
+</span><span class='line'>        <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;yo&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">render</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span> <span class="o">&lt;</span><span class="n">div</span><span class="o">&gt;</span> <span class="no">Yo</span> <span class="o">&lt;</span><span class="sr">/div&gt; )</span>
+</span><span class='line'><span class="sr">    }</span>
+</span><span class='line'><span class="sr">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>13、简易流程</h3>
+
+<ol>
+<li>将 reducer 注册到 store</li>
+<li>用connect 将组件连接 redux</li>
+<li>利用redux从 根组件 注入的 dispatch 去触发 action</li>
+<li>此时 state 和 action 就会传入 reducer</li>
+</ol>
+
+
+<h3>14、优化</h3>
+
+<p>React 的机制是这样的，一个父组件下面一大堆子组件，如果父组件进行<code>re-render</code>，那么旗下的所有子组件都会<code>re-render</code>，但是子组件的<code>state``props</code>在未改变的情况下也会<code>re-render</code>，虽然 React 使用了 虚拟 DOM, 但<code>render</code>那么多次总会浪费性能不是么？</p>
+
+<p>所以我们可以用 <code>Pure render decorator</code>，他能够在<code>props</code>未改变的情况下，阻止组件进行<code>re-render</code>,原理就是利用<code>shouldComponentUpdate</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">function</span> <span class="n">shouldComponentUpdate</span><span class="p">(</span><span class="n">nextProps</span><span class="p">,</span> <span class="n">nextState</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">shallowCompare</span><span class="p">(</span><span class="n">this</span><span class="p">,</span> <span class="n">nextProps</span><span class="p">,</span> <span class="n">nextState</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">function</span> <span class="n">pureRende</span><span class="p">(</span><span class="n">component</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">component</span><span class="o">.</span><span class="n">prototype</span><span class="o">.</span><span class="n">shouldComponentUpdate</span> <span class="o">=</span> <span class="n">shouldComponentUpdate</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">module</span><span class="o">.</span><span class="n">exports</span> <span class="o">=</span> <span class="n">pureRender</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>但这种方案还是有缺憾：</p>
+
+<p>当 props 有复杂类型时，我们会遇到两种情况</p>
+
+<h4>情况一，我修改detail的内容，而不改detail的引用</h4>
+
+<p>这样就会引起一个bug，比如我修改detail.name,因为detail的引用没有改，所以
+props.detail ===nextProps.detail 还是为true。。
+所以我们为了安全起见必须修改detail的引用，（redux的reducer就是这么做的）</p>
+
+<h4>情况二，我修改detail的引用</h4>
+
+<p>这种虽然没有bug，但是容易误杀，比如如果我新旧两个detail的内容是一样的，岂不是还要，render。。所以还是不完美，，你可能会说用 深比较就好了，，但是 深比较及其消耗性能，要用递归保证每个子元素一样,</p>
+
+<p>解决方案是使用
+<a href="https://github.com/camsong/blog/issues/3">immutable.js</a></p>
+
+<p>暂时先这样吧，有空再补上其他的。</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-28T21:20:01+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -2990,195 +3626,6 @@
 
 
 <time datetime="2015-04-21T20:08:09+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2015/04/20/rails-csrf-explore/">
-		
-			Rails-CSRF-Explore</a>
-	</h2>
-	<div class="entry-content">
-		<h2>目录</h2>
-
-<ol>
-<li>引言</li>
-<li>session</li>
-<li>CSRF</li>
-<li>真相大白</li>
-<li>破解？</li>
-</ol>
-
-
-<h2>一、引言</h2>
-
-<p>这段时间一直在想，Rails 的 CSRF token 要破解不是很简单么？<code>GET</code>请求到网页拿到 token，随后发送恶意<code>POST</code>请求到服务器不就破解了么？事实证明我还是 Too young too simple.</p>
-
-<h2>二、尝试</h2>
-
-<ol>
-<li><p>写了个程序在<code>ruby</code>中去<code>GET</code>其他服务器的网页，获取到<code>token</code>后，伪造恶意<code>POST</code>请求，附带<code>token</code>，结果<code>402 invalid token</code></p></li>
-<li><p>真实打开浏览器，获取网页中<code>token</code>，随后复制该<code>token</code>，在<code>ruby</code>中恶意伪造<code>POST</code>请求并附带<code>token</code>，结果还是<code>402 invalid token</code></p></li>
-<li><p>真实打开浏览器，获取token，打开<code>postman</code>，发送<code>POST</code>请求。成功<code>200</code></p></li>
-</ol>
-
-
-<p>这是为什么呢？</p>
-
-<h2>二、session</h2>
-
-<p>在 Rails 中，默认的session存储方式是：<code>ActionDispatch::Session::CookieStore</code></p>
-
-<p>也就是默认将<code>session</code>的内容存放到客户端<code>cookie</code>中。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">_glassx_session</span><span class="p">:</span>
-</span><span class='line'><span class="no">TE9xZ3Zud1dxRFYxdEtSek5mYldTMkpnZ1NWUlF5SjdzODVRSkJYNGN6VmNDc1VGb1lzSGJPU0FLYWhoMU5ZSHZCeXUwNTFWdWFQaWpKZmZSUC96c0dWbFdDcmlZK3RTcENabXZoaFVScWx1SWlxR1dEbmcwU1BXSDBZWUVOVW1EN0ZscmZpWkJsOFBZajZST0Z3VWxJM09NOGVTRFp2djRyYVB4SVJZNkVWRlM4dmw0TVNYb01jOGJYdVRXKzYxY1pyeXNtT0VkVWZ4YjZFcTdVU1FLVEU2aXlXbGRIOWY3c0Q1THlPRGtWeFhOb1BCd1M0S3hOQ04xTHNSajh3MC0tS3I0UVZkK2tuWGx0d1BDSVp3b1diZz09</span><span class="o">--</span><span class="n">cd6094c15ae50026d0377b6c32b7e0986b447d74</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>session中的数据保存在cookie中时是先marshal后，然后利用密码来加密的。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">marshal</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">---</span><span class="n">digest_with_secret_key</span><span class="p">(</span><span class="n">marshal</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这里所用<code>secret key</code>则是我们在<code>config/secrets.yml</code>设置的。</p>
-
-<p>加密的原因是防止 session 被偷看，并且<code>防止 session 被修改</code>。</p>
-
-<h2>三、CSRF</h2>
-
-<p>我们在访问服务器的网页时，会找到这样的 token</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="n">meta</span> <span class="nb">name</span><span class="o">=</span><span class="s2">&quot;csrf-param&quot;</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;authenticity_token&quot;</span><span class="o">&gt;</span>
-</span><span class='line'><span class="o">&lt;</span><span class="n">meta</span> <span class="nb">name</span><span class="o">=</span><span class="s2">&quot;csrf-token&quot;</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;yT5/q+GxMDy96ISmdNfE4esNrc8YZOBUrQefXO21tJ19iGD1XjRkJ2/ELC1A952U5qDp3vpo6MhhHQB8fOmivw==&quot;</span><span class="o">&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这<code>token</code>是服务器生成后返回的。</p>
-
-<p>具体流程是：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 生成加密的token（也就是我们在网页上见到的csrf-token)</span>
-</span><span class='line'><span class="k">def</span> <span class="nf">masked_authenticity_token</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
-</span><span class='line'>  <span class="n">one_time_pad</span> <span class="o">=</span> <span class="no">SecureRandom</span><span class="o">.</span><span class="n">random_bytes</span><span class="p">(</span><span class="no">AUTHENTICITY_TOKEN_LENGTH</span><span class="p">)</span>
-</span><span class='line'>  <span class="n">encrypted_csrf_token</span> <span class="o">=</span> <span class="n">xor_byte_strings</span><span class="p">(</span><span class="n">one_time_pad</span><span class="p">,</span> <span class="n">real_csrf_token</span><span class="p">(</span><span class="n">session</span><span class="p">))</span>
-</span><span class='line'>  <span class="n">masked_token</span> <span class="o">=</span> <span class="n">one_time_pad</span> <span class="o">+</span> <span class="n">encrypted_csrf_token</span>
-</span><span class='line'>  <span class="no">Base64</span><span class="o">.</span><span class="n">strict_encode64</span><span class="p">(</span><span class="n">masked_token</span><span class="p">)</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 生成 _csrf_token，并且将其放入`session[:_csrf_token]`中</span>
-</span><span class='line'><span class="k">def</span> <span class="nf">real_csrf_token</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
-</span><span class='line'>  <span class="n">session</span><span class="o">[</span><span class="ss">:_csrf_token</span><span class="o">]</span> <span class="o">||=</span> <span class="no">SecureRandom</span><span class="o">.</span><span class="n">base64</span><span class="p">(</span><span class="no">AUTHENTICITY_TOKEN_LENGTH</span><span class="p">)</span>
-</span><span class='line'>  <span class="no">Base64</span><span class="o">.</span><span class="n">strict_decode64</span><span class="p">(</span><span class="n">session</span><span class="o">[</span><span class="ss">:_csrf_token</span><span class="o">]</span><span class="p">)</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 验证 token 是否有效（这段代码我简化过）</span>
-</span><span class='line'><span class="k">def</span> <span class="nf">valid_authenticity_token?</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">encoded_masked_token</span><span class="p">)</span>
-</span><span class='line'>  <span class="n">masked_token</span> <span class="o">=</span> <span class="no">Base64</span><span class="o">.</span><span class="n">strict_decode64</span><span class="p">(</span><span class="n">encoded_masked_token</span><span class="p">)</span>
-</span><span class='line'>  <span class="k">if</span> <span class="n">masked_token</span><span class="o">.</span><span class="n">length</span> <span class="o">==</span> <span class="no">AUTHENTICITY_TOKEN_LENGTH</span>
-</span><span class='line'>       <span class="n">compare_with_real_token</span> <span class="n">masked_token</span><span class="p">,</span> <span class="n">session</span>
-</span><span class='line'>  <span class="k">elsif</span> <span class="n">masked_token</span><span class="o">.</span><span class="n">length</span> <span class="o">==</span> <span class="no">AUTHENTICITY_TOKEN_LENGTH</span> <span class="o">*</span> <span class="mi">2</span>
-</span><span class='line'>     <span class="n">one_time_pad</span> <span class="o">=</span> <span class="n">masked_token</span><span class="o">[</span><span class="mi">0</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">AUTHENTICITY_TOKEN_LENGTH</span><span class="o">]</span>
-</span><span class='line'>       <span class="n">encrypted_csrf_token</span> <span class="o">=</span> <span class="n">masked_token</span><span class="o">[</span><span class="no">AUTHENTICITY_TOKEN_LENGTH</span><span class="o">.</span><span class="n">.</span><span class="o">-</span><span class="mi">1</span><span class="o">]</span>
-</span><span class='line'>       <span class="n">csrf_token</span> <span class="o">=</span> <span class="n">xor_byte_strings</span><span class="p">(</span><span class="n">one_time_pad</span><span class="p">,</span> <span class="n">encrypted_csrf_token</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>       <span class="n">compare_with_real_token</span> <span class="n">csrf_token</span><span class="p">,</span> <span class="n">session</span>
-</span><span class='line'>    <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 开始验证</span>
-</span><span class='line'><span class="k">def</span> <span class="nf">compare_with_real_token</span><span class="p">(</span><span class="n">unmasked_token</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
-</span><span class='line'>   <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">SecurityUtils</span><span class="o">.</span><span class="n">secure_compare</span><span class="p">(</span><span class="n">unmasked_token</span><span class="p">,</span> <span class="n">real_csrf_token</span><span class="p">(</span><span class="n">session</span><span class="p">))</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>从源码可以看出，服务器会将生成的<code>_csrf_token</code>放入用户的<code>session</code>中，当客户端将<code>csrf_token</code>随着<code>request</code>发送过来时，服务器会将<code>csrf_token</code>转换回非加密，随后与<code>session</code>中的<code>_csrf_token</code>进行验证。</p>
-
-<h2>四、真相大白</h2>
-
-<ol>
-<li>验证时需要<code>session内的_csrf_token</code>，而用<code>ruby</code>代码直接发送http请求时是不会附带<code>cookies</code>的，所以验证肯定不会通过，这也是上面尝试第一二步失败的原因。</li>
-<li>使用<code>postman</code>是会自带<code>cookies</code>发送过去的，因此验证通过。</li>
-</ol>
-
-
-<h3>Tips</h3>
-
-<p>附带<code>cookies</code>是浏览器的行为</p>
-
-<h2>五、破解？</h2>
-
-<p>这时有人会问，<code>rails</code>是开源的，有人看了源码之后，拿到网页的<code>csrf_token</code>，按照步骤一步步转换回非加密状态，不就破解了？</p>
-
-<p>还是 too young!</p>
-
-<p>在服务器是将<code>session[_csrf_token]</code>跟用户的<code>csrf_token</code>进行验证，就算你将<code>csrf_token</code>还原了也没用，还是需要<code>session[_csrf_token]</code>，而<code>session</code>是经过<code>secret</code>加密过的，因为无法篡改<code>session</code>，因而也破解不了。</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-04-20T22:52:59+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>

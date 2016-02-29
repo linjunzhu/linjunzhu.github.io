@@ -4,7 +4,7 @@
   <title><![CDATA[LinJunzhu's Blog]]></title>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/atom.xml" rel="self"/>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/"/>
-  <updated>2016-02-28T19:17:10+08:00</updated>
+  <updated>2016-02-29T15:39:24+08:00</updated>
   <id>https://github.com/linjunzhu/linjunzhu.github.io.git/</id>
   <author>
     <name><![CDATA[林俊柱]]></name>
@@ -12,6 +12,615 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[React 总结]]></title>
+    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2016/02/28/react-zongjie/"/>
+    <updated>2016-02-28T21:20:01+08:00</updated>
+    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2016/02/28/react-zongjie</id>
+    <content type="html"><![CDATA[<h2>前言</h2>
+
+<p>啊，React 的项目完结到现在已经有一个月了，之前一直唠叨着说昨晚项目要写篇总结，无奈一直拖拖拖拖，拖到现在，还是写了它吧。</p>
+
+<h2>项目</h2>
+
+<p>这个前端项目用的是：</p>
+
+<ol>
+<li>React</li>
+<li>Redux</li>
+<li>React Router</li>
+<li>ES6</li>
+<li>Babel</li>
+</ol>
+
+
+<h3>React</h3>
+
+<p>React是Facebook开发的一款JS库, 目的是为了构建那些数据会随着时间改变的大型应用。</p>
+
+<p>主要原理则是<code>虚拟 DOM</code> 以及 <code>Component 组件</code></p>
+
+<p>React有个diff算法，更新Virtual DOM并不保证马上影响真实的DOM，React会等到事件循环结束，然后利用这个diff算法，通过当前新的dom表述与之前的作比较，计算出最小的步骤更新真实的DOM。</p>
+
+<h3>Redux</h3>
+
+<p>Redux 是应用状态管理服务，用来管理 React 中的 state，应用中所有的 state 都以一个对象树的形式储存在一个单一的 store 中。</p>
+
+<p>React 算是传统 MVVM 意义上的 View 层，负责来渲染页面，数据管理方面则需要搭配其他的库，比如出名的是 Facebook 出的 flux 以及 Redux, 但目前来说，Redux 使用的人要多于 flux</p>
+
+<h3>React Router</h3>
+
+<p><code>React Router</code> 是完整的 React 路由解决方案，可以根据不同的<code>URL</code>来加载不同的<code>component</code></p>
+
+<h2>要点</h2>
+
+<p>基本知识在这里就不啰嗦了，在线看文档就够了。在这里写下之前所记的一些要点吧。</p>
+
+<h3>1、action</h3>
+
+<p><code>action</code> 用来表达发生的事件，如果要改变<code>state</code>，必须统一通过发<code>action</code></p>
+
+<h3>2、reducer</h3>
+
+<p><code>reducer</code>用来接收之前的 <code>state</code> 以及 <code>action</code>, 从而返回新的<code>state</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">function</span> <span class="n">todoApp</span><span class="p">(</span><span class="n">state</span> <span class="o">=</span> <span class="n">initialState</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">switch</span> <span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">case</span> <span class="ss">SET_VISIBILITY_FILTER</span><span class="p">:</span>
+</span><span class='line'>      <span class="k">return</span> <span class="no">Object</span><span class="o">.</span><span class="n">assign</span><span class="p">({},</span> <span class="n">state</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>        <span class="ss">visibilityFilter</span><span class="p">:</span> <span class="n">action</span><span class="o">.</span><span class="n">filter</span>
+</span><span class='line'>      <span class="p">});</span>
+</span><span class='line'>    <span class="k">case</span> <span class="ss">COMPLETE_TODO</span><span class="p">:</span>
+</span><span class='line'>      <span class="k">return</span> <span class="no">Object</span><span class="o">.</span><span class="n">assign</span><span class="p">({},</span> <span class="n">state</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>        <span class="ss">todos</span><span class="p">:</span> <span class="n">todos</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">todos</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
+</span><span class='line'>      <span class="p">});</span>
+</span><span class='line'>    <span class="ss">default</span><span class="p">:</span>
+</span><span class='line'>      <span class="k">return</span> <span class="n">state</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>默认应该返回<code>旧state</code>,注意在返回<code>新state</code>时，不要对<code>旧state</code>做出改变。</p>
+
+<h3>3、component</h3>
+
+<p> 创建组件，就相当于 class xx extends Component</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 创建组件</span>
+</span><span class='line'><span class="no">React</span><span class="o">.</span><span class="n">createClass</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 相当于</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">ChainSelectBox</span> <span class="n">extends</span> <span class="no">Component</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>4、connect()</h3>
+
+<p>任何一个 connect() 的组件，都可以得到 dispatch 方法作为组件的 props, 以及得到全局的 state.一次我们一般会在较顶级的组件进行<code>connect()</code>操作，并且将数据传入子组件进行使用。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ApprovalChainManage</span> <span class="n">extends</span> <span class="no">Component</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">render</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">&lt;</span><span class="no">ChildComponent</span> <span class="sr">/&gt;</span>
+</span><span class='line'><span class="sr">    }</span>
+</span><span class='line'><span class="sr">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr"># 当 state 有更新的时候，就会被调用</span>
+</span><span class='line'><span class="sr">const mapStateToProps = ( state ) =&gt; {</span>
+</span><span class='line'><span class="sr">  return {</span>
+</span><span class='line'><span class="sr">    approvalChainEntities:       state.ApprovalChainEntity</span>
+</span><span class='line'><span class="sr">  }</span>
+</span><span class='line'><span class="sr">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr"># 将 actions 传入 props</span>
+</span><span class='line'><span class="sr">const mapDispatchToProps = ( dispatch ) =&gt; ( {</span>
+</span><span class='line'><span class="sr">  approvalChainActions:       bindActionCreators( approvalChainActions, dispatch )</span>
+</span><span class='line'><span class="sr">} );</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="sr">export default connect( mapStateToProps, mapDispatchToProps )( ApprovalChainManage );</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果父组件以及子组件都有<code>connect()</code>的操作，那么当<code>state</code>有变化时，两者的<code>mapStateToProps()</code>方法都会被调用。具体的说应该是，当<code>state</code>有变化时，所有正在被加载的<code>connect()</code>过的组件，内的<code>mapStateToProps()</code>方法都会被调用</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 子组件</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">ChildComponent</span> <span class="n">extends</span> <span class="no">Component</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">render</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1"># JSX 语法</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span>
+</span><span class='line'>            <span class="o">&lt;</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'>                <span class="o">&lt;</span><span class="n">span</span><span class="o">&gt;</span><span class="no">Yo</span> <span class="n">yo</span><span class="o">&lt;</span><span class="sr">/span&gt;</span>
+</span><span class='line'><span class="sr">            &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'>        <span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">const</span> <span class="n">mapStateToProps</span> <span class="o">=</span> <span class="p">(</span> <span class="n">state</span> <span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">approvalChainEntities</span><span class="p">:</span>       <span class="n">state</span><span class="o">.</span><span class="n">ApprovalChainEntity</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">const</span> <span class="n">mapDispatchToProps</span> <span class="o">=</span> <span class="p">(</span> <span class="n">dispatch</span> <span class="p">)</span> <span class="o">=&gt;</span> <span class="p">(</span> <span class="p">{</span>
+</span><span class='line'>   <span class="ss">studentActions</span><span class="p">:</span>       <span class="n">bindActionCreators</span><span class="p">(</span> <span class="no">StudentActions</span><span class="p">,</span> <span class="n">dispatch</span> <span class="p">)</span>
+</span><span class='line'><span class="p">}</span> <span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">export</span> <span class="n">default</span> <span class="n">connect</span><span class="p">(</span> <span class="n">mapStateToProps</span><span class="p">,</span> <span class="n">mapDispatchToProps</span> <span class="p">)(</span> <span class="no">ApprovalChainManage</span> <span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 父组件</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">ApprovalChainManage</span> <span class="n">extends</span> <span class="no">Component</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">render</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">&lt;</span><span class="no">ChildComponent</span> <span class="sr">/&gt;</span>
+</span><span class='line'><span class="sr">    }</span>
+</span><span class='line'><span class="sr">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr"># 当 state 有更新的时候，就会被调用</span>
+</span><span class='line'><span class="sr">const mapStateToProps = ( state ) =&gt; {</span>
+</span><span class='line'><span class="sr">  return {</span>
+</span><span class='line'><span class="sr">    approvalChainEntities:       state.ApprovalChainEntity</span>
+</span><span class='line'><span class="sr">  }</span>
+</span><span class='line'><span class="sr">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr"># 将 actions 传入 props</span>
+</span><span class='line'><span class="sr">const mapDispatchToProps = ( dispatch ) =&gt; ( {</span>
+</span><span class='line'><span class="sr">  approvalChainActions:       bindActionCreators( approvalChainActions, dispatch )</span>
+</span><span class='line'><span class="sr">} );</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="sr">export default connect( mapStateToProps, mapDispatchToProps )( ApprovalChainManage );</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>5、Store</h3>
+
+<p>当用户进行<code>刷新</code>操作时，<code>Store</code>内的数据是会被清空的，所有组件重新加载，相当于第一次打开页面，这点要切记。</p>
+
+<p>Store 内的值是所有人共享的，如果你在组件 A 执行了 action, 更新了一些数据，并且跳往其他页面，此时这些数据也是一直存在的。</p>
+
+<h3>6、mapStateToProps</h3>
+
+<p>该函数返回的值会植入该组件的<code>props</code>，并且当<code>state</code>有更新时，会调用该方法。</p>
+
+<p>不过细心的人会发现，第一次打开页面，<code>mapStateToProps()</code>会被执行两次</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 第一次是因为初始化，第二次是因为connect</span>
+</span><span class='line'><span class="n">const</span> <span class="n">mapStateToProps</span> <span class="o">=</span> <span class="p">(</span> <span class="n">state</span> <span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;开始 state cashview&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">return</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">entities</span><span class="p">:</span> <span class="n">state</span><span class="o">.</span><span class="n">cashEntity</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>7、通过路由来统一管理加载页面</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'> <span class="o">&lt;</span><span class="no">Route</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/&#39;</span> <span class="n">component</span><span class="o">=</span><span class="p">{</span><span class="no">Root</span><span class="p">}</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="o">&lt;</span><span class="no">IndexRoute</span> <span class="n">component</span><span class="o">=</span><span class="p">{</span><span class="no">LoginView</span><span class="p">}</span> <span class="sr">/&gt;</span>
+</span><span class='line'><span class="sr">      &lt;Route path=&#39;cash&#39; component={CashView}&gt;</span>
+</span><span class='line'><span class="sr">        &lt;Route path=&#39;product/</span><span class="ss">:id</span><span class="s1">&#39; component={CashProductDetail}&gt;&lt;/Route&gt;</span>
+</span><span class='line'><span class="s1">        &lt;Route path=&#39;</span><span class="n">index</span><span class="err">&#39;</span> <span class="n">component</span><span class="o">=</span><span class="p">{</span><span class="no">CashIndex</span><span class="p">}</span><span class="o">&gt;&lt;</span><span class="sr">/Route&gt;</span>
+</span><span class='line'><span class="sr">      &lt;/</span><span class="no">Route</span><span class="o">&gt;</span>
+</span><span class='line'> <span class="o">&lt;</span><span class="sr">/Route&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>一般来说几个类似的页面会统一挂在某个<code>view</code>下，作为子组件，比如<code>登陆页</code>有自己的<code>view</code>,<code>商品列表``商品详情``商品购买</code>会挂载某个<code>view</code>下，<code>订单列表``订单详情</code>会挂载某个<code>view</code>下。</p>
+
+<p>并且我们会在<code>view</code>上<code>connect()</code>获取数据，接着将数据传入子组件。这样整个结构就比较清晰。</p>
+
+<p>上述例子，除去<code>顶级组件</code>会<code>connect()</code>外，我们还会在<code>cash</code>这个<code>view</code>上进行<code>connect()</code>操作。</p>
+
+<p>此时<code>URL</code>为<code>localhost:3000/cash/index</code>时，便会加载<code>Root``CashView``CashIndex</code>组件</p>
+
+<p>此时<code>URL</code>为<code>localhost:3000/cash/product/1</code>时，便会加载<code>Root``CashView``CashProductDetail</code>组件</p>
+
+<p><code>详情页</code>以及<code>首页列表</code>在进行切换时，仅仅只是替换了各自的组件，不会影响到<code>CashView</code>层。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">CashView</span> <span class="n">extends</span> <span class="no">Component</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">render</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">const</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">entities</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">children</span><span class="p">,</span> <span class="n">publicEntities</span><span class="p">,</span> <span class="n">publicActions</span>
+</span><span class='line'>    <span class="p">}</span> <span class="o">=</span> <span class="n">this</span><span class="o">.</span><span class="n">props</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="p">(</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'>        <span class="o">&lt;</span><span class="n">div</span> <span class="n">className</span><span class="o">=</span><span class="s2">&quot;er-header&quot;</span><span class="o">&gt;</span>
+</span><span class='line'>          <span class="o">&lt;</span><span class="no">Header</span> <span class="n">navBarIndex</span><span class="o">=</span><span class="p">{</span><span class="mi">1</span><span class="p">}</span><span class="o">/&gt;</span>
+</span><span class='line'>        <span class="o">&lt;</span><span class="sr">/div&gt;</span>
+</span><span class='line'><span class="sr">        # 这里来根据路由加载不同的子组件</span>
+</span><span class='line'><span class="sr">        # 使用 cloneElement 的原因是为了将数据传入子组件</span>
+</span><span class='line'><span class="sr">        # cloneElement 并非是真正的 clone, 只是将我们传入的数据进行合并罢了</span>
+</span><span class='line'><span class="sr">        {cloneElement(children, { entities, actions, publicEntities, publicActions })}</span>
+</span><span class='line'><span class="sr">        &lt;Footer/</span><span class="o">&gt;</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="sr">/div&gt;</span>
+</span><span class='line'><span class="sr">    );</span>
+</span><span class='line'><span class="sr">  }</span>
+</span><span class='line'><span class="sr">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>8、重新渲染页面</h3>
+
+<p>现在有这样的一个需求:</p>
+
+<blockquote><p>点击按钮后，该按钮需要变色</p></blockquote>
+
+<ol>
+<li>组件加载完成，页面渲染完毕</li>
+<li>单击按钮，发送action修改state内的值，此时重新render(),按钮成功变色 A</li>
+<li>单击第二个按钮，发送action,修改state,重新render()后,此时第二个按钮变色B，第一个按钮的颜色还是 A</li>
+</ol>
+
+
+<p>就是说，渲染是基于最新的 dom 元素来进行渲染的，而不是重新完全渲染</p>
+
+<h3>9、Redux 的 store 以及 React 的 state</h3>
+
+<p>由于 Store 就是来管理 React 的数据的，所以很多人会有这样的误解：</p>
+
+<p><code>Store是在管理操作React内的State</code></p>
+
+<p>其实不是，<code>Redux</code>的<code>store</code>跟<code>React</code>的<code>state</code>并没有什么关系。只是我们用前者来代替后者而已。</p>
+
+<p>所以，<code>React</code>内的<code>state</code>我们也是可以正常使用的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Teacher</span> <span class="n">extends</span> <span class="no">Component</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">construtor</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1"># 由于使用了 ES6 语法，因此不能用 defaultState 属性来进行初始化</span>
+</span><span class='line'>        <span class="n">this</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nb">name</span><span class="p">:</span> <span class="s1">&#39;fancy&#39;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">componentWillMount</span><span class="p">(){</span>
+</span><span class='line'>        <span class="k">if</span><span class="p">(</span><span class="n">this</span><span class="o">.</span><span class="n">props</span><span class="o">.</span><span class="n">rightLinkTxt</span><span class="p">){</span>
+</span><span class='line'>          <span class="c1"># 更改该组件的 state, 此时该组件会重新 render, 父级组件不受影响</span>
+</span><span class='line'>          <span class="n">this</span><span class="o">.</span><span class="n">setState</span><span class="p">({</span>
+</span><span class='line'>            <span class="nb">name</span><span class="p">:</span> <span class="s1">&#39;nancy&#39;</span>
+</span><span class='line'>          <span class="p">});</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>所以在较小的组件内，比如单选框，要通过<code>state</code>来改变样式的话，就可以直接使用<code>React</code>的<code>state</code>，更新状态只在该组件内，而不是使用<code>redux</code>的<code>store</code>，勾选后发送<code>action</code>, <code>reducer</code> 处理数据, 造成所有正在被加载的组件都重新 render。</p>
+
+<p>这样结构就比较清晰，将小组件的影响分离了出来。</p>
+
+<h3>10、直接在 URL 上修改参数</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 以下按顺序发生</span>
+</span><span class='line'><span class="mi">1</span><span class="o">.</span> <span class="n">url</span>
+</span><span class='line'><span class="mi">2</span><span class="o">.</span> <span class="n">url?params</span><span class="o">=</span><span class="mi">123</span>   <span class="o">=&gt;</span> <span class="err">直接按</span><span class="n">enter</span> <span class="o">=&gt;</span> <span class="err">刷新动作</span>
+</span><span class='line'><span class="mi">3</span><span class="o">.</span> <span class="n">url?params</span><span class="o">=</span><span class="mi">12</span> <span class="o">=&gt;</span> <span class="err">直接按</span><span class="n">enter</span> <span class="o">=&gt;</span> <span class="n">update</span>
+</span><span class='line'><span class="mi">4</span><span class="o">.</span> <span class="n">url?params</span><span class="o">=</span><span class="mi">112</span> <span class="o">=&gt;</span> <span class="err">直接按</span><span class="n">enter</span> <span class="o">=&gt;</span> <span class="n">update</span>
+</span><span class='line'><span class="mi">5</span><span class="o">.</span> <span class="n">url?params</span><span class="o">=</span><span class="mi">122</span> <span class="o">=&gt;</span> <span class="err">直接按</span><span class="n">enter</span> <span class="o">=&gt;</span> <span class="n">update</span>
+</span><span class='line'><span class="mi">6</span><span class="o">.</span> <span class="n">url?params</span><span class="o">=</span> <span class="o">=&gt;</span> <span class="err">直接按</span><span class="n">enter</span> <span class="o">=&gt;</span> <span class="err">刷新动作</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>11、Reducer 与 entites</h3>
+
+<p>1、我们把所有的 reducer都合并成了一个 rootRecuder</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kr">export</span> <span class="k">default</span> <span class="nx">combineReducers</span><span class="p">({</span>
+</span><span class='line'>  <span class="nx">router</span><span class="o">:</span> <span class="nx">routerStateReducer</span><span class="p">,</span>
+</span><span class='line'>  <span class="nx">loginEntity</span><span class="p">,</span>
+</span><span class='line'>  <span class="nx">homeEntity</span>
+</span><span class='line'><span class="p">})</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 实际上转换的是：</span>
+</span><span class='line'>
+</span><span class='line'><span class="kr">export</span> <span class="k">default</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">router</span><span class="o">:</span> <span class="nx">routerStateReducer</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">router</span><span class="p">,</span> <span class="nx">action</span><span class="p">),</span>
+</span><span class='line'>  <span class="c1">// 注意这里的 state.loginEntity，这就是为什么我们在自己的 reducer 只能够拿到自己相关 entites 内容的原因。</span>
+</span><span class='line'>  <span class="nx">loginStzEntity</span><span class="o">:</span> <span class="nx">loginStzEntity</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">loginStzEntity</span><span class="p">,</span> <span class="nx">action</span><span class="p">),</span>
+</span><span class='line'>  <span class="nx">homeEntity</span><span class="o">:</span> <span class="nx">homeEntity</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">homeEntity</span><span class="p">,</span> <span class="nx">action</span><span class="p">),</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 根rootReducer 返回所有 state 的内容</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>2、将 rootRecuder 跟 store 进行绑定</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="c1">// 这样子以后发的action通通都会被 rootReducer 所接收到</span>
+</span><span class='line'><span class="kr">const</span> <span class="nx">store</span> <span class="o">=</span> <span class="nx">createStoreWithMiddleware</span><span class="p">(</span> <span class="nx">createStore</span> <span class="p">)(</span>
+</span><span class='line'>    <span class="nx">rootReducer</span><span class="p">,</span> <span class="nx">initialState</span>
+</span><span class='line'><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 也就是说一个 action 会被里面所有的子 reducer 所接收~</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>12、render  的时机</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Father</span> <span class="n">extends</span> <span class="no">Component</span><span class="p">(){</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">render</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span> <span class="o">&lt;</span><span class="no">Children</span><span class="o">/&gt;</span> <span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Children</span> <span class="n">extends</span> <span class="no">Component</span><span class="p">(){</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">doSomething</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1"># setState 后, this.state 的值并不会立马更新！</span>
+</span><span class='line'>        <span class="n">this</span><span class="o">.</span><span class="n">setState</span><span class="p">({</span>
+</span><span class='line'>            <span class="nb">name</span><span class="p">:</span> <span class="s2">&quot;fancy&quot;</span>
+</span><span class='line'>        <span class="p">})</span>
+</span><span class='line'>        <span class="c1"># 这里会执行完，才进行重新 render</span>
+</span><span class='line'>        <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;yo&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">render</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span> <span class="o">&lt;</span><span class="n">div</span><span class="o">&gt;</span> <span class="no">Yo</span> <span class="o">&lt;</span><span class="sr">/div&gt; )</span>
+</span><span class='line'><span class="sr">    }</span>
+</span><span class='line'><span class="sr">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>13、简易流程</h3>
+
+<ol>
+<li>将 reducer 注册到 store</li>
+<li>用connect 将组件连接 redux</li>
+<li>利用redux从 根组件 注入的 dispatch 去触发 action</li>
+<li>此时 state 和 action 就会传入 reducer</li>
+</ol>
+
+
+<h3>14、优化</h3>
+
+<p>React 的机制是这样的，一个父组件下面一大堆子组件，如果父组件进行<code>re-render</code>，那么旗下的所有子组件都会<code>re-render</code>，但是子组件的<code>state``props</code>在未改变的情况下也会<code>re-render</code>，虽然 React 使用了 虚拟 DOM, 但<code>render</code>那么多次总会浪费性能不是么？</p>
+
+<p>所以我们可以用 <code>Pure render decorator</code>，他能够在<code>props</code>未改变的情况下，阻止组件进行<code>re-render</code>,原理就是利用<code>shouldComponentUpdate</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">function</span> <span class="n">shouldComponentUpdate</span><span class="p">(</span><span class="n">nextProps</span><span class="p">,</span> <span class="n">nextState</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">shallowCompare</span><span class="p">(</span><span class="n">this</span><span class="p">,</span> <span class="n">nextProps</span><span class="p">,</span> <span class="n">nextState</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">function</span> <span class="n">pureRende</span><span class="p">(</span><span class="n">component</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">component</span><span class="o">.</span><span class="n">prototype</span><span class="o">.</span><span class="n">shouldComponentUpdate</span> <span class="o">=</span> <span class="n">shouldComponentUpdate</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">module</span><span class="o">.</span><span class="n">exports</span> <span class="o">=</span> <span class="n">pureRender</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>但这种方案还是有缺憾：</p>
+
+<p>当 props 有复杂类型时，我们会遇到两种情况</p>
+
+<h4>情况一，我修改detail的内容，而不改detail的引用</h4>
+
+<p>这样就会引起一个bug，比如我修改detail.name,因为detail的引用没有改，所以
+props.detail ===nextProps.detail 还是为true。。
+所以我们为了安全起见必须修改detail的引用，（redux的reducer就是这么做的）</p>
+
+<h4>情况二，我修改detail的引用</h4>
+
+<p>这种虽然没有bug，但是容易误杀，比如如果我新旧两个detail的内容是一样的，岂不是还要，render。。所以还是不完美，，你可能会说用 深比较就好了，，但是 深比较及其消耗性能，要用递归保证每个子元素一样,</p>
+
+<p>解决方案是使用
+<a href="https://github.com/camsong/blog/issues/3">immutable.js</a></p>
+
+<p>暂时先这样吧，有空再补上其他的。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Promise 总结]]></title>
@@ -5283,239 +5892,6 @@
 
 
 <p>相信看完代码会对两者的区别更清晰点。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Dalli -「译」]]></title>
-    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/12/26/dalli-%5Byi-%5D/"/>
-    <updated>2014-12-26T14:55:59+08:00</updated>
-    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/12/26/dalli-[yi-]</id>
-    <content type="html"><![CDATA[<h1>Dalli</h1>
-
-<p>Dalli 对于 memcached 服务是一个高性能的纯Ruby 客户端，它工作于 1.4+ 版本的 memcached，因为它使用了较新的二进制协议。它被认为是 memcache-client gem 的替代品。</p>
-
-<p>  这个名字是一位葡萄牙画家的有名画作的变种。</p>
-
-<p>  Dalli的最初版本是 CouchBase 赞助的，非常感谢他！</p>
-
-<h2>设计</h2>
-
-<p>在维护 memcache-client 两年后，因为一些特殊的原因我决定去写 Dalli。</p>
-
-<ol>
-<li>代码太过老旧以及粗糙，大部分的代码是单独的 1000 行 .rb 文件</li>
-<li>它的许多参数都很少被使用并且复杂化了代码库</li>
-<li>实施监控钩子的时候没有单独的店</li>
-<li>使用太旧的文本协议，降低了未处理的性能</li>
-</ol>
-
-
-<p>所以有一些笔记，Dailli:</p>
-
-<ol>
-<li>使用确切相同的算法去选择一个服务，因此存在的 memcached集群运行起 TB级的数据跟 memcache-client 一样</li>
-<li>在 Ruby 1.9.2 中大约比 memcache-client 快百分之20</li>
-<li>包含详细的“阻塞点”方法，能够处理所有请求；这些通过检测工具能够被 hook 来追踪 memcached的使用情况</li>
-<li>在管理环境下支持 SASL</li>
-<li>提供正确的故障切换和可调控的超时</li>
-</ol>
-
-
-<h1>支持 Ruby 版本</h1>
-
-<p>Dalli应该工作于：</p>
-
-<ol>
-<li>JRuby 1.6+</li>
-<li>Ruby 1.9.3+</li>
-<li>Rubinius 2.0</li>
-</ol>
-
-
-<p>如果你有问题，请提 issue</p>
-
-<h1>安装和使用</h1>
-
-<p>记住，Dalli要求 memcached 1.4+，你可以通过 <code>memcached -h</code> 来检查版本。请注意 memcached 1.2.8 版本和 Mac OS X Snow Leopadrd 不兼容。通过 Homebrew 来安装 memacached 1.4.x</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">brew</span> <span class="n">install</span> <span class="n">memcached</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在 Ubuntu 上你可以通过运行以下命令来安装：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">memcached</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>你可以使用下面这段代码来确认安装情况</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="n">install</span> <span class="n">dalli</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;dalli&#39;</span>
-</span><span class='line'><span class="n">options</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">:namespace</span> <span class="o">=&gt;</span> <span class="s2">&quot;app_v1&quot;</span><span class="p">,</span> <span class="ss">:compress</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">}</span>
-</span><span class='line'><span class="n">dc</span> <span class="o">=</span> <span class="no">Dalli</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;localhost:11211&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-</span><span class='line'><span class="n">dc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;abc&#39;</span><span class="p">,</span> <span class="mi">123</span><span class="p">)</span>
-</span><span class='line'><span class="n">value</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;abc&#39;</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这测试套件要求 memcached 1.4.3+ 和激活的 SASL。Dalli 没有运行时依赖并且以后也不会有。你可以自定义安装 &lsquo;kgio&rsquo; gem 去给 Dalli 提升 百分之20到30的运行提升。</p>
-
-<h2>在 Rails3.X 和 Rails4.X 的使用</h2>
-
-<p>在你的 gemfile:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s1">&#39;dalli&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在<code>config/environments/production.rb</code>:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:dalli_store</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这里是一个更全面的例子，在这个 Rails App 中，设置了一天内的最大缓存，压缩过大的数据和对所有记录进行命名空间规划，如果你有多个 APP 并且要共享缓存的值，可以移除命名空间。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:dalli_store</span><span class="p">,</span> <span class="s1">&#39;cache-1.example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;cache-2.example.com&#39;</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">{</span> <span class="ss">:namespace</span> <span class="o">=&gt;</span> <span class="no">NAME_OF_RAILS_APP</span><span class="p">,</span> <span class="ss">:expires_in</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="ss">:compress</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果你的服务器在<code>ENV["MEMCACHE_SERVERS"]</code>有特别的设置（比如在 Heroku使用第三方缓存服务时），在服务器中简单的提供<code>nil</code></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:dalli_store</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="p">{</span> <span class="ss">:namespace</span> <span class="o">=&gt;</span> <span class="no">NAME_OF_RAILS_APP</span><span class="p">,</span> <span class="ss">:expires_in</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="ss">:compress</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>使用 Dalli 为了20分钟后 Rails 的 session 存储过期， 在<code>config/initializers/session_store.rb</code>中：</p>
-
-<p>针对 Rails >= 3.2.4 :</p>
-
-<pre><code class="`ruby"> Rails.application.config.session_store ActionDispatch::Session::CacheStore, :expire_after =&gt; 20.minutes
-</code></pre>
-
-<p>针对 Rails 3.X :</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;action_dispatch/middleware/session/dalli_store&#39;</span>
-</span><span class='line'><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">session_store</span> <span class="ss">:dalli_store</span><span class="p">,</span> <span class="ss">:memcache_server</span> <span class="o">=&gt;</span> <span class="o">[</span><span class="s1">&#39;host1&#39;</span><span class="p">,</span> <span class="s1">&#39;host2&#39;</span><span class="o">]</span><span class="p">,</span> <span class="ss">:namespace</span> <span class="o">=&gt;</span> <span class="s1">&#39;sessions&#39;</span><span class="p">,</span> <span class="ss">:key</span> <span class="o">=&gt;</span> <span class="s1">&#39;_foundation_session&#39;</span><span class="p">,</span> <span class="ss">:expire_after</span> <span class="o">=&gt;</span> <span class="mi">20</span><span class="o">.</span><span class="n">minutes</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Dalli 不支持 Rails 2.X。</p>
-
-<h1>Rails 和多线程</h1>
-
-<p>如果你使用 Puma 或者其他的多线程 APP SERVER，在 Dalli 2.7 中，你可以使用Dalli 客户端池，并且确认 Rails.cache 并不会变成多线程的资源。你必须添加 <code>gem 'connection_pool</code> 到你的 gemfile 中，以及加上 <code>:pool_size</code> 到 <code>dalli_store</code> 配置中：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:dalli_store</span><span class="p">,</span> <span class="s1">&#39;cache-1.example.com&#39;</span><span class="p">,</span> <span class="p">{</span> <span class="ss">:pool_size</span> <span class="o">=&gt;</span> <span class="mi">5</span> <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>之后你可以像平常一样使用 Rails 的 cache，并且 Rails.cache 会使用连接池，或者你可以检验 Dalli 客户端指向：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Rails</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="ss">:expires_in</span> <span class="o">=&gt;</span> <span class="mi">300</span><span class="p">)</span> <span class="k">do</span>
-</span><span class='line'>  <span class="s1">&#39;bar&#39;</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'><span class="no">Rails</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">dalli</span><span class="o">.</span><span class="n">with</span> <span class="k">do</span> <span class="o">|</span><span class="n">client</span><span class="o">|</span>
-</span><span class='line'>  <span class="c1"># client is a Dalli::Client instance which you can</span>
-</span><span class='line'>  <span class="c1"># use ONLY within this block</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h1>配置</h1>
-
-<p><code>Dalli:Client</code>接受以下的参数，所有的时间都在几秒内。</p>
-
-<p><code>expires_in</code> : 全局默认 TTL 的 key 为 0，意味着不过期</p>
-
-<p><code>namespace</code> : 如果有规定，预先考虑每一个key和它的值提供一个简单的命名空间，默认是 nil</p>
-
-<p><code>failover</code> ：boolean 值，如果为 true 并且当主要的服务崩溃时，Daill 将会切换到另一个服务，默认为 true</p>
-
-<p><code>threadsafe</code> : boolean 值，如果为 true，Dalli 会确保只有一个线程在给定的时间内使用socket，默认为 true, 设置为 false 是很危险的。</p>
-
-<p><code>serializer</code> : 能够使对象进行存储。</p>
-
-<p><code>compress</code> : boolean  值， 如果为true, Dalli 将会用 gzip 来压缩超过 1K 的数据，默认为 false</p>
-
-<p><code>compression_min_size</code>  ：当超过这个数值时就尝试压缩，默认为1K</p>
-
-<p><code>compression_max_size</code> ：低于这个数值时才尝试压缩，默认为无限</p>
-
-<p><code>compressor</code> : 被压缩的对象将被存储，默认为 zlib，通过<code>Dalli::Compressor</code>来实现。如果正被压缩的数据使用 nginx 的 HttpMemcachedModule， 设置</p>
-
-<p><code>memcached_gzip_flag 2</code> 并且使用 <code>Dalli::GzipCompressor</code></p>
-
-<p><code>keepalive</code> : boolean值，如果为 true, Dalli 将会使 socket 长久连接，默认为 true</p>
-
-<p><code>socket_timeout</code> : 所有的 socket 操作超时时间，默认为 0.5</p>
-
-<p><code>socket_max_failures</code> : 当socket 超时后，socket 操作失败，一个相同的操作将会重试，当处于一个非常缓慢的网络问题时，并不会即时去执行，默认为2</p>
-
-<p><code>socket_failure_delay</code> : 重试一个 socket 操作之前，这段时间进程将会睡眠，默认为 0.01，设置为 nil 将无延迟</p>
-
-<p><code>down_retry_delay</code> : 当一个服务因为许多失败明显的崩溃了，仅仅会在这段时间服务将会再次检查以求正常运行。不要将这个值设置得太低，不然每一个到达崩溃服务的请求也许会固定在最大的 socket_timeout，默认为 1 秒</p>
-
-<h1>监控</h1>
-
-<p><code>telnet 127.0.0.1 11211</code>  连接上 memcache</p>
-
-<p>输入 <code>stats</code> 获得状态</p>
-
-<h1>反省</h1>
-
-<p>第一次翻译，翻译得太生硬太渣了。。。</p>
-
-<h1>疑惑</h1>
-
-<p>看了官方文档，写着：“使用 memcached 来存储缓存时， Rails 会使用默认附带安装的 Dalli gem。” 但是我并没有看到有 Dalli gem 的安装，而且配置也跟 Dalli 有差别。</p>
-
-<p>自带：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:mem_cache_store</span><span class="p">,</span> <span class="s2">&quot;cache-1.example.com&quot;</span><span class="p">,</span> <span class="s2">&quot;cache-2.example.com&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Dalli:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">cache_store</span> <span class="o">=</span> <span class="ss">:dalli_store</span><span class="p">,</span> <span class="s2">&quot;cache-1.example.com&quot;</span><span class="p">,</span> <span class="s2">&quot;cache-2.example.com&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这是为毛- -！</p>
 ]]></content>
   </entry>
   

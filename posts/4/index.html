@@ -7,7 +7,9 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="1、什么是Rack? 其实 Rails 就是一个 Rack app。 Rack 为使用 Ruby 开发的网页程序提供了小型模块化，适应性极高的接口。Rack 尽量使用最简单的方式封装 HTTP 请求和响应，为服务器、框架和二者之间的软件（中间件）提供了统一的 API， &hellip;">
+	<meta name="description" content="1、doorkeeper 是什么？ 最近在项目里需要构建自己的一套 Oauth2.0，而doorkeeper正是帮助我们构建 Oauth2.0 的gem 2、安装 1
+gem &#39;doorkeeper&#39; and then run the order 1
+rails g &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -74,6 +76,245 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/09/21/doorkeepershi-yong-jian-jie/">
+		
+			Doorkeeper使用简介</a>
+	</h2>
+	<div class="entry-content">
+		<h3>1、doorkeeper 是什么？</h3>
+
+<p>最近在项目里需要构建自己的一套 Oauth2.0，而doorkeeper正是帮助我们构建 Oauth2.0 的gem</p>
+
+<h3>2、安装</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s1">&#39;doorkeeper&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and then run the order</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">rails</span> <span class="n">g</span> <span class="ss">doorkeeper</span><span class="p">:</span><span class="n">install</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It will install the doorkeeper initializer into <code>doorkeeper.rb</code></p>
+
+<p>And next step If U use <code>Active Record</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">rails</span> <span class="n">g</span> <span class="ss">doorkeeper</span><span class="p">:</span><span class="n">migration</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>3、配置</h3>
+
+<p>这时你会发现在你的routes.rb里添加了这样一段话：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">draw</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">use_doorkeeper</span>
+</span><span class='line'>  <span class="c1"># your routes</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对应生成：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">GET</span>       <span class="sr">/oauth/</span><span class="n">authorize</span><span class="o">/</span><span class="ss">:code</span>
+</span><span class='line'><span class="no">GET</span>       <span class="sr">/oauth/</span><span class="n">authorize</span>
+</span><span class='line'><span class="no">POST</span>      <span class="sr">/oauth/</span><span class="n">authorize</span>
+</span><span class='line'><span class="no">PUT</span>       <span class="sr">/oauth/</span><span class="n">authorize</span>
+</span><span class='line'><span class="no">DELETE</span>    <span class="sr">/oauth/</span><span class="n">authorize</span>
+</span><span class='line'><span class="no">POST</span>      <span class="sr">/oauth/</span><span class="n">token</span>
+</span><span class='line'><span class="no">POST</span>      <span class="sr">/oauth/</span><span class="n">revoke</span>
+</span><span class='line'><span class="n">resources</span> <span class="sr">/oauth/</span><span class="n">applications</span>
+</span><span class='line'><span class="no">GET</span>       <span class="sr">/oauth/</span><span class="n">authorized_applications</span>
+</span><span class='line'><span class="no">DELETE</span>    <span class="sr">/oauth/</span><span class="n">authorized_applications</span><span class="o">/</span><span class="ss">:id</span>
+</span><span class='line'><span class="no">GET</span>       <span class="sr">/oauth/</span><span class="n">token</span><span class="o">/</span><span class="n">info</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>4、权限</h3>
+
+<p>为了使用户访问 API 时，有权限，需要：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Doorkeeper</span><span class="o">.</span><span class="n">configure</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">resource_owner_authenticator</span> <span class="k">do</span>
+</span><span class='line'>    <span class="no">User</span><span class="o">.</span><span class="n">find_by_id</span><span class="p">(</span><span class="n">session</span><span class="o">[</span><span class="ss">:current_user_id</span><span class="o">]</span><span class="p">)</span> <span class="o">||</span> <span class="n">redirect_to</span><span class="p">(</span><span class="n">login_url</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果使用<code>devise</code>，可以添加下面这段代码</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">resource_owner_authenticator</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">current_user</span> <span class="o">||</span> <span class="n">warden</span><span class="o">.</span><span class="n">authenticate!</span><span class="p">(</span><span class="ss">:scope</span> <span class="o">=&gt;</span> <span class="ss">:user</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>5、保护API</h3>
+
+<p>It needs to add the follow block for protecting API</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Api</span><span class="o">::</span><span class="no">V1</span><span class="o">::</span><span class="no">ProductsController</span> <span class="o">&lt;</span> <span class="no">Api</span><span class="o">::</span><span class="no">V1</span><span class="o">::</span><span class="no">ApiController</span>
+</span><span class='line'>  <span class="n">before_action</span> <span class="ss">:doorkeeper_authorize!</span> <span class="c1"># Require access token for all actions</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># your actions</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>6、访问不同权限的API</h3>
+
+<p>在 <code>doorkeeper.rb</code>中设置权限范围</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Doorkeeper</span><span class="o">.</span><span class="n">configure</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">default_scopes</span> <span class="ss">:public</span> <span class="c1"># if no scope was requested, this will be the default</span>
+</span><span class='line'>  <span class="n">optional_scopes</span> <span class="ss">:admin</span><span class="p">,</span> <span class="ss">:write</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>要求不同action需要不同权限</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Api</span><span class="o">::</span><span class="no">V1</span><span class="o">::</span><span class="no">ProductsController</span> <span class="o">&lt;</span> <span class="no">Api</span><span class="o">::</span><span class="no">V1</span><span class="o">::</span><span class="no">ApiController</span>
+</span><span class='line'>  <span class="n">before_action</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">doorkeeper_authorize!</span> <span class="ss">:public</span> <span class="p">},</span> <span class="ss">only</span><span class="p">:</span> <span class="ss">:index</span>
+</span><span class='line'>  <span class="n">before_action</span> <span class="ss">only</span><span class="p">:</span> <span class="o">[</span><span class="ss">:create</span><span class="p">,</span> <span class="ss">:update</span><span class="p">,</span> <span class="ss">:destroy</span><span class="o">]</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">doorkeeper_authorize!</span> <span class="ss">:admin</span><span class="p">,</span> <span class="ss">:write</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>7、开始使用</h3>
+
+<p>我们的 Authorization Server 已经盖好了，此时我们申请个 client 来使用。
+访问<code>/oauth/applications</code>来申请client</p>
+
+<h4>7.1 开client</h4>
+
+<p>其中 Client 的 redierct URI 填入 <code>http://localhost:12345/auth/demo/callback</code> ，實際上沒有跑 Web server 在 localhost:12345 也沒關係，最終目的是拿到 code 或 token
+<img src="http://user-image.logdown.io/user/2580/blog/2567/post/145023/1wLQZN9CS9SixjFgRaq1_oauth2-new-client.png" alt="" /></p>
+
+<h4>7.2 获取 access token</h4>
+
+<p>首先打開剛剛生的 Client 的 show 頁面，會看到有 Application ID 、 Secret 等資訊的頁面。最下面有一個 Authorize 的連結，點下去會打開到這個網址</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">http</span><span class="p">:</span><span class="sr">//</span><span class="ss">localhost</span><span class="p">:</span><span class="mi">9999</span><span class="o">/</span><span class="n">oauth</span><span class="o">/</span><span class="n">authorize</span>
+</span><span class='line'>    <span class="p">?</span><span class="n">client_id</span><span class="o">=</span><span class="mi">4</span><span class="n">a407c6a8d3c75e17a5560d0d0e4507c77b047940db6df882c86aaeac2c788d6</span>
+</span><span class='line'>    <span class="o">&amp;</span><span class="n">redirect_uri</span><span class="o">=</span><span class="n">http</span><span class="o">%</span><span class="mi">3</span><span class="n">A</span><span class="o">%</span><span class="mi">2</span><span class="n">F</span><span class="o">%</span><span class="mi">2</span><span class="no">Flocalhost</span><span class="o">%</span><span class="mi">3</span><span class="no">A12345</span><span class="o">%</span><span class="mi">2</span><span class="no">Fauth</span><span class="o">%</span><span class="mi">2</span><span class="no">Fdemo</span><span class="o">%</span><span class="mi">2</span><span class="no">Fcallback</span>
+</span><span class='line'>    <span class="o">&amp;</span><span class="n">response_type</span><span class="o">=</span><span class="n">code</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>点击<code>Authorize</code>后</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">http</span><span class="p">:</span><span class="sr">//</span><span class="ss">localhost</span><span class="p">:</span><span class="mi">12345</span><span class="o">/</span><span class="n">auth</span><span class="o">/</span><span class="n">demo</span><span class="o">/</span><span class="n">callback</span>
+</span><span class='line'>    <span class="p">?</span><span class="n">code</span><span class="o">=</span><span class="mi">21</span><span class="n">e1c81db4e619a23d4ed46134884104225d4189baa005220bd9b358be8b591a</span>
+</span><span class='line'>          <span class="o">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span>
+</span><span class='line'>          <span class="no">Grant</span> <span class="no">Code</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用<code>postman</code>来获取access_token</p>
+
+<p><img src="http://user-image.logdown.io/user/2580/blog/2567/post/145023/YZa3unuQgSf2kUkoSMDF_oauth2-token-request-zh.png" alt="" /></p>
+
+<h3>8、撤销授权</h3>
+
+<pre><code class="ruby">curl -F token=53cff8f4a549beb1c38704158b0f6608a2382f094b6947ecc35c2eed4146a17c \
+ -H "Authorization: Bearer 53cff8f4a549beb1c38704158b0f6608a2382f094b6947ecc35c2eed4146a17c" \
+ -X POST localhost:3000/oauth/revoke
+</code></pre>
+
+<h3>Tips</h3>
+
+<ol>
+<li>refresh_token 一旦使用就会变化。</li>
+<li>后台验证token是否有效（doorkeeper_authorize! 会自动验证是否有效。）</li>
+<li>1.x的时候 /oauth/revoke 是无效的， 2.x 才有效 （就是手动撤销对用户的授权 )</li>
+</ol>
+
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-21T21:39:25+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
