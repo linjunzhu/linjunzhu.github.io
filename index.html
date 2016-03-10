@@ -7,8 +7,7 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="如何使用上 HTTP/2.0 需要浏览器的支持，目前最新版的 Chrome、Opera、 FireFox、 IE11、 edge 都已经支持了
-需要 WEB 服务器的支持，比如 Nginx , H20 如果浏览器或服务器有一方不支持，那么会自动变成 Http/1.1 HTTP/1.1 时代 &hellip;">
+	<meta name="description" content=" ">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -75,6 +74,43 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/03/10/test/">
+		
+			Test</a>
+	</h2>
+	<div class="entry-content">
+		<p><img src="../images/data/test.png" alt="" /></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-03-10T15:56:02+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -3477,110 +3513,6 @@ props.detail ===nextProps.detail 还是为true。。
 
 
 <time datetime="2015-06-10T18:00:47+08:00" pubdate data-updated="true"></time></div>
-	<div class="tags">
-
-</div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2015/04/22/shi-yong-circleci/">
-		
-			使用Circleci</a>
-	</h2>
-	<div class="entry-content">
-		<p>这货棒棒的好用！</p>
-
-<p>我们每次部署任务时，都会跑测试，测试通过再手动跑部署命令。而有了这货，就可以自动跑测试，跑完自动部署。</p>
-
-<h2>第一步</h2>
-
-<p>先上<a href="https://circleci.com/">Circleci官网</a>注册账号。默认有一个<code>free container</code>，如果该项目是<code>public</code>的，那么有四个<code>free container</code>。也就是你可以同时 hold 四个项目</p>
-
-<h2>第二步</h2>
-
-<p>选择账号，选择仓库，建立容器container</p>
-
-<h2>第三步</h2>
-
-<p>只要在 master 上面有新的 commit</p>
-
-<p>就会自动直接跑了！！！
-卧槽！！！
-什么配置都不用啊！！！！</p>
-
-<p>(当然只是build项目，跑测试，部署到哪里还是要自己添加命令的）</p>
-
-<p>因为 Circleci 会自动检测你是什么项目，然后采取不同的默认配置进行跑你的项目。</p>
-
-<h2>circle.yml</h2>
-
-<p>通过该配置文件你可以做很多事情，默认可以不用去动他，如果想添加自己的东西，可以写一些参数覆盖掉默认配置。</p>
-
-<p>比如：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">machine</span><span class="p">:</span>
-</span><span class='line'>  <span class="ss">ruby</span><span class="p">:</span>
-</span><span class='line'>    <span class="ss">version</span><span class="p">:</span> <span class="mi">2</span><span class="o">.</span><span class="mi">1</span><span class="o">.</span><span class="mi">2</span>
-</span><span class='line'>  <span class="ss">services</span><span class="p">:</span>
-</span><span class='line'>    <span class="o">-</span> <span class="n">redis</span>
-</span><span class='line'><span class="ss">general</span><span class="p">:</span>
-</span><span class='line'>  <span class="ss">branches</span><span class="p">:</span>
-</span><span class='line'>    <span class="ss">only</span><span class="p">:</span>
-</span><span class='line'>      <span class="o">-</span> <span class="n">master</span>
-</span><span class='line'>      <span class="o">-</span> <span class="n">staging</span>
-</span><span class='line'><span class="ss">deployment</span><span class="p">:</span>
-</span><span class='line'>  <span class="ss">production</span><span class="p">:</span>
-</span><span class='line'>    <span class="ss">branch</span><span class="p">:</span> <span class="n">master</span>
-</span><span class='line'>    <span class="ss">commands</span><span class="p">:</span>
-</span><span class='line'>      <span class="o">-</span> <span class="n">bundle</span> <span class="nb">exec</span> <span class="n">cap</span> <span class="n">production</span> <span class="n">deploy</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>指明了需要什么 branch，如何部署，该跑什么 services.默认的services有<code>mysql``Postgres``Redis``MongoDB</code></p>
-
-<h2>容器</h2>
-
-<p>每一个项目它都会给我们生成一个 VM，相当于一个虚拟机，因此我们还可以自己<code>ssh</code>上 VM，进行查看问题。</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-04-22T12:11:21+08:00" pubdate data-updated="true"></time></div>
 	<div class="tags">
 
 </div>

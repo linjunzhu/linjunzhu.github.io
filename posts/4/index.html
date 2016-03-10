@@ -7,7 +7,7 @@
 	<meta name="author" content="林俊柱">
 
 	
-	<meta name="description" content="最近需要在微信、Google Glass 上开发，需要两者服务器上的回调信息，因此需要正式服务器来让两者回调，但是这样的话我总需要在服务器上调试，是非常麻烦的。因此反向代理就正中红心。 1、什么是反向代理？ 反向代理（Reverse Proxy） &hellip;">
+	<meta name="description" content="1、前言 之前一直对缓存处于模模糊糊的概念，网上的许多文章也说得比较模糊，经过大量的实践以及搜索后，总结了下 Web 缓存以及在 Rails 中常用的缓存 2、概览 我们平常所使用的浏览器，是有带缓存区的。 3、 Expires / Cache-Control 两者功能差不多， &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -74,6 +74,212 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/05/railszhong-de-huan-cun-ji-zhi-frontend/">
+		
+			Web 缓存 以及 Rails 缓存实践 &#8211; 前端篇</a>
+	</h2>
+	<div class="entry-content">
+		<h2>1、前言</h2>
+
+<p>之前一直对缓存处于模模糊糊的概念，网上的许多文章也说得比较模糊，经过大量的实践以及搜索后，总结了下 Web  缓存以及在 Rails 中常用的缓存</p>
+
+<h2>2、概览</h2>
+
+<p>我们平常所使用的浏览器，是有带缓存区的。</p>
+
+<p><img src="http://7jpo3s.com1.z0.glb.clouddn.com/web-cache-2.png" alt="" /></p>
+
+<h2>3、 Expires / Cache-Control</h2>
+
+<p>两者功能差不多，但后者可供选择的参数更多，两者若同时存在，会被 cache-control 所覆盖</p>
+
+<h3>Expires</h3>
+
+<p>用来表明该内容什么时候过期， HTTP/1.0 推出</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># 表示在这个时间点之前资源都不会过期，可以直接从本地浏览器缓存区里拿
+</span><span class='line'>Expires:Tue, 03 May 2016 09:33:34 GMT</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Cache-Control</h3>
+
+<p>Cache-control 是 HTTP/1.1  推出的,有更多的参数可以选择</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>public: 共有缓存，可被缓存代理服务器缓存,比如CDN
+</span><span class='line'>
+</span><span class='line'>private: 私有缓存，不能被共有缓存代理服务器缓存，可被用户的代理缓存如浏览器。
+</span><span class='line'>
+</span><span class='line'>max-age：表示在这个时间范围内缓存是新鲜的无需更新。类似Expires时间，不过这个时间是相对的，而不是绝对的。也就是某次请求成功后多少秒内缓存是新鲜的。
+</span><span class='line'>
+</span><span class='line'>no-cache：这里不是不缓存的意思，只是每次在使用缓存之前都强制发送请求给源服务器进行验证，检查文件有没改变
+</span><span class='line'>
+</span><span class='line'>no-store：就是禁止缓存，不让浏览器保留缓存副本
+</span><span class='line'>
+</span><span class='line'>must-revalidate：告诉浏览器，你这必须再次验证检查资源是否过期, 返回的代号就不是200而是304了。</span></code></pre></td></tr></table></div></figure>
+
+
+<p>需要注意的是，该参数 <code>request header</code> 与 <code>response header</code> 都可使用。但是总的来说，前者并不重要，重要且频繁使用的是后者 <code>response header</code></p>
+
+<h3>Request 内的 Cache-Control</h3>
+
+<p>除了 AJAX 可以来自定义这个 Cache-Control, 一般来说都是交给浏览器去控制。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 这里是直接告诉 代理缓存服务器 / 服务器，我要最新的副本 ( 然后再通过 ETag / If-None-Match 去判断是否从缓存区里拿 )</span>
+</span><span class='line'><span class="c1"># 之前很疑惑，既然 response 都有 no-cache 了，那 request 设这个值的意义何在呢？</span>
+</span><span class='line'><span class="c1"># 目的是告诉「代理缓存服务器」强制向「服务器」对资源进行重新验证，避免权限过期后，代理缓存服务器还是返回之前的资源副本。</span>
+</span><span class='line'><span class="n">cache</span><span class="o">-</span><span class="ss">control</span><span class="p">:</span> <span class="n">no</span><span class="o">-</span><span class="n">cache</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Response 内的 Cache-Control</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 允许客户端进行缓存，并且，需要立即进行请求服务器验证资源是否过期</span>
+</span><span class='line'><span class="n">cache</span><span class="o">-</span><span class="ss">control</span><span class="p">:</span> <span class="n">no</span><span class="o">-</span><span class="n">cache</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 表示 1000 秒内，浏览器需要这资源时，直接从缓存区内拿，而不用重新发请求</span>
+</span><span class='line'><span class="c1"># 当过期时，发送「条件 GET 请求」</span>
+</span><span class='line'><span class="n">cache</span><span class="o">-</span><span class="ss">control</span><span class="p">:</span> <span class="n">max</span><span class="o">-</span><span class="ss">age</span><span class="p">:</span> <span class="mi">1000</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 经常会看到这样写</span>
+</span><span class='line'><span class="n">cache</span><span class="o">-</span><span class="ss">control</span><span class="p">:</span> <span class="n">max</span><span class="o">-</span><span class="ss">age</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">must</span><span class="o">-</span><span class="n">revalidate</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 其实等同于</span>
+</span><span class='line'><span class="n">cache</span><span class="o">-</span><span class="ss">control</span><span class="p">:</span> <span class="n">no</span><span class="o">-</span><span class="n">cache</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>总而言之， Cache-Control 这个值主要是 response 来使用，request 可以不用去管它。</p>
+
+<h2>4、条件 GET 请求</h2>
+
+<p>如果浏览器缓存中已经有一个 HTML 内容元素的副本，却不能保证该缓存是否有效，这时，一个条件 GET 请求就出现了。</p>
+
+<p><img src="http://data-storage.qiniudn.com/%E6%9D%A1%E4%BB%B6get%E8%AF%B7%E6%B1%82.png" alt="" /></p>
+
+<p>有两种方式判断资源是否需要过期：</p>
+
+<p>浏览器会附带<code>If-None-Match</code>属性（内容id ) 或 <code>If-Modified-Since</code>（修改内容时间戳）</p>
+
+<h3>ETag / If-None-Match</h3>
+
+<p>ETag 指响应内容的 MD5 值, 对应请求的 <code>If-None-Match</code>属性, 如果两者一致，则资源不过期</p>
+
+<h3>Last-Modified / If-Modified-Since</h3>
+
+<p><code>Last-Modified</code> 指响应内容的最后修改时间 ，对应请求的 <code>If-Modified-Since</code>，如果最后修改时间一致，则资源不过期</p>
+
+<h3>小结</h3>
+
+<p>ETag / Last-Modified 很多时候都会共同使用，但是浏览器会先以 <code>ETag</code> 为准，因为根据时间来判断是否过期，会有误差。</p>
+
+<h2>5、 Web Server</h2>
+
+<p>静态文件的请求我们一般会用 Web Server 来 hold 住，比如 Nginx</p>
+
+<p>可以这样设置：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">location</span> <span class="o">~*</span> <span class="sr">/assets/</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1"># 开启压缩</span>
+</span><span class='line'>    <span class="n">gzip_static</span> <span class="n">on</span><span class="p">;</span>
+</span><span class='line'>    <span class="c1"># expires 过期时间为最长</span>
+</span><span class='line'>    <span class="n">expires</span> <span class="n">max</span><span class="p">;</span>
+</span><span class='line'>    <span class="c1"># 设置为 public,即 CDN 服务器也可以缓存</span>
+</span><span class='line'>    <span class="n">add_header</span> <span class="no">Cache_Control</span> <span class="kp">public</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>PS：为了兼容，Nginx 如果设置了<code>expires max</code> 会自动往 cache-store 中塞<code>max-age</code></p>
+
+<h2>6、TIPS</h2>
+
+<p>1、如果已经打开网页，并且在地址栏按一次 enter, 那么所有缓存措施会生效，比如设置了 max-age 并且未过期的情况，会直接从缓存区拿数据</p>
+
+<p>2、如果按浏览器的「刷新」按钮，会强制重新发送请求到服务器，但这时候 Etag / Last-Modifed 会派上用场</p>
+
+<p>3、如果按浏览器的「强制刷新」，会强制重新发送请求到服务器，并且所有缓存失效。</p>
+
+<p>4、服务器返回响应时，是先返回状态码，再返回响应体。</p>
+
+<p>5、其实服务器还是执行了代码，生成了该有的响应，只不过浏览器知道资源未过期，因此把 响应体抛弃掉了。但总的来说还是节省了浏览器的时间。</p>
+
+<p>6、条件 GET 请求中的 If-Modified-Since / ETag 是需要服务器支持的。</p>
+
+<h2>7、总结</h2>
+
+<p><img src="http://7jpo3s.com1.z0.glb.clouddn.com/web-cache-1.jpg" alt="" /></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-05T11:43:10+08:00" pubdate data-updated="true"></time></div>
+	<div class="tags">
+
+</div>
+	
+</div>
+</article>
 
 
     <article class="post">
