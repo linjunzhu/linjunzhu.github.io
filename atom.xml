@@ -4,7 +4,7 @@
   <title><![CDATA[LinJunzhu's Blog]]></title>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/atom.xml" rel="self"/>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/"/>
-  <updated>2016-02-29T15:43:22+08:00</updated>
+  <updated>2016-03-10T14:44:07+08:00</updated>
   <id>https://github.com/linjunzhu/linjunzhu.github.io.git/</id>
   <author>
     <name><![CDATA[林俊柱]]></name>
@@ -12,6 +12,167 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[HTTP/2.0 简单总结]]></title>
+    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2016/03/10/http2-zongjie/"/>
+    <updated>2016-03-10T14:43:07+08:00</updated>
+    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2016/03/10/http2-zongjie</id>
+    <content type="html"><![CDATA[<h2>如何使用上 HTTP/2.0</h2>
+
+<ol>
+<li>需要浏览器的支持，目前最新版的 Chrome、Opera、 FireFox、 IE11、 edge 都已经支持了</li>
+<li>需要 WEB 服务器的支持，比如 Nginx , H20</li>
+</ol>
+
+
+<p>如果浏览器或服务器有一方不支持，那么会自动变成 Http/1.1</p>
+
+<h2>HTTP/1.1 时代</h2>
+
+<p>HTTP/1.1 对 HTTP/1.0 做了许多优化，也是当今使用得最多的 HTTP 协议：</p>
+
+<ol>
+<li>持久化连接以支持连接重用</li>
+<li>分块传输编码以支持流式响应</li>
+<li>请求管道以支持并行请求处理</li>
+<li>字节服务以支持基于范围的资源请求</li>
+<li>改进的更好的缓存机制</li>
+</ol>
+
+
+<h3>持久连接</h3>
+
+<p>在 HTTP/1.0 时代，每一个请求都会重新建立一个 TCP 连接，一旦响应返回，就关闭连接。
+而建立一个连接，则需要进行三次握手(https的话则是9次握手)，这极大的浪费了性能
+<img src="http://7jpo3s.com1.z0.glb.clouddn.com/http-1.png" alt="" /></p>
+
+<p>因此 HTTP/1.1 新增了「keep-alive」功能，当浏览器建立一个 TCP 连接时，多个请求都会使用这条连接。（现如今大多数浏览器默认都是开启的)
+<img src="http://7jpo3s.com1.z0.glb.clouddn.com/http-2.png" alt="" /></p>
+
+<h3>PipeLining 管道</h3>
+
+<p>持久连接解决了连接复用问题，但还是存在着一个问题：在一个 TCP 连接中，同一时间只能够发送一个请求，并且需要等响应完成才能够发送第二个请求。</p>
+
+<p>因此 HTTP/1.1 制订了 PipeLining 管道，通过这个管道，浏览器的多个请求可以同时发到服务器，但是服务器的响应只能够一个接着一个的返回 ( 但各大浏览器有些不支持/默认关闭,因此这功能可以说是鸡肋)
+<img src="http://7jpo3s.com1.z0.glb.clouddn.com/http-3.png" alt="" /></p>
+
+<p>因为每一条连接同时只能够返回一个响应，因此浏览器为了改善这种情况，会同时开启4~8个 TCP 连接进行发送请求。</p>
+
+<h3>小结</h3>
+
+<p>在 HTTP/1.1 时代主要增加了：</p>
+
+<ol>
+<li>keep-alive 选项，建立连接后，在一定时间内不会断开，其他请求都可以使用这条连接。</li>
+<li>pipelining 管道，通过这个管道，浏览器的多个请求可以同时发到服务器，但是服务器的响应只能够一个接着一个的返回 ( 但各大浏览器有些不支持/默认关闭,因此这功能可以说是鸡肋)</li>
+</ol>
+
+
+<h2>HTTP/1.1 时代的优化</h2>
+
+<h3>1、连接和拼接</h3>
+
+<p>连接或拼接JS和CSS文件，雪碧图，以减少HTTP请求，同时浏览器可缓存这些静态资源，为下次访问节约时间。但是这样带来的副作用是，维护成本高，其中某一个小改动都会使得整个拼接后的文件发生改变，重新缓存。</p>
+
+<p>当然并不是说无止境的拼接，建议大小为： 30~50 KB</p>
+
+<h3>2、域名分区</h3>
+
+<p>由于浏览器的限制，同一个域下最多只能建立6个连接。我们通常使用子域名来减少所有资源在只有一个连接时的产生的排队延迟。这个显然不适用在HTTP2中，因为不同的域需要建立不同的连接。</p>
+
+<h3>3、资源内嵌</h3>
+
+<p>对于不常用的，较小大资源内嵌在文档中，比如base64的图片，以减少HTTP请求，但是这样的资源不能在浏览器中缓存，也不可能被其他页面共享，同时还有可能编码之后的资源变等更大了。在HTTP2中，这样的资源就可以使用SERVER PUSH来推送。</p>
+
+<p>建议:</p>
+
+<ol>
+<li>只考虑嵌入1~2 KB 以下的资源，因为小于这个标准的资源经常会导致比它自身更高的HTTP 开销</li>
+<li>如果文件很小，而且只有个别页面使用，可以考虑嵌入。理想情况下，最好是只用一次的资源</li>
+<li>如果文件很小，但需要在多个页面中重用，应该考虑集中打包</li>
+<li>如果小文件经常需要更新，就不要嵌入了</li>
+<li>通过减少 HTTP cookie的大小将协议开销最小化</li>
+</ol>
+
+
+<h2>SPDY 时代</h2>
+
+<p>由于现代网页的不断丰富， HTTP/1.1 协议的性能也逐渐吃不消，因此2012年google如一声惊雷提出了SPDY的方案，实际上，HTTP/2.0 也是以 SPDY 作为原型进行开发的。</p>
+
+<h3>SPDY基础功能</h3>
+
+<h4>多路复用（multiplexing)</h4>
+
+<p>多路复用通过多个请求stream共享一个tcp连接的方式，解决了http1.x holb（head of line blocking）的问题，降低了延迟同时提高了带宽的利用率。</p>
+
+<h4>请求优先级（request prioritization)</h4>
+
+<p>多路复用带来一个新的问题是，在连接共享的基础之上有可能会导致关键请求被阻塞。SPDY允许给每个request设置优先级，这样重要的请求就会优先得到响应。比如浏览器加载首页，首页的html内容应该优先展示，之后才是各种静态资源文件，脚本文件等加载，这样可以保证用户能第一时间看到网页内容。</p>
+
+<h4>header压缩</h4>
+
+<p>前面提到过几次http1.x的header很多时候都是重复多余的。选择合适的压缩算法可以减小包的大小和数量。SPDY对header的压缩率可以达到80%以上，低带宽环境下效果很大。</p>
+
+<p>SPDY 现已经被大多数浏览器以及 WEB 服务器所支持，但为了推进 HTTP/2.0, Google 已经宣布在 2016年对其停止开发。</p>
+
+<h2>HTTP/2.0 时代</h2>
+
+<p>2015年5月, HTTP/2.0 在万众瞩目下以RFC 7540正式发表。（热烈鼓掌~啪啪啪啪~~)</p>
+
+<h2>二进制分帧</h2>
+
+<p>在应用层与传输层之间增加一个二进制分帧层，以此达到“在不改动HTTP的语义，HTTP 方法、状态码、URI及首部字段的情况下，突破HTTP1.1的性能限制，改进传输性能，实现低延迟和高吞吐量。”</p>
+
+<p>在二进制分帧层上，HTTP2.0会将所有传输的信息分割为更小的消息和帧,并对它们采用二进制格式的编码，其中HTTP1.x的首部信息会被封装到Headers帧，而我们的request body则封装到Data帧里面。
+<img src="http://7jpo3s.com1.z0.glb.clouddn.com/http-4.png" alt="" /></p>
+
+<h2>压缩头部</h2>
+
+<p>HTTP/2.0规定了在客户端和服务器端会使用并且维护「首部表」来跟踪和存储之前发送的键值对，对于相同的头部，不必再通过请求发送，只需发送一次</p>
+
+<p>事实上,如果请求中不包含首部（例如对同一资源的轮询请求），那么首部开销就是零字节。此时所有首部都自动使用之前请求发送的首部。</p>
+
+<p>如果首部发生变化了，那么只需要发送变化了数据在Headers帧里面，新增或修改的首部帧会被追加到“首部表”。首部表在 HTTP2.0的连接存续期内始终存在,由客户端和服务器共同渐进地更新。
+<img src="http://7jpo3s.com1.z0.glb.clouddn.com/http-5.png" alt="" /></p>
+
+<h2>多路复用</h2>
+
+<p>HTTP/2.0 时代拥有了「多路复用」功能，意思是: 在一条连接上，我可以同时发起无数个请求，并且响应可以同时返回。（这个难点终于被解决了)</p>
+
+<p><img src="http://7jpo3s.com1.z0.glb.clouddn.com/http-6.png" alt="" />
+客户端和服务器可以把HTTP消息分解为互不依赖的帧，然后乱序发送，最后再在另一端把它们重新组合起来。注意，同一链接上有多个不同方向的数据流在传输。客户端可以一边乱序发送stream，也可以一边接收者服务器的响应，而服务器那端同理。
+<img src="http://7jpo3s.com1.z0.glb.clouddn.com/http-7.png" alt="" />
+也就是说，HTTP2.0通信都在一个连接上完成，这个连接可以承载任意数量的双向数据流。就好比，我请求一个页面<a href="http://www.qq.com%E3%80%82%E9%A1%B5%E9%9D%A2%E4%B8%8A%E6%89%80%E6%9C%89%E7%9A%84%E8%B5%84%E6%BA%90%E8%AF%B7%E6%B1%82%E9%83%BD%E6%98%AF%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%8E%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%8A%E7%9A%84%E4%B8%80%E6%9D%A1TCP%E4%B8%8A%E8%AF%B7%E6%B1%82%E5%92%8C%E5%93%8D%E5%BA%94%E7%9A%84%EF%BC%81">http://www.qq.com%E3%80%82%E9%A1%B5%E9%9D%A2%E4%B8%8A%E6%89%80%E6%9C%89%E7%9A%84%E8%B5%84%E6%BA%90%E8%AF%B7%E6%B1%82%E9%83%BD%E6%98%AF%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%8E%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%8A%E7%9A%84%E4%B8%80%E6%9D%A1TCP%E4%B8%8A%E8%AF%B7%E6%B1%82%E5%92%8C%E5%93%8D%E5%BA%94%E7%9A%84%EF%BC%81</a></p>
+
+<p>注意，对一个域名，只需要开启一条 TCP 连接，请求都在这条 TCP 连接上干活。</p>
+
+<p>因此在 HTTP/2.0 时代，之前的合并 JS、CSS 文件技巧，反而不适用了。</p>
+
+<h2>请求优先级</h2>
+
+<p>既然所有资源都是并行发送，那么就需要「优先级」的概念了，这样就可以对重要的文件进行先传输，加速页面的渲染。</p>
+
+<h2>服务器推送</h2>
+
+<p>在 HTTP2.0中，服务器推送是指在客户端请求之前发送数据的机制。如果一个请求是由你的主页发起的，服务器很可能响应主页内容、logo以及样式表，因为它知道客户端会用到这些东西。这相当于在一个 HTML 文档内集合了所有的资源，不过与之相比，服务器推送有一个很大的优势：可以缓存！</p>
+
+<h2>强制 SSL</h2>
+
+<p>虽然 HTTP/2.0 协议并没声明一定要用 SSL，但是 Google Chrome 等浏览器强制要求使用 HTTP/2.0 必须要用上 SSL， 也就是说必须要： <a href="https://">https://</a></p>
+
+<p><a href="http://">http://</a> 将继续使用 http/1.0</p>
+
+<h2>对优化的影响：</h2>
+
+<ol>
+<li>因为“所有的HTTP2.0的请求都在一个TCP链接上”，“资源合并减少请求”，比如CSS Sprites,多个JS文件、CSS文件合并等手段没有效果，或者说没有必要。</li>
+<li>因为“多路复用”，采用“cdn1.cn,cdn2.cn,cdn3.cn，打开多个TCP会话，突破浏览器对同一域名的链接数的限制”的手段是没有必要的。因为因为资源都是并行交错发送，且没有限制，不需要额外的多域名并行下载。</li>
+<li>因为“服务器推送”，内嵌资源的优化手段也变得没有意义了。而且使用服务器推送的资源的方式更加高效，因为客户端还可以缓存起来，甚至可以由不同的页面共享（依旧遵循同源策略）</li>
+</ol>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[React 总结]]></title>
@@ -5727,171 +5888,6 @@ props.detail ===nextProps.detail 还是为true。。
 <p><a href="http://linux.vbird.org/linux_basic/0420quota.php#lvm">http://linux.vbird.org/linux_basic/0420quota.php#lvm</a>
 <a href="http://www.ichiayi.com/wiki/tech/lvm">http://www.ichiayi.com/wiki/tech/lvm</a>
 <a href="http://allen7111382.blog.51cto.com/202304/268562">http://allen7111382.blog.51cto.com/202304/268562</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[后台任务 VS 消息队列 -「译」]]></title>
-    <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/12/26/hou-tai-ren-wu-vs-xiao-xi-dui-lie-%5Byi-%5D/"/>
-    <updated>2014-12-26T14:56:25+08:00</updated>
-    <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2014/12/26/hou-tai-ren-wu-vs-xiao-xi-dui-lie-[yi-]</id>
-    <content type="html"><![CDATA[<h1>后台任务 VS 消息队列</h1>
-
-<p>一件常见的事情，我看到工程师们认为消息队列跟后台任务是相等的。这是他们所忽略的：消息队列是一个后台任务的超集。所有的信息进程都在后台完成，但是后台任务并没有通过消息队列来完成。</p>
-
-<p>拿一个简单的使用例子：当一个用户注册时，我想要去发一条欢迎 email，正常你会想在后台发送这封 Email，因此不影响用户的使用体验，但你真的需要去安装 ActiveMQ，RabbitMQ 或者 Resque 去做这些吗？显然不需要。</p>
-
-<p>在建造一个复杂的系统时消息队列是一个基本的建筑模式。你的许多系统组件也许被不同团队所编写，但是他们用队列实现消息发送来通信，一个组件可以发送消息给另外一个组件说：“请发送这封邮件”。但是消息队列系统有它们的代价：它们是复杂的，因为他们被设计成你的分发系统的地基，他们必须被部署和监控，他们必须是可靠并且高可用的。</p>
-
-<p>很多人安装消息队列去运行简单的后台程序，我认为并不需要这么复杂，我有一个简单的问题：“我是在让两个不同的子系统进行通信还是仅仅在衍生相同的工作？”几乎每一个网站都会立即面临注册邮件案例。想想在用户的浏览器投票结果中，执行一些操作可能需要30-60秒的时间，衍生出单独的线程去运行这些工程是完全充足且太过于简单的，这也是我 girl_friday 项目背后的原因，我想要一个简单并且可靠的方式去运行后台任务，而不需要复杂的消息队列系统。</p>
-
-<h2>总结</h2>
-
-<p>总的来说， 简单的任务用 sidekiq 等后台任务来处理即可。</p>
-
-<p>MQ 适用于比较大型的，异构系统，多个系统间的相互通信。</p>
-
-<p>MQ 是 sidekiq 的超集。</p>
-
-<p>Sidekiq 背后的原理是将任务都放入队列，然后用多个线程去运行任务。</p>
-
-<h2>Sidekiq 使用场景</h2>
-
-<p>比如发邮件，完成一些耗时的任务等。</p>
-
-<p>代码大概是：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># app/workers/hard_worker.rb</span>
-</span><span class='line'><span class="k">class</span> <span class="nc">HardWorker</span>
-</span><span class='line'>  <span class="kp">include</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Worker</span>
-</span><span class='line'>  
-</span><span class='line'>  <span class="c1"># 这里系统会不断将任务压入队列，然后启动线程去执行任务</span>
-</span><span class='line'>  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="nb">name</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
-</span><span class='line'>    <span class="nb">puts</span> <span class="s1">&#39;Doing hard work&#39;</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>MQ 使用场景</h2>
-
-<p>将一堆任务压入消息队列，然后让其他系统取出任务进行实现。</p>
-
-<p>虽然我也可以将「发邮件」压入消息队列，然后在系统内取出进行发邮件，不过总归大材小用</p>
-
-<p>代码大概是：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 发布者</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">Publisher</span>
-</span><span class='line'>  <span class="c1"># In order to publish message we need a exchange name.</span>
-</span><span class='line'>  <span class="c1"># Note that RabbitMQ does not care about the payload -</span>
-</span><span class='line'>  <span class="c1"># we will be using JSON-encoded strings</span>
-</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">publish</span><span class="p">(</span><span class="n">exchange</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="p">{})</span>
-</span><span class='line'>    <span class="c1"># grab the fanout exchange</span>
-</span><span class='line'>    <span class="n">x</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">fanout</span><span class="p">(</span><span class="s2">&quot;blog.</span><span class="si">#{</span><span class="n">exchange</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span class='line'>    <span class="c1"># and simply publish message</span>
-</span><span class='line'>    <span class="n">x</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">to_json</span><span class="p">)</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">channel</span>
-</span><span class='line'>    <span class="vi">@channel</span> <span class="o">||=</span> <span class="n">connection</span><span class="o">.</span><span class="n">create_channel</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1"># We are using default settings here</span>
-</span><span class='line'>  <span class="c1"># The `Bunny.new(...)` is a place to</span>
-</span><span class='line'>  <span class="c1"># put any specific RabbitMQ settings</span>
-</span><span class='line'>  <span class="c1"># like host or port</span>
-</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">connection</span>
-</span><span class='line'>    <span class="vi">@connection</span> <span class="o">||=</span> <span class="no">Bunny</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">tap</span> <span class="k">do</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span>
-</span><span class='line'>      <span class="n">c</span><span class="o">.</span><span class="n">start</span>
-</span><span class='line'>    <span class="k">end</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># 消费者</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># dashboard/app/workers/posts_worker.rb</span>
-</span><span class='line'><span class="k">class</span> <span class="nc">PostsWorker</span>
-</span><span class='line'>  <span class="kp">include</span> <span class="no">Sneakers</span><span class="o">::</span><span class="no">Worker</span>
-</span><span class='line'>  <span class="c1"># This worker will connect to &quot;dashboard.posts&quot; queue</span>
-</span><span class='line'>  <span class="c1"># env is set to nil since by default the actuall queue name would be</span>
-</span><span class='line'>  <span class="c1"># &quot;dashboard.posts_development&quot;</span>
-</span><span class='line'>  <span class="n">from_queue</span> <span class="s2">&quot;dashboard.posts&quot;</span><span class="p">,</span> <span class="ss">env</span><span class="p">:</span> <span class="kp">nil</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1"># work method receives message payload in raw format</span>
-</span><span class='line'>  <span class="c1"># in our case it is JSON encoded string</span>
-</span><span class='line'>  <span class="c1"># which we can pass to RecentPosts service without</span>
-</span><span class='line'>  <span class="c1"># changes</span>
-</span><span class='line'>  <span class="k">def</span> <span class="nf">work</span><span class="p">(</span><span class="n">raw_post</span><span class="p">)</span>
-</span><span class='line'>    <span class="no">RecentPosts</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">raw_post</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">ack!</span> <span class="c1"># we need to let queue know that message was received</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">然后还有</span> <span class="no">Exchange</span> <span class="n">queue</span> <span class="err">绑定啊之类的</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>相信看完代码会对两者的区别更清晰点。</p>
 ]]></content>
   </entry>
   
