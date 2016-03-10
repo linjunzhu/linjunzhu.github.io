@@ -4,7 +4,7 @@
   <title><![CDATA[LinJunzhu's Blog]]></title>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/atom.xml" rel="self"/>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/"/>
-  <updated>2016-03-10T16:38:22+08:00</updated>
+  <updated>2016-03-10T16:41:43+08:00</updated>
   <id>https://github.com/linjunzhu/linjunzhu.github.io.git/</id>
   <author>
     <name><![CDATA[林俊柱]]></name>
@@ -18,13 +18,7 @@
     <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2016/03/10/test/"/>
     <updated>2016-03-10T15:56:02+08:00</updated>
     <id>https://github.com/linjunzhu/linjunzhu.github.io.git/blog/2016/03/10/test</id>
-    <content type="html"><![CDATA[<p><img src="https://github.com/linjunzhu/linjunzhu.github.io.git/images/data/test.png" alt="" /></p>
-
-<p><a href="http://baidu.com/">http://baidu.com/</a></p>
-
-<p><a href="http://baidu.com/images/xxxx">http://baidu.com/images/xxxx</a></p>
-
-<p><a href="http://baidu.com">http://baidu.com</a></p>
+    <content type="html"><![CDATA[<p><img src="../images/data/test.png" alt="" /></p>
 ]]></content>
   </entry>
   
