@@ -1539,6 +1539,13 @@ props.detail ===nextProps.detail 还是为true。。
 <h3>配置</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">vim</span> <span class="sr">/usr/</span><span class="n">local</span><span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">proxychains</span><span class="o">.</span><span class="n">conf</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -1551,11 +1558,7 @@ props.detail ===nextProps.detail 还是为true。。
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">vim</span> <span class="sr">/etc/</span><span class="n">proxychains</span><span class="o">.</span><span class="n">conf</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># edit</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># edit</span>
 </span><span class='line'><span class="n">strict_chain</span>
 </span><span class='line'><span class="n">proxy_dns</span>
 </span><span class='line'><span class="n">remote_dns_subnet</span> <span class="mi">224</span>
@@ -2192,6 +2195,22 @@ props.detail ===nextProps.detail 还是为true。。
 <p>其他系统的安装方式：
 <a href="https://mmonit.com/wiki/Monit/Installation">官网 Wiki</a></p>
 
+<h2>基本操作</h2>
+
+<p><code>monit status</code> : 查看 monit 监控的服务状态 ( 需要开启 web 服务)</p>
+
+<p><code>monit reload</code> : 重新加载配置文件</p>
+
+<p><code>monit -t</code> : 检测配置文件是否正确</p>
+
+<p><code>monit quit</code> : 杀掉进程</p>
+
+<p><code>monit -c /etc/monit/monitrc</code> : 启动 monit</p>
+
+<p><code>monit start server_name</code> : 启动某个服务</p>
+
+<p>其他的输入 <code>monit -h</code> 查看即可。</p>
+
 <h2>介绍</h2>
 
 <p>配置文件位于：<code>/etc/monit/monitrc</code></p>
@@ -2273,11 +2292,6 @@ props.detail ===nextProps.detail 还是为true。。
 <span class='line-number'>56</span>
 <span class='line-number'>57</span>
 <span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-<span class='line-number'>62</span>
-<span class='line-number'>63</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;!--</span> <span class="err">检查周期，单位为秒</span><span class="o">--&gt;</span>
 </span><span class='line'><span class="n">set</span> <span class="n">daemon</span> <span class="mi">120</span>
 </span><span class='line'>
@@ -2291,43 +2305,38 @@ props.detail ===nextProps.detail 还是为true。。
 </span><span class='line'><span class="n">set</span> <span class="n">statefile</span> <span class="sr">/var/</span><span class="n">lib</span><span class="o">/</span><span class="n">monit</span><span class="o">/</span><span class="n">state</span>
 </span><span class='line'>
 </span><span class='line'><span class="o">&lt;!--</span> <span class="err">设置邮件</span><span class="o">--&gt;</span>
-</span><span class='line'><span class="c1"># set mailserver mail.bar.baz,               # primary mailserver</span>
-</span><span class='line'><span class="c1">#                backup.bar.baz port 10025,  # backup mailserver on port 10025</span>
-</span><span class='line'><span class="c1">#                localhost                   # fallback relay</span>
+</span><span class='line'><span class="n">set</span> <span class="n">mailserver</span> <span class="n">smtp</span><span class="o">.</span><span class="n">aa</span><span class="o">.</span><span class="n">com</span> <span class="n">port</span> <span class="mi">25</span> <span class="no">USERNAME</span> <span class="s2">&quot;aa@aa.com&quot;</span> <span class="no">PASSWORD</span> <span class="s2">&quot;123456&quot;</span>
 </span><span class='line'>
 </span><span class='line'><span class="c1"># 如果没配置 email, 会自动丢弃 alert</span>
-</span><span class='line'><span class="c1"># 该设置可以保存 aler</span>
+</span><span class='line'><span class="c1"># 该设置可以保存 alert</span>
 </span><span class='line'><span class="n">set</span> <span class="n">eventqueue</span>
 </span><span class='line'>      <span class="n">basedir</span> <span class="sr">/var/</span><span class="n">lib</span><span class="o">/</span><span class="n">monit</span><span class="o">/</span><span class="n">events</span>
 </span><span class='line'>      <span class="n">slots</span> <span class="mi">100</span>
 </span><span class='line'>
 </span><span class='line'>
 </span><span class='line'><span class="o">&lt;!--</span> <span class="no">Email</span> <span class="err">格式</span> <span class="o">--&gt;</span>
-</span><span class='line'><span class="c1">## set mail-format {</span>
-</span><span class='line'><span class="c1">##      from: monit@$HOST</span>
-</span><span class='line'><span class="c1">##   subject: monit alert --  $EVENT $SERVICE</span>
-</span><span class='line'><span class="c1">##   message: $EVENT Service $SERVICE</span>
-</span><span class='line'><span class="c1">##                 Date:        $DATE</span>
-</span><span class='line'><span class="c1">##                 Action:      $ACTION</span>
-</span><span class='line'><span class="c1">##                 Host:        $HOST</span>
-</span><span class='line'><span class="c1">##                 Description: $DESCRIPTION</span>
-</span><span class='line'><span class="c1">##</span>
-</span><span class='line'><span class="c1">##            Your faithful employee,</span>
-</span><span class='line'><span class="c1">##            Monit</span>
-</span><span class='line'><span class="c1">## }</span>
+</span><span class='line'><span class="n">set</span> <span class="n">mail</span><span class="o">-</span><span class="nb">format</span> <span class="p">{</span>
+</span><span class='line'>     <span class="ss">from</span><span class="p">:</span> <span class="n">monit</span><span class="err">@</span><span class="vg">$HOST</span>
+</span><span class='line'>  <span class="ss">subject</span><span class="p">:</span> <span class="n">monit</span> <span class="n">alert</span> <span class="o">--</span>  <span class="vg">$EVENT</span> <span class="vg">$SERVICE</span>
+</span><span class='line'>  <span class="ss">message</span><span class="p">:</span> <span class="vg">$EVENT</span> <span class="no">Service</span> <span class="vg">$SERVICE</span>
+</span><span class='line'>                <span class="ss">Date</span><span class="p">:</span>        <span class="vg">$DATE</span>
+</span><span class='line'>                <span class="ss">Action</span><span class="p">:</span>      <span class="vg">$ACTION</span>
+</span><span class='line'>                <span class="ss">Host</span><span class="p">:</span>        <span class="vg">$HOST</span>
+</span><span class='line'>                <span class="ss">Description</span><span class="p">:</span> <span class="vg">$DESCRIPTION</span>
 </span><span class='line'>
-</span><span class='line'><span class="o">&lt;!--</span> <span class="no">Email</span> <span class="err">发件人</span> <span class="o">--&gt;</span>
-</span><span class='line'><span class="c1"># set mail-format { from: monit@foo.bar }</span>
-</span><span class='line'><span class="c1">#</span>
-</span><span class='line'><span class="c1">#</span>
+</span><span class='line'>           <span class="no">Your</span> <span class="n">faithful</span> <span class="n">employee</span><span class="p">,</span>
+</span><span class='line'>           <span class="no">Monit</span>
+</span><span class='line'><span class="p">}</span>
 </span><span class='line'>
+</span><span class='line'><span class="c1"># 制定报警邮件的格式</span>
+</span><span class='line'><span class="n">set</span> <span class="n">mail</span><span class="o">-</span><span class="nb">format</span> <span class="p">{</span>
+</span><span class='line'>  <span class="ss">from</span><span class="p">:</span> <span class="n">aa</span><span class="vi">@aa</span><span class="o">.</span><span class="n">com</span>
+</span><span class='line'>  <span class="ss">subject</span><span class="p">:</span> <span class="vg">$SERVICE</span> <span class="vg">$EVENT</span> <span class="n">at</span> <span class="vg">$DATE</span>
+</span><span class='line'>  <span class="ss">message</span><span class="p">:</span> <span class="no">Monit</span> <span class="vg">$ACTION</span> <span class="vg">$SERVICE</span> <span class="n">at</span> <span class="vg">$DATE</span> <span class="n">on</span> <span class="vg">$HOST</span><span class="p">:</span> <span class="vg">$DESCRIPTION</span><span class="o">.</span>
+</span><span class='line'><span class="p">}</span>
 </span><span class='line'>
 </span><span class='line'><span class="o">&lt;!--</span> <span class="no">Email</span> <span class="err">接收人</span><span class="o">--&gt;</span>
-</span><span class='line'><span class="c1"># set alert sysadm@foo.bar                       # receive all alerts</span>
-</span><span class='line'><span class="c1"># set alert manager@foo.bar only on { timeout }  # receive just service-</span>
-</span><span class='line'><span class="c1">#                                                # timeout alert</span>
-</span><span class='line'><span class="c1">#</span>
-</span><span class='line'><span class="c1">#</span>
+</span><span class='line'> <span class="n">set</span> <span class="n">alert</span> <span class="n">sysadm</span><span class="vi">@foo</span><span class="o">.</span><span class="n">bar</span> <span class="n">with</span> <span class="n">reminder</span> <span class="n">on</span> <span class="mi">3</span> <span class="n">cycles</span>
 </span><span class='line'>
 </span><span class='line'><span class="o">&lt;!--</span> <span class="err">开启</span> <span class="n">http</span> <span class="err">服务，查看监控情况</span><span class="o">--&gt;</span>
 </span><span class='line'>
@@ -2354,6 +2363,37 @@ props.detail ===nextProps.detail 还是为true。。
 
 
 <p>因此我们可以给每个要监控的进程写个<code>conf</code>配置文件。</p>
+
+<h2>重载配置</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 检查语法</span>
+</span><span class='line'><span class="n">sudo</span> <span class="n">monit</span> <span class="o">-</span><span class="n">t</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 重载配置</span>
+</span><span class='line'><span class="n">sudo</span> <span class="n">monit</span> <span class="n">reload</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>监控硬盘</h2>
+
+<p>在<code>/etc/monit/conf.d</code>下新建文件<code>filesystem.conf</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">check</span> <span class="n">filesystem</span> <span class="n">datafs</span> <span class="n">with</span> <span class="n">path</span> <span class="sr">/dev/</span><span class="n">vdb</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">space</span> <span class="n">usage</span> <span class="o">&gt;</span> <span class="mi">50</span><span class="o">%</span> <span class="k">then</span> <span class="n">alert</span>
+</span><span class='line'>  <span class="n">group</span> <span class="n">server</span>
+</span></code></pre></td></tr></table></div></figure>
+
 
 <h2>监控 Nginx</h2>
 
@@ -2386,6 +2426,25 @@ props.detail ===nextProps.detail 还是为true。。
 
 
 <p>当我们手动 kill 掉进程，过一会就会发现进程又自动启动了~</p>
+
+<h2>环境</h2>
+
+<p>monit 用的是最基础的环境，个人的环境变量是没加载的，因此如果要执行一些命令，但却找不到命令时，需要注意环境变量的问题。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 这里使用 /bin/su - deploy ，以用户deploy的环境去执行后续命令</span>
+</span><span class='line'><span class="n">check</span> <span class="n">process</span> <span class="n">process_server</span>
+</span><span class='line'>  <span class="n">with</span> <span class="n">pidfile</span> <span class="s2">&quot;xxxx.pid&quot;</span>
+</span><span class='line'>  <span class="n">start</span> <span class="n">program</span> <span class="o">=</span> <span class="s2">&quot;/bin/su - deploy  -c &#39;ruby xxx&quot;</span>
+</span><span class='line'>  <span class="n">stop</span> <span class="n">program</span> <span class="o">=</span> <span class="s2">&quot;/bin/su - deploy  -c &#39;ruby xxx&#39;&quot;</span>
+</span><span class='line'> <span class="k">if</span> <span class="mi">5</span> <span class="n">restarts</span> <span class="n">with</span> <span class="k">in</span> <span class="mi">10</span> <span class="n">cycles</span> <span class="k">then</span> <span class="n">timeout</span>
+</span></code></pre></td></tr></table></div></figure>
+
 
 <h2>搭配 Capistrano</h2>
 
@@ -2460,6 +2519,92 @@ props.detail ===nextProps.detail 还是为true。。
 
 
 <p>因为我们只是上传有关 monit 的配置脚本而已，只需执行一次，因此我们在执行失败后，进入服务器手动输入这两条命令，即可完成。</p>
+
+<h2>Monit 自启动</h2>
+
+<p>如果服务器重启了，也要自启动 monit 才行，我们可以使用 Ubuntu 的 upstart 工具</p>
+
+<p>/etc/init/monit.conf</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'> <span class="c1"># This is an upstart script to keep monit running.</span>
+</span><span class='line'> <span class="c1"># To install disable the old way of doing things:</span>
+</span><span class='line'> <span class="c1">#</span>
+</span><span class='line'> <span class="c1">#   /etc/init.d/monit stop &amp;&amp; update-rc.d -f monit remove</span>
+</span><span class='line'> <span class="c1">#</span>
+</span><span class='line'> <span class="c1"># then put this script here:</span>
+</span><span class='line'> <span class="c1">#</span>
+</span><span class='line'> <span class="c1">#   /etc/init/monit.conf</span>
+</span><span class='line'> <span class="c1">#</span>
+</span><span class='line'> <span class="c1"># and reload upstart configuration:</span>
+</span><span class='line'> <span class="c1">#</span>
+</span><span class='line'> <span class="c1">#   initctl reload-configuration</span>
+</span><span class='line'> <span class="c1">#</span>
+</span><span class='line'> <span class="c1"># You can manually start and stop monit like this:</span>
+</span><span class='line'> <span class="c1"># </span>
+</span><span class='line'> <span class="c1"># start monit</span>
+</span><span class='line'> <span class="c1"># stop monit</span>
+</span><span class='line'> <span class="c1">#</span>
+</span><span class='line'>
+</span><span class='line'> <span class="n">description</span> <span class="s2">&quot;Monit service manager&quot;</span>
+</span><span class='line'>
+</span><span class='line'> <span class="n">limit</span> <span class="n">core</span> <span class="n">unlimited</span> <span class="n">unlimited</span>
+</span><span class='line'>
+</span><span class='line'> <span class="n">start</span> <span class="n">on</span> <span class="n">runlevel</span> <span class="o">[</span><span class="mi">2345</span><span class="o">]</span>
+</span><span class='line'> <span class="n">stop</span> <span class="n">on</span> <span class="n">starting</span> <span class="n">rc</span> <span class="no">RUNLEVEL</span><span class="o">=[</span><span class="mo">016</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'> <span class="n">expect</span> <span class="n">daemon</span>
+</span><span class='line'> <span class="n">respawn</span>
+</span><span class='line'>
+</span><span class='line'> <span class="nb">exec</span> <span class="sr">/usr/</span><span class="n">local</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">monit</span> <span class="o">-</span><span class="n">c</span> <span class="sr">/etc/moni</span><span class="n">t</span><span class="o">/</span><span class="n">monitrc</span>
+</span><span class='line'>
+</span><span class='line'> <span class="n">pre</span><span class="o">-</span><span class="n">stop</span> <span class="nb">exec</span> <span class="sr">/usr/</span><span class="n">local</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">monit</span> <span class="o">-</span><span class="n">c</span> <span class="sr">/etc/moni</span><span class="n">t</span><span class="o">/</span><span class="n">monitrc</span> <span class="n">quit</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 加载配置文件</span>
+</span><span class='line'><span class="n">initctl</span> <span class="n">reload</span><span class="o">-</span><span class="n">configuration</span>
+</span><span class='line'><span class="c1"># 启动 monit</span>
+</span><span class='line'><span class="n">start</span> <span class="n">monit</span>
+</span></code></pre></td></tr></table></div></figure>
+
 
 <h2>详细资料</h2>
 
@@ -3604,7 +3749,7 @@ props.detail ===nextProps.detail 还是为true。。
     <div class="center"><a href="/blog/archives">Blog Archives</a></div>
 </nav>
 </div>
-	<footer id="footer" class="inner">Copyright &copy; 2016
+	<footer id="footer" class="inner">Copyright &copy; 2018
 
     林俊柱
 
