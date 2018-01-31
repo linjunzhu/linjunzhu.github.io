@@ -80,8 +80,12 @@ brew install proxychains-ng
 ```
 
 ### 配置
+
+```
+$ vim /usr/local/etc/proxychains.conf
+```
+
 ```ruby
-vim /etc/proxychains.conf
 
 # edit
 strict_chain

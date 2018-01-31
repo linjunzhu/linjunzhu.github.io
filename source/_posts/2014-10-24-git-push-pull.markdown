@@ -16,6 +16,7 @@ categories:
 
 ```ruby
 # 如果当前分支跟远程分支有 tracking 关系，那么将会自动推送当前分支到对应的远程分支
+# 如果没有 tracking 关系，则报错
 git push origin 
 
 # 如果主机名只有一个 origin，那么连 origin 都可以省略
@@ -81,7 +82,9 @@ $ git merge origin/master
 ```
 
 ###Tips
-如果当前分支跟远程分支是没有 tracking 关系的，那么执行`git pull`后，会 download 远程仓库的所有分支代码到本地的 origin/分支上，但是不会合并，相当于 `git fetch` 命令一样。
+1、如果当前分支跟远程分支是没有 tracking 关系的，那么执行`git pull`后，会报错
+
+2、如果当前分支有 tracking 关系，会 download 远程仓库的所有分支代码到本地的 origin/分支上，但是只会合并当前分支，其他分支相当于 `git fetch` 命令一样。
 
 
 
@@ -128,7 +131,18 @@ git pull origin dev
 ####三、切换远程分支
 当小伙伴的新建分支 push 到远程分支，我们也想要拉取这条分支
 ```ruby
-# 如果当前分支没有tracking关系，那么git fetch 默认拉取所有分支
+# 无论有无 tracking, git fetch 都会拉取所有分支
 git fetch origin test_branch 
+
+# 拉取所有分支
+git fetch
+
+# 或者直接在有 tracking 关系的分支上(拉取所有分支，但只合并当前分支)
+git pull
+
 git checkout test_branch
+
+# 也可以直接本地创建分支，然后 pull 下
+git checkout -b test_branch -t
+git pull origin test_branch
 ```

@@ -19,7 +19,24 @@ aptitude install monit
 其他系统的安装方式：
 [官网 Wiki](https://mmonit.com/wiki/Monit/Installation)
 
+## 基本操作
+
+`monit status` : 查看 monit 监控的服务状态 ( 需要开启 web 服务)
+
+`monit reload` : 重新加载配置文件
+
+`monit -t` : 检测配置文件是否正确
+
+`monit quit` : 杀掉进程
+
+`monit -c /etc/monit/monitrc` : 启动 monit 
+
+`monit start server_name` : 启动某个服务
+
+其他的输入 `monit -h` 查看即可。
+
 ## 介绍
+
 配置文件位于：`/etc/monit/monitrc`
 
 打开 Web 服务，查看监控情况
@@ -48,43 +65,38 @@ set idfile /var/lib/monit/id
 set statefile /var/lib/monit/state
 
 <!-- 设置邮件-->
-# set mailserver mail.bar.baz,               # primary mailserver
-#                backup.bar.baz port 10025,  # backup mailserver on port 10025
-#                localhost                   # fallback relay
+set mailserver smtp.aa.com port 25 USERNAME "aa@aa.com" PASSWORD "123456"
 
 # 如果没配置 email, 会自动丢弃 alert
-# 该设置可以保存 aler
+# 该设置可以保存 alert
 set eventqueue
       basedir /var/lib/monit/events
       slots 100
 
 
 <!-- Email 格式 -->
-## set mail-format {
-##      from: monit@$HOST
-##   subject: monit alert --  $EVENT $SERVICE
-##   message: $EVENT Service $SERVICE
-##                 Date:        $DATE
-##                 Action:      $ACTION
-##                 Host:        $HOST
-##                 Description: $DESCRIPTION
-##
-##            Your faithful employee,
-##            Monit
-## }
+set mail-format {
+     from: monit@$HOST
+  subject: monit alert --  $EVENT $SERVICE
+  message: $EVENT Service $SERVICE
+                Date:        $DATE
+                Action:      $ACTION
+                Host:        $HOST
+                Description: $DESCRIPTION
 
-<!-- Email 发件人 -->
-# set mail-format { from: monit@foo.bar }
-#
-#
+           Your faithful employee,
+           Monit
+}
 
+# 制定报警邮件的格式
+set mail-format {
+	from: aa@aa.com
+	subject: $SERVICE $EVENT at $DATE
+	message: Monit $ACTION $SERVICE at $DATE on $HOST: $DESCRIPTION.
+}
 
 <!-- Email 接收人-->
-# set alert sysadm@foo.bar                       # receive all alerts
-# set alert manager@foo.bar only on { timeout }  # receive just service-
-#                                                # timeout alert
-#
-#
+ set alert sysadm@foo.bar with reminder on 3 cycles 
 
 <!-- 开启 http 服务，查看监控情况-->
 
@@ -98,7 +110,6 @@ set httpd port 2812 and
    # allow @users readonly  # allow users of group 'users' to connect readonly
 
 include /etc/monit/conf.d/*
-
 ```
 
 我们会在在`monitrc` 文件中的末尾看到这句
@@ -109,6 +120,30 @@ include /etc/monit/conf.d/*
 
 因此我们可以给每个要监控的进程写个`conf`配置文件。
 
+## 重载配置
+
+```
+# 检查语法
+sudo monit -t
+```
+
+```
+# 重载配置
+sudo monit reload
+```
+
+## 监控硬盘
+
+在`/etc/monit/conf.d`下新建文件`filesystem.conf`
+
+```
+check filesystem datafs with path /dev/vdb
+	if space usage > 50% then alert
+	group server
+```
+
+
+
 ## 监控 Nginx
 
 在`/etc/monit/conf.d`下新建文件`nginx.conf`
@@ -118,6 +153,7 @@ check process nginx with pidfile /opt/nginx/logs/nginx.pid
   stop program  = "/etc/init.d/nginx stop"
   group www-data
 ```
+
 
 ##监控 Puma
 在`/etc/monit/conf.d`下新建文件`puma.conf`
@@ -130,6 +166,17 @@ check process puma_glassx
 
 当我们手动 kill 掉进程，过一会就会发现进程又自动启动了~
 
+## 环境
+monit 用的是最基础的环境，个人的环境变量是没加载的，因此如果要执行一些命令，但却找不到命令时，需要注意环境变量的问题。
+
+```
+# 这里使用 /bin/su - deploy ，以用户deploy的环境去执行后续命令
+check process process_server
+  with pidfile "xxxx.pid"
+  start program = "/bin/su - deploy  -c 'ruby xxx"
+  stop program = "/bin/su - deploy  -c 'ruby xxx'"
+ if 5 restarts with in 10 cycles then timeout
+```
 
 ##搭配 Capistrano
 打开`capfile`
@@ -176,8 +223,59 @@ sudo mv /tmp/monit.conf /etc/monit/conf.d/sidekiq_glassx.conf
 
 因为我们只是上传有关 monit 的配置脚本而已，只需执行一次，因此我们在执行失败后，进入服务器手动输入这两条命令，即可完成。
 
+## Monit 自启动
+
+如果服务器重启了，也要自启动 monit 才行，我们可以使用 Ubuntu 的 upstart 工具
+
+/etc/init/monit.conf
+
+```ruby
+ # This is an upstart script to keep monit running.
+ # To install disable the old way of doing things:
+ #
+ #   /etc/init.d/monit stop && update-rc.d -f monit remove
+ #
+ # then put this script here:
+ #
+ #   /etc/init/monit.conf
+ #
+ # and reload upstart configuration:
+ #
+ #   initctl reload-configuration
+ #
+ # You can manually start and stop monit like this:
+ # 
+ # start monit
+ # stop monit
+ #
+
+ description "Monit service manager"
+
+ limit core unlimited unlimited
+
+ start on runlevel [2345]
+ stop on starting rc RUNLEVEL=[016]
+
+ expect daemon
+ respawn
+
+ exec /usr/local/bin/monit -c /etc/monit/monitrc
+
+ pre-stop exec /usr/local/bin/monit -c /etc/monit/monitrc quit
+
+```
+
+```shell
+# 加载配置文件
+initctl reload-configuration
+# 启动 monit
+start monit
+```
+
+
 
 ## 详细资料
+
 官网 WIKI：
 
 [https://mmonit.com/wiki/Monit/ConfigurationExamples#NginX](https://mmonit.com/wiki/Monit/ConfigurationExamples#NginX)
