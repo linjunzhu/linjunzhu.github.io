@@ -4,7 +4,7 @@
   <title><![CDATA[LinJunzhu's Blog]]></title>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/atom.xml" rel="self"/>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/"/>
-  <updated>2018-01-31T17:43:10+08:00</updated>
+  <updated>2018-03-14T18:18:02+08:00</updated>
   <id>https://github.com/linjunzhu/linjunzhu.github.io.git/</id>
   <author>
     <name><![CDATA[林俊柱]]></name>
@@ -3319,6 +3319,92 @@ props.detail ===nextProps.detail 还是为true。。
 <p>1、调用接口时，反应接口返回了<code>500</code>，看了下，发现是服务器接收到的请求头为：content-type: application/json，但是请求体却是以<code>application/x-www-form-urlencoded</code>的形式进行编码的，因此两者不对称，解析出错。</p>
 
 <p>2、调用接口时，返回的并不是 json 数据，check 后，发现调用接口时，没加 Accept: application/json，并且 URL 尾部没加<code>.json</code>，因此服务器就果断返回<code>text/html</code>对应的数据回去啦~~~</p>
+
+<h2>需注意的点</h2>
+
+<p>如果没有手动指定 <code>Accept</code>头，一些 HTTP 请求包装库会手动给 <code>Accept</code> 头加上一些信息。如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">Accept</span><span class="p">:</span> <span class="n">application</span><span class="o">/</span><span class="n">json</span><span class="p">,</span><span class="n">text</span><span class="o">/</span><span class="n">plain</span><span class="p">,</span> <span class="o">*/*</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这种情况，Rails 是不认前面的 <code>application/json</code>的，最终 <code>request.format</code> 只会返回 <code>text/html</code>.</p>
+
+<p>原因如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'> <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="n">view_path</span> <span class="o">=</span> <span class="o">[]</span><span class="p">)</span>
+</span><span class='line'>   <span class="n">formats</span><span class="o">.</span><span class="n">first</span> <span class="o">||</span> <span class="no">Mime</span><span class="o">::</span><span class="no">NullType</span><span class="o">.</span><span class="n">instance</span>
+</span><span class='line'> <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'> <span class="k">def</span> <span class="nf">formats</span>
+</span><span class='line'>   <span class="n">fetch_header</span><span class="p">(</span><span class="s2">&quot;action_dispatch.request.formats&quot;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">k</span><span class="o">|</span>
+</span><span class='line'>     <span class="n">params_readable</span> <span class="o">=</span> <span class="k">begin</span>
+</span><span class='line'>                         <span class="n">parameters</span><span class="o">[</span><span class="ss">:format</span><span class="o">]</span>
+</span><span class='line'>                       <span class="k">rescue</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">BadRequest</span>
+</span><span class='line'>                         <span class="kp">false</span>
+</span><span class='line'>                       <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>     <span class="n">v</span> <span class="o">=</span> <span class="k">if</span> <span class="n">params_readable</span>
+</span><span class='line'>       <span class="nb">Array</span><span class="p">(</span><span class="no">Mime</span><span class="o">[</span><span class="n">parameters</span><span class="o">[</span><span class="ss">:format</span><span class="o">]]</span><span class="p">)</span>
+</span><span class='line'>     <span class="k">elsif</span> <span class="n">use_accept_header</span> <span class="o">&amp;&amp;</span> <span class="n">valid_accept_header</span>
+</span><span class='line'>       <span class="n">accepts</span>
+</span><span class='line'>     <span class="k">elsif</span> <span class="n">extension_format</span> <span class="o">=</span> <span class="n">format_from_path_extension</span>
+</span><span class='line'>       <span class="o">[</span><span class="n">extension_format</span><span class="o">]</span>
+</span><span class='line'>     <span class="k">elsif</span> <span class="n">xhr?</span>
+</span><span class='line'>       <span class="o">[</span><span class="no">Mime</span><span class="o">[</span><span class="ss">:js</span><span class="o">]]</span>
+</span><span class='line'>     <span class="k">else</span>
+</span><span class='line'>       <span class="o">[</span><span class="no">Mime</span><span class="o">[</span><span class="ss">:html</span><span class="o">]]</span>
+</span><span class='line'>     <span class="k">end</span>
+</span><span class='line'>     <span class="n">set_header</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span>
+</span><span class='line'>   <span class="k">end</span>
+</span><span class='line'> <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'> <span class="c1"># 这里一旦匹配到  ,*/* | */*, 就会忽视掉整个 Accept 了。</span>
+</span><span class='line'> <span class="no">BROWSER_LIKE_ACCEPTS</span> <span class="o">=</span> <span class="sr">/,\s*\*\/\*|\*\/\*\s*,/</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">valid_accept_header</span> <span class="c1"># :doc:</span>
+</span><span class='line'>    <span class="p">(</span><span class="n">xhr?</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">accept</span><span class="o">.</span><span class="n">present?</span> <span class="o">||</span> <span class="n">content_mime_type</span><span class="p">))</span> <span class="o">||</span>
+</span><span class='line'>       <span class="p">(</span><span class="n">accept</span><span class="o">.</span><span class="n">present?</span> <span class="o">&amp;&amp;</span> <span class="n">accept</span> <span class="o">!~</span> <span class="no">BROWSER_LIKE_ACCEPTS</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
 ]]></content>
   </entry>
   
