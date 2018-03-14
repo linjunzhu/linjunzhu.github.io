@@ -265,7 +265,7 @@ sudo mv /tmp/monit.conf /etc/monit/conf.d/sidekiq_glassx.conf
 
 ```
 
-```shell
+```
 # 加载配置文件
 initctl reload-configuration
 # 启动 monit

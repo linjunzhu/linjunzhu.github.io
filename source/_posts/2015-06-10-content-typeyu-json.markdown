@@ -71,6 +71,7 @@ PNG ... content of chrome.png ...
 直接在 URL 尾部添加 `.json`，这种方式需要服务端的支持，告诉服务端，我需要`json`的响应
 
 在 Rails 中，如果附带`.json`，会自动解析成一个参数 params[:format] = 'json'，之后便能通过代码针对不同解析返回不同数据
+
 ```ruby
 # Rails 会自动处理 Accept 以及 .json 两种情况
 respond_to do |format|
@@ -81,6 +82,7 @@ end
 
 ###三、
 在 Rails 中设置默认 format
+
 ```ruby
 resources :users, defaults: {format: :json}
 ```
@@ -95,3 +97,55 @@ resources :users, defaults: {format: :json}
 1、调用接口时，反应接口返回了`500`，看了下，发现是服务器接收到的请求头为：content-type: application/json，但是请求体却是以`application/x-www-form-urlencoded`的形式进行编码的，因此两者不对称，解析出错。
 
 2、调用接口时，返回的并不是 json 数据，check 后，发现调用接口时，没加 Accept: application/json，并且 URL 尾部没加`.json`，因此服务器就果断返回`text/html`对应的数据回去啦~~~
+
+
+##需注意的点
+如果没有手动指定 `Accept`头，一些 HTTP 请求包装库会手动给 `Accept` 头加上一些信息。如：
+
+```
+Accept: application/json,text/plain, */*;
+```
+
+
+这种情况，Rails 是不认前面的 `application/json`的，最终 `request.format` 只会返回 `text/html`.
+
+原因如下：
+
+```
+ def format(view_path = [])
+   formats.first || Mime::NullType.instance
+ end
+
+ def formats
+   fetch_header("action_dispatch.request.formats") do |k|
+     params_readable = begin
+                         parameters[:format]
+                       rescue ActionController::BadRequest
+                         false
+                       end
+
+     v = if params_readable
+       Array(Mime[parameters[:format]])
+     elsif use_accept_header && valid_accept_header
+       accepts
+     elsif extension_format = format_from_path_extension
+       [extension_format]
+     elsif xhr?
+       [Mime[:js]]
+     else
+       [Mime[:html]]
+     end
+     set_header k, v
+   end
+ end
+ 
+ # 这里一旦匹配到  ,*/* | */*, 就会忽视掉整个 Accept 了。
+ BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
+
+def valid_accept_header # :doc:
+    (xhr? && (accept.present? || content_mime_type)) ||
+       (accept.present? && accept !~ BROWSER_LIKE_ACCEPTS)
+end
+
+```
+
