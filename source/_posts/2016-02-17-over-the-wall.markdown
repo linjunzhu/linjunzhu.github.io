@@ -68,7 +68,7 @@ export http_proxy=proxy_addr:port
 
 但是 ShadowSocks 是通过 SOCKS5 的方式，并不支持 HTTP 流量，因此我们需要工具来将流量转换成 SOCKS5 并且转发给 SS 代理服务。
 
-常见的工具有 ProxyChains-NG
+常见的工具有 ProxyChains-NG、polipo
 
 ## ProxyChains-NG
 
@@ -127,6 +127,73 @@ SHELL 发出 request => ProxyChains-NG 将 HTTP 流量转换成 SOCKS5 流量 =>
 3. 执行: csrutil disable
 4. 如果想恢复，可以执行: csrutil enable
 
+
+
+## polipo
+
+```
+brew install polipo
+```
+
+```
+vim /usr/local/opt/polipo/homebrew.mxcl.polipo.plist
+```
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+ <plist version="1.0">
+   <dict>
+     <key>Label</key>
+     <string>homebrew.mxcl.polipo</string>
+     <key>RunAtLoad</key>
+     <true/>
+     <key>KeepAlive</key>
+     <true/>
+     <key>ProgramArguments</key>
+     <array>
+       <string>/usr/local/opt/polipo/bin/polipo</string>
+       <string>socksParentProxy=localhost:1080</string>
+     </array>
+     <!-- Set `ulimit -n 65536`. The default macOS limit is 256, that's
+          not enough for Polipo (displays 'too many files open' errors).
+          It seems like you have no reason to lower this limit
+          (and unlikely will want to raise it). -->
+     <key>SoftResourceLimits</key>
+     <dict>
+       <key>NumberOfFiles</key>
+       <integer>65536</integer>
+     </dict>
+   </dict>
+ </plist>
+``` 
+ 
+开机自启动
+
+```
+ln -sfv /usr/local/opt/polipo/*.plist ~/Library/LaunchAgents
+launchctl load ~/Library/LaunchAgents/homebrew.mxcl.polipo.plist
+```
+
+```
+vim ~/.zshrc
+```
+
+```
+alias proxy="export http_proxy=http://localhost:8123;export https_proxy=http://localhost:8123"  # 开启
+alias unproxy="unset http_proxy"  # 关闭
+```
+
+```
+# 开始使用代理
+$ proxy
+$ todo ...
+
+
+# 取消使用代理
+$ unproxy
+$ todo ...
+```
 
 ## Ping 命令
 
