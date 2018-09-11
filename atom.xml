@@ -4,7 +4,7 @@
   <title><![CDATA[LinJunzhu's Blog]]></title>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/atom.xml" rel="self"/>
   <link href="https://github.com/linjunzhu/linjunzhu.github.io.git/"/>
-  <updated>2018-03-14T18:18:02+08:00</updated>
+  <updated>2018-09-11T17:54:30+08:00</updated>
   <id>https://github.com/linjunzhu/linjunzhu.github.io.git/</id>
   <author>
     <name><![CDATA[林俊柱]]></name>
@@ -1372,7 +1372,7 @@ props.detail ===nextProps.detail 还是为true。。
 
 <p>但是 ShadowSocks 是通过 SOCKS5 的方式，并不支持 HTTP 流量，因此我们需要工具来将流量转换成 SOCKS5 并且转发给 SS 代理服务。</p>
 
-<p>常见的工具有 ProxyChains-NG</p>
+<p>常见的工具有 ProxyChains-NG、polipo</p>
 
 <h2>ProxyChains-NG</h2>
 
@@ -1463,6 +1463,125 @@ props.detail ===nextProps.detail 还是为true。。
 <li>执行: csrutil disable</li>
 <li>如果想恢复，可以执行: csrutil enable</li>
 </ol>
+
+
+<h2>polipo</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">brew</span> <span class="n">install</span> <span class="n">polipo</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">vim</span> <span class="sr">/usr/</span><span class="n">local</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">polipo</span><span class="o">/</span><span class="n">homebrew</span><span class="o">.</span><span class="n">mxcl</span><span class="o">.</span><span class="n">polipo</span><span class="o">.</span><span class="n">plist</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="p">?</span><span class="n">xml</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;1.0&quot;</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;UTF-8&quot;</span><span class="sc">?&gt;</span>
+</span><span class='line'><span class="o">&lt;!</span><span class="no">DOCTYPE</span> <span class="n">plist</span> <span class="no">PUBLIC</span> <span class="s2">&quot;-//Apple//DTD PLIST 1.0//EN&quot;</span> <span class="s2">&quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;</span><span class="o">&gt;</span>
+</span><span class='line'> <span class="o">&lt;</span><span class="n">plist</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;1.0&quot;</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="o">&lt;</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>     <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="no">Label</span><span class="o">&lt;</span><span class="sr">/key&gt;</span>
+</span><span class='line'><span class="sr">     &lt;string&gt;homebrew.mxcl.polipo&lt;/s</span><span class="n">tring</span><span class="o">&gt;</span>
+</span><span class='line'>     <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="no">RunAtLoad</span><span class="o">&lt;</span><span class="sr">/key&gt;</span>
+</span><span class='line'><span class="sr">     &lt;true/</span><span class="o">&gt;</span>
+</span><span class='line'>     <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="no">KeepAlive</span><span class="o">&lt;</span><span class="sr">/key&gt;</span>
+</span><span class='line'><span class="sr">     &lt;true/</span><span class="o">&gt;</span>
+</span><span class='line'>     <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="no">ProgramArguments</span><span class="o">&lt;</span><span class="sr">/key&gt;</span>
+</span><span class='line'><span class="sr">     &lt;array&gt;</span>
+</span><span class='line'><span class="sr">       &lt;string&gt;/us</span><span class="n">r</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">polipo</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">polipo</span><span class="o">&lt;</span><span class="sr">/string&gt;</span>
+</span><span class='line'><span class="sr">       &lt;string&gt;socksParentProxy=localhost:1080&lt;/s</span><span class="n">tring</span><span class="o">&gt;</span>
+</span><span class='line'>     <span class="o">&lt;</span><span class="sr">/array&gt;</span>
+</span><span class='line'><span class="sr">     &lt;!-- Set `ulimit -n 65536`. The default macOS limit is 256, that&#39;s</span>
+</span><span class='line'><span class="sr">          not enough for Polipo (displays &#39;too many files open&#39; errors).</span>
+</span><span class='line'><span class="sr">          It seems like you have no reason to lower this limit</span>
+</span><span class='line'><span class="sr">          (and unlikely will want to raise it). --&gt;</span>
+</span><span class='line'><span class="sr">     &lt;key&gt;SoftResourceLimits&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>     <span class="o">&lt;</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>       <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="no">NumberOfFiles</span><span class="o">&lt;</span><span class="sr">/key&gt;</span>
+</span><span class='line'><span class="sr">       &lt;integer&gt;65536&lt;/in</span><span class="n">teger</span><span class="o">&gt;</span>
+</span><span class='line'>     <span class="o">&lt;</span><span class="sr">/dict&gt;</span>
+</span><span class='line'><span class="sr">   &lt;/</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'> <span class="o">&lt;</span><span class="sr">/plist&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<p>开机自启动</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">ln</span> <span class="o">-</span><span class="n">sfv</span> <span class="sr">/usr/</span><span class="n">local</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">polipo</span><span class="o">/*.</span><span class="n">plist</span> <span class="o">~</span><span class="sr">/Library/</span><span class="no">LaunchAgents</span>
+</span><span class='line'><span class="n">launchctl</span> <span class="nb">load</span> <span class="o">~</span><span class="sr">/Library/</span><span class="no">LaunchAgents</span><span class="o">/</span><span class="n">homebrew</span><span class="o">.</span><span class="n">mxcl</span><span class="o">.</span><span class="n">polipo</span><span class="o">.</span><span class="n">plist</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">vim</span> <span class="o">~</span><span class="sr">/.zshrc</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">alias</span> <span class="n">proxy</span><span class="o">=</span><span class="s2">&quot;export http_proxy=http://localhost:8123;export https_proxy=http://localhost:8123&quot;</span>  <span class="c1"># 开启</span>
+</span><span class='line'><span class="k">alias</span> <span class="n">unproxy</span><span class="o">=</span><span class="s2">&quot;unset http_proxy&quot;</span>  <span class="c1"># 关闭</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 开始使用代理</span>
+</span><span class='line'><span class="err">$</span> <span class="n">proxy</span>
+</span><span class='line'><span class="err">$</span> <span class="n">todo</span> <span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># 取消使用代理</span>
+</span><span class='line'><span class="err">$</span> <span class="n">unproxy</span>
+</span><span class='line'><span class="err">$</span> <span class="n">todo</span> <span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>Ping 命令</h2>
